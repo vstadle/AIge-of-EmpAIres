@@ -6,8 +6,12 @@ from ArcheryRange import ArcheryRange
 from Stable import Stable
 from House import House
 from Camp import Camp
+from Ressources import Ressources
+from Gold import Gold
+from Food import Food
+from Wood import Wood
 
-
+import random
 
 class Map():
 
@@ -16,16 +20,37 @@ class Map():
         self.players = []
         self.buildings = []
 
+    def generateSizeRessources(self, r):
+        
+        x = 40
+        y = 40
+
+        r_x = random.randint(1, 4)
+        r_y = random.randint(1,3)
+        for i in range(r_x):
+            for j in range(r_y):
+                self.addRessources(r, x + i, y+j)
+
+
     def addPlayer(self, player):
         self.players.append(player)
 
     def printMap(self):
-        i = 35
-        j = 35
-        for i in range(50):
-            for j in range(50):
+        self.map[0][0] = "R"
+        for i in range(35, 70):
+            for j in range(35, 70):
                 print(self.map[i][j], end=" ")
             print()
+
+    def addRessources(self, Ressources, x,y):
+        letter = "P"
+        if(isinstance(Ressources,Food)):
+            letter = "F"
+        elif(isinstance(Ressources,Wood)):
+            letter = "W"
+        elif(isinstance(Ressources,Gold)):
+            letter = "G"
+        self.map[x][y] = letter 
 
     def addBuilding(self, building, x, y):
         letter = "P"
