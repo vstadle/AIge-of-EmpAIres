@@ -4,6 +4,7 @@ from TownCenter import TownCenter
 from Farm import Farm
 from Keep import Keep
 from Player import Player
+from Gold import Gold
 
 def main():
     map = Map()
@@ -11,7 +12,8 @@ def main():
     f = Farm()
     k = Keep()
     print(tc)
-    map.addBuilding(k, 35, 35)
+    map.addBuilding(tc, 60, 60)
+    map.generateSizeRessources(Gold())
     map.printMap()
 
 if __name__ == "__main__":
