@@ -1,7 +1,7 @@
 from Ressources import Ressources
 
 
-class Food():
+class Food(Ressources):
 
     def __init__(self):
         super().__init__(300,300)
