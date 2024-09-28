@@ -20,13 +20,10 @@ class Map():
         self.players = []
         self.buildings = []
 
-    def generateSizeRessources(self, r):
+    def generateSizeRessources(self, r, x, y):
         
-        x = 40
-        y = 40
-
-        r_x = random.randint(1, 4)
-        r_y = random.randint(1,3)
+        r_x = random.randint(1, 5)
+        r_y = random.randint(1,5)
         for i in range(r_x):
             for j in range(r_y):
                 self.addRessources(r, x + i, y+j)
