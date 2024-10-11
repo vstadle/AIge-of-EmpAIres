@@ -1,6 +1,8 @@
 
 class Units():
 
+
+    #Parameters costF: int, costG: int, costW: int, health: int, trainingTime: int, attack: int, speedAtack: int, speed: int, range: int
     def __init__(self, costF, costG, costW, health, trainingTime, attack, speedAtack, speed, range):
         self.costF = costF
         self.costG = costG
@@ -24,3 +26,13 @@ class Units():
         print("Attack: ", self.attack)
         print("Speed Atack: ", self.speedAtack)
         print("Speed: ", self.speed)
+
+
+    #Parameters target: Units
+    def attack(self, target):
+        target.health -= self.attack
+
+    #Parameters target: Building
+    def attackBuildings(self, target):
+        target.health -= self.attack
+        
