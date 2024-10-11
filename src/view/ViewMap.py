@@ -1,6 +1,7 @@
 import pygame
 import sys 
 from model.Map import Map
+from controller.ControllerMap import Controllermap
 
 class ViewMap():
     TILE_SIZE = 20  # Taille d'une cellule (20x20 pixels)
@@ -11,9 +12,9 @@ class ViewMap():
     GRAY = (200, 200, 200)
     font = pygame.font.Font(None, 30)
 
-    def __init__(self,map):
+    def __init__(self,map,cmap):
         self.map = map #Reference vers le modèle Map
-    
+        self.cmap = cmap #Reference vers le controleur de la fênetre
     def draw_map(self):
 
         pygame.init()
