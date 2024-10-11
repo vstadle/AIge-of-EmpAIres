@@ -1,3 +1,4 @@
+import curses
 from TownCenter import TownCenter 
 from Farm import Farm
 from Keep import Keep
@@ -33,40 +34,63 @@ class Map():
         self.players.append(player)
 
     def printMap(self):
-        self.map[0][0] = "R"
+        self.map[0][0] = 'R'
         for i in range(35, 70):
             for j in range(35, 70):
-                print(self.map[i][j], end=" ")
+                print(self.map[i][j], end=' ')
             print()
 
+    def draw_map(self, win):
+
+        win.clear()
+
+        for i in range(37):
+                win.addch(0,i,'-')
+        
+        for j in range(37):
+            win.addch(37,j,'-')
+
+        for i in range(1, 37):
+            win.addch(i, 0, '|')
+            win.addch(i, 36, '|')
+        '''
+        for i in range(35, 70):
+            for j in range(35, 70):
+                win.addch(i - 35, j - 35, self.map[i][j])
+        '''
+        
+        win.refresh()
+
+        #win.getch()
+
     def addRessources(self, Ressources, x,y):
-        letter = "P"
+        letter = 'P'
         if(isinstance(Ressources,Food)):
-            letter = "F"
+            letter = 'F'
         elif(isinstance(Ressources,Wood)):
-            letter = "W"
+            letter = 'W'
         elif(isinstance(Ressources,Gold)):
-            letter = "G"
+            letter = 'G'
         self.map[x][y] = letter 
 
     def addBuilding(self, building, x, y):
-        letter = "P"
+        letter = 'P'
         if(isinstance(building, Farm)):
-            letter = "F"
+            letter = 'F'
         elif(isinstance(building, TownCenter)):
-            letter = "T"
+            letter = 'T'
         elif(isinstance(building, Barracks)):
-            letter = "B"
+            letter = 'B'
         elif(isinstance(building, ArcheryRange)):
-            letter = "A"
+            letter = 'A'
         elif(isinstance(building, Stable)):
-            letter = "S"
+            letter = 'S'
         elif(isinstance(building, House)):
-            letter = "H"
+            letter = 'H'
         elif(isinstance(building, Keep)):
-            letter = "K"
+            letter = 'K'
         elif(isinstance(building, Camp)):
-            letter = "C"
+            letter = 'C'
         
         self.buildings.append(building)
         for i in range (building.sizeMap):

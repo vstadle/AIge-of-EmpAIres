@@ -1,3 +1,4 @@
+import curses
 from Map import Map
 from Buildings import Buildings
 from TownCenter import TownCenter
@@ -7,7 +8,8 @@ from Player import Player
 from Gold import Gold
 from Wood import Wood
 
-def main():
+def main(stdscr):
+
     map = Map()
     tc = TownCenter()
     f = Farm()
@@ -18,5 +20,14 @@ def main():
     map.generateSizeRessources(Wood(), 40, 40)
     map.printMap()
 
+    #map.draw_map(stdscr)
+
+    while True:
+        map.draw_map(stdscr)
+        key = stdscr.getch()
+
+        if key == ord('q'):
+            break
+
 if __name__ == "__main__":
-    main()
+    curses.wrapper(main)
