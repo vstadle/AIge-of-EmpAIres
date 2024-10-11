@@ -18,6 +18,7 @@ def main(stdscr):
     map.addBuilding(tc, 60, 60)
     map.generateSizeRessources(Gold(), 48, 48)
     map.generateSizeRessources(Wood(), 40, 40)
+    map.generateForest()
     map.printMap()
 
     #map.draw_map(stdscr)
