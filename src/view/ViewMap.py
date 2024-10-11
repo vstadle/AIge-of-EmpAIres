@@ -1,47 +1,50 @@
 import pygame
 import sys 
-from model.Map import Map
-from controller.ControllerMap import Controllermap
 
 class ViewMap():
-    TILE_SIZE = 20  # Taille d'une cellule (20x20 pixels)
-    GRID_WIDTH = 35  # Largeur de la grille en nombre de cellules
-    GRID_HEIGHT = 35  # Hauteur de la grille en nombre de cellules
-    WHITE = (255, 255, 255)
-    BLACK = (0, 0, 0)
-    GRAY = (200, 200, 200)
-    font = pygame.font.Font(None, 30)
 
-    def __init__(self,map,cmap):
-        self.map = map #Reference vers le modèle Map
-        self.cmap = cmap #Reference vers le controleur de la fênetre
-    def draw_map(self):
+    def __init__(self, map, cmap):
+        self.map = map  # Référence vers le modèle Map
+        self.cmap = cmap  # Référence vers le contrôleur de la fenêtre
+        
+        # Taille et dimensions de la grille
+        self.TILE_SIZE = 25  # Taille d'une cellule (20x20 pixels)
+        self.GRID_WIDTH = 50  # Largeur de la grille en nombre de cellules
+        self.GRID_HEIGHT = 50  # Hauteur de la grille en nombre de cellules
+        
+        # Couleurs
+        self.WHITE = (255, 255, 255)
+        self.BLACK = (0, 0, 0)
+        self.GRAY = (200, 200, 200)
+        
+        # Initialisation de la police
+        self.font = pygame.font.Font(None, 30)
 
-        pygame.init()
-
+        # Initialiser la fenêtre avec les dimensions appropriées
         window_width = self.GRID_WIDTH * self.TILE_SIZE
         window_height = self.GRID_HEIGHT * self.TILE_SIZE
-        screen = pygame.display.set_mode((window_width, window_height))
+        self.screen = pygame.display.set_mode((window_width, window_height))
 
+    def draw_map(self, screen):
+        # Remplir l'écran de blanc
         screen.fill(self.WHITE)
 
+        # Définir le point de départ pour l'affichage
+        start_row = 35  # Ligne de départ
+        start_col = 35  # Colonne de départ
+
+        # Afficher chaque cellule de la carte
         for row in range(self.GRID_HEIGHT):
             for col in range(self.GRID_WIDTH):
                 x = col * self.TILE_SIZE
                 y = row * self.TILE_SIZE
-                pygame.draw.react(screen, self.GRAY, (x,y,self.TILE_SIZE,self.TILE_SIZE))
 
-                if self.map[row][col] != ' ':
-                    text_surface = self.font.render(self.map[row][col], True, self.BLACK)
+                # Dessiner un rectangle pour chaque cellule
+                pygame.draw.rect(screen, self.GRAY, (x, y, self.TILE_SIZE, self.TILE_SIZE))
+
+                # Vérifier si la cellule de la carte n'est pas vide et dessiner le texte
+                if self.map.map[start_row + row][start_col + col] != ' ':
+                    text_surface = self.font.render(self.map.map[start_row + row][start_col + col], True, self.BLACK)
                     screen.blit(text_surface, (x + self.TILE_SIZE // 4, y + self.TILE_SIZE // 4))
-    
-    def printMap():
-        while True:
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    pygame.quit()
-                    sys.quit()
-                if event.type == pygame.KEYDOWN:
-                    if event.key == pygame.K_q:  # Quitter en appuyant sur 'q'
-                        pygame.quit()
-                        sys.exit()
+
+        pygame.display.flip()  # Actualiser l'affichage

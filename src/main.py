@@ -1,6 +1,5 @@
-from src.controller.UIHandler import *
+from controller.UIHandler import *
 
 
 uihandler = UIHandler()
-
 uihandler.start()

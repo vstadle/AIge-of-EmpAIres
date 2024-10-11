@@ -1,4 +1,4 @@
-from Buildings import Buildings
+from model.Buildings import Buildings
 
 class ArcheryRange(Buildings):
 

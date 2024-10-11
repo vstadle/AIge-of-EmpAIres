@@ -1,4 +1,4 @@
-from Ressources import Ressources
+from model.Ressources import Ressources
 
 
 class Food(Ressources):
