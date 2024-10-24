@@ -1,4 +1,5 @@
 import pygame
+import sys
 from view.ViewMap import ViewMap
 from model.Map import Map
 
