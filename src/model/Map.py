@@ -110,10 +110,6 @@ class Map():
         for i in range (building.sizeMap):
             for j in range (building.sizeMap):
                 self.map[x+i][y+j] = letter
-<<<<<<< HEAD
-=======
-
->>>>>>> Affichage_de_la_map
     def generateForest(self):
         max_percentage_wood = 0.1 
         total_cells = 120 * 120
@@ -149,7 +145,3 @@ class Map():
             total_trees_planted += trees_planted_in_this_forest
             if trees_planted_in_this_forest == 0:
                 break
-<<<<<<< HEAD
-=======
-
->>>>>>> Affichage_de_la_map
