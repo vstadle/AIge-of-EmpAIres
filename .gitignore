@@ -1,0 +1,3 @@
+src/model/__pycache__/*
+src/controller/__pycache__/*
+src/view/__pycache__/*
