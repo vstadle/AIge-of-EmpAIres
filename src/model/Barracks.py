@@ -3,7 +3,7 @@ from model.Buildings import Buildings
 class Barracks(Buildings):
 
     def __init__(self):
-        super().__init__(175, 50, 500, 3)
+        super().__init__(175, 50, 500, 3, 'B')
         self.competence1 = "Spawns Swordsmen"
 
     def __repr__(self):

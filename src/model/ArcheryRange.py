@@ -3,7 +3,7 @@ from model.Buildings import Buildings
 class ArcheryRange(Buildings):
 
     def __init__(self):
-        super().__init__(175, 50, 500, 3)
+        super().__init__(175, 50, 500, 3, 'A')
         self.competence1 = "Spawns Archers"
 
     def __repr__(self):

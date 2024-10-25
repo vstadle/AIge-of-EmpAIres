@@ -3,7 +3,7 @@ from model.Buildings import Buildings
 class TownCenter(Buildings):
 
     def __init__(self):
-        super().__init__(350, 150, 1000, 4)
+        super().__init__(350, 150, 1000, 4, 'T')
         self.competence1 = "Spawns Villagers"
         self.competence2 = "Drop points of resources"
         self.population = 5

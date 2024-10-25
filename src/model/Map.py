@@ -20,9 +20,16 @@ class MapType():
     CENTER_RESOURCES = 2
 class Map():
     def __init__(self,map_type):
+
+        #Matrice de 120x120 qui va contenir les batiments
+        self.mapBuildings = [[None for x in range(120)] for y in range(120)]
+
+        #Matrice de 120x120 qui va contenir les ressources
+        self.mapRessources = [[None for x in range(120)] for y in range(120)]
+
         self.map = [[" " for x in range(120)] for y in range(120)]
         self.players = []
-        self.buildings = []
+        self.buildings = [[None for _ in range(120)] for _ in range(120)]
         self.map[0][0] = 'R'
         
     '''
@@ -53,10 +60,6 @@ class Map():
             for j in range(r_y):
                 self.addRessources(r, x + i, y+j)
 
-
-    def addPlayer(self, player):
-        self.players.append(player)
-
     def printMap(self):
         self.map[0][0] = 'R'
         for i in range(35, 70):
@@ -84,7 +87,7 @@ class Map():
             letter = 'W'
         elif(isinstance(Ressources,Gold)):
             letter = 'G'
-        self.map[x][y] = letter 
+        self.map[x][y] = letter
 
     def addBuilding(self, building, x, y):
         letter = 'P'
@@ -163,3 +166,6 @@ class Map():
     
     def getMap(self):
         return self.map
+    
+    def getBuildings(self):
+        return self.buildings

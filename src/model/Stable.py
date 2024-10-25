@@ -3,7 +3,7 @@ from model.Buildings import Buildings
 class Stable(Buildings):
     
     def __init__(self):
-        super().__init__(175, 50, 500, 3)
+        super().__init__(175, 50, 500, 3, 'S')
         self.competence1 = "Spawns Horsemen"
 
     def __repr__(self):

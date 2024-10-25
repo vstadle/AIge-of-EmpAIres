@@ -5,6 +5,8 @@ import math
 
 from view.ViewMap import ViewMap
 from model.Map import Map, MapType
+from model.Player import Player
+from model.TownCenter import TownCenter
 
 class ControllerMap():
     def __init__(self):
@@ -15,7 +17,7 @@ class ControllerMap():
         self.pos_y=0
 
 
-    def placementTownCenter(self,nbPlayer):
+    def placementTownCenter(self,nbPlayer,lstPlayers):
         position = []
         center_x, center_y = 60, 60
         radius = 20
@@ -23,12 +25,15 @@ class ControllerMap():
             x = center_x + radius * math.cos(2 * math.pi * i / nbPlayer)
             y = center_y + radius * math.sin(2 * math.pi * i / nbPlayer)
             position.append((x, y))
-        
+
+        cpt = 0
         for i in position:
             for j in range(4):
                 for k in range(4):
                     self.map.getMap()[int(i[0]+j)][int(i[1]+k)] = 'T'
-                    #self.map.getBuildings()[int(i[0]+j)][int(i[1]+k)] = lstPlayers[i].getPlayer().getTownCenter()
+                    self.map.getBuildings()[int(i[0]+j)][int(i[1]+k)] = lstPlayers[cpt].getPlayer().getTownCenter()
+        cpt += 1
+
     def genRessources(self,map_type):
         if map_type == MapType.GENEROUS_RESOURCES:
             self.map.generateGenerousResources()
@@ -37,6 +42,7 @@ class ControllerMap():
         self.map.generateForest()
 
     def run(self):
+
         clock = pygame.time.Clock()
         while True:
             for event in pygame.event.get():

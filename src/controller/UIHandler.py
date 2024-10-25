@@ -17,7 +17,7 @@ class UIHandler():
             self.lstPlayers.append(ControllerPlayer("Player"+str(i), 100, 100, 100))
 
         # Placement des town centers sur la map
-        self.controllerMap.placementTownCenter(len(self.lstPlayers))
+        self.controllerMap.placementTownCenter(len(self.lstPlayers), self.lstPlayers)
 
         # Génération des ressources de la Map
         self.controllerMap.genRessources(MapType.CENTER_RESOURCES)
