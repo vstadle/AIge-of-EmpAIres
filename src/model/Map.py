@@ -1,25 +1,50 @@
-import curses
-from TownCenter import TownCenter 
-from Farm import Farm
-from Keep import Keep
-from Barracks import Barracks
-from ArcheryRange import ArcheryRange
-from Stable import Stable
-from House import House
-from Camp import Camp
-from Ressources import Ressources
-from Gold import Gold
-from Food import Food
-from Wood import Wood
+from model.TownCenter import TownCenter 
+from model.Farm import Farm
+from model.Keep import Keep
+from model.Barracks import Barracks
+from model.ArcheryRange import ArcheryRange
+from model.Stable import Stable
+from model.House import House
+from model.Camp import Camp
+from model.Ressources import Ressources
+from model.Gold import Gold
+from model.Food import Food
+from model.Wood import Wood
+
 
 import random
-
+import curses
+import pygame
+class MapType():
+    GENEROUS_RESOURCES = 1
+    CENTER_RESOURCES = 2
 class Map():
-
-    def __init__(self):
+    def __init__(self,map_type):
         self.map = [[" " for x in range(120)] for y in range(120)]
         self.players = []
         self.buildings = []
+        self.map[0][0] = 'R'
+        if map_type == MapType.GENEROUS_RESOURCES:
+            self.generateGenerousResources()
+        elif map_type == MapType.CENTER_RESOURCES:
+            self.generateCenterResources()
+        self.generateForest()
+    '''
+    def generateGenerousResources(self):
+    '''
+
+    def generateCenterResources(self):
+        center_x, center_y = 60, 60 
+        width = random.randint(3, 7)  
+        height = random.randint(3, 7)  
+
+        for dx in range(-width // 2, width // 2 + 1): 
+            for dy in range(-height // 2, height // 2 + 1):
+                x = center_x + dx
+                y = center_y + dy
+                if 0 <= x < 120 and 0 <= y < 120:  # Vérifier que les coordonnées sont dans les limites
+                    self.addRessources(Gold(), x, y)
+
 
     def generateSizeRessources(self, r, x, y):
         
@@ -40,27 +65,16 @@ class Map():
                 print(self.map[i][j], end=' ')
             print()
 
-    def draw_map(self, win):
+    def draw_map(self, win,pos_x,pos_y):
 
-        win.clear()
+        for i in range(20):  # Limite pour le nombre de lignes à dessiner
+            for j in range(20):  # Limite pour le nombre de colonnes à dessiner
+                # Supposons que self.map contient des caractères pour représenter la carte
+                tile = self.map.map[(pos_y + i) % self.map.height][(pos_x + j) % self.map.width]
+                # Dessiner le tile sur l'écran
+                # Utilisez pygame.draw ou autre méthode selon votre implémentation
 
-        for i in range(37):
-                win.addch(0,i,'-')
-        
-        for j in range(37):
-            win.addch(37,j,'-')
-
-        for i in range(1, 37):
-            win.addch(i, 0, '|')
-            win.addch(i, 36, '|')
-        '''
-        for i in range(35, 70):
-            for j in range(35, 70):
-                win.addch(i - 35, j - 35, self.map[i][j])
-        '''
-        
-        win.refresh()
-
+        pygame.display.flip()  # Met à jour l'affichage
         #win.getch()
 
     def addRessources(self, Ressources, x,y):
@@ -96,6 +110,10 @@ class Map():
         for i in range (building.sizeMap):
             for j in range (building.sizeMap):
                 self.map[x+i][y+j] = letter
+<<<<<<< HEAD
+=======
+
+>>>>>>> Affichage_de_la_map
     def generateForest(self):
         max_percentage_wood = 0.1 
         total_cells = 120 * 120
@@ -131,3 +149,7 @@ class Map():
             total_trees_planted += trees_planted_in_this_forest
             if trees_planted_in_this_forest == 0:
                 break
+<<<<<<< HEAD
+=======
+
+>>>>>>> Affichage_de_la_map
