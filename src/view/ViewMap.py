@@ -25,7 +25,7 @@ class ViewMap():
         window_height = self.GRID_HEIGHT * self.TILE_SIZE
         self.screen = pygame.display.set_mode((window_width, window_height))
 
-    def draw_map(self, screen):
+    def draw_map(self, screen,pos_x,pos_y):
         # Remplir l'écran de blanc
         screen.fill(self.WHITE)
 
@@ -42,9 +42,13 @@ class ViewMap():
                 # Dessiner un rectangle pour chaque cellule
                 pygame.draw.rect(screen, self.GRAY, (x, y, self.TILE_SIZE, self.TILE_SIZE))
 
-                # Vérifier si la cellule de la carte n'est pas vide et dessiner le texte
-                if self.map.map[start_row + row][start_col + col] != ' ':
-                    text_surface = self.font.render(self.map.map[start_row + row][start_col + col], True, self.BLACK)
-                    screen.blit(text_surface, (x + self.TILE_SIZE // 4, y + self.TILE_SIZE // 4))
+                map_row = pos_y + row
+                map_col = pos_x + col
+
+                # Vérifier si les indices sont dans les limites de la carte
+                if 0 <= map_row < len(self.map.map) and 0 <= map_col < len(self.map.map[0]):
+                    if self.map.map[map_row][map_col] != ' ':
+                        text_surface = self.font.render(self.map.map[map_row][map_col], True, self.BLACK)
+                        screen.blit(text_surface, (x + self.TILE_SIZE // 4, y + self.TILE_SIZE // 4))
 
         pygame.display.flip()  # Actualiser l'affichage
