@@ -28,6 +28,7 @@ class Map():
             self.generateGenerousResources()
         elif map_type == MapType.CENTER_RESOURCES:
             self.generateCenterResources()
+        self.addTownCenter()
         self.generateForest()
     '''
     def generateGenerousResources(self):
@@ -145,3 +146,14 @@ class Map():
             total_trees_planted += trees_planted_in_this_forest
             if trees_planted_in_this_forest == 0:
                 break
+
+    def addTownCenter(self): 
+        center_x, center_y = 60, 60
+        distance_from_center = random.randint(40,55)
+        angle = random.uniform(0, 2 * 3.14159)
+        pos1_x = int(center_x + distance_from_center * random.uniform(-1, 1))
+        pos1_y = int(center_y + distance_from_center * random.uniform(-1, 1))
+        pos2_x = center_x - (pos1_x - center_x)
+        pos2_y = center_y - (pos1_y - center_y)
+        self.addBuilding(TownCenter(), pos1_x, pos1_y)
+        self.addBuilding(TownCenter(), pos2_x, pos2_y)
