@@ -19,3 +19,4 @@ class Swordsman(Units):
          print("Speed Atack: ", self.speedAtack)
          print("Speed: ", self.speed)
          print("Range: ", self.range)
+           
