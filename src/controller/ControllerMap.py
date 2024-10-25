@@ -26,6 +26,9 @@ class ControllerMap():
                 self.pos_x -= 1 
             if keys[pygame.K_d]:  
                 self.pos_x += 1  
+            if keys[pygame.K_p]:
+                pygame.quit()
+                sys.exit()
             
             max_x = len(self.map.map[0]) - self.vMap.GRID_WIDTH  # Largeur maximale
             max_y = len(self.map.map) - self.vMap.GRID_HEIGHT  # Hauteur maximale
