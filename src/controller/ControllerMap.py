@@ -37,4 +37,4 @@ class ControllerMap():
             self.pos_y = max(0, min(self.pos_y, max_y))
 
             self.vMap.draw_map(self.vMap.screen, self.pos_x,self.pos_y) 
-            pygame.display.flip() 
+            pygame.display.flip()

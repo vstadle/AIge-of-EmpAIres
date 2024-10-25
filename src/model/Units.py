@@ -35,4 +35,13 @@ class Units():
     #Parameters target: Building
     def attackBuildings(self, target):
         target.health -= self.attack
+
+    def getAttack(self):
+        return self.attack
+    
+    def getHealth(self):
+        return self.health
+    
+    def setHealth(self, health):
+        self.health = health
         
