@@ -1,5 +1,8 @@
 import pygame
 import sys
+import random
+import math
+
 from view.ViewMap import ViewMap
 from model.Map import Map, MapType
 
@@ -10,6 +13,27 @@ class ControllerMap():
         self.vMap = ViewMap(self.map, self)  # Passer la référence de la carte
         self.pos_x=0
         self.pos_y=0
+
+    def placementTownCenter(self,nbPlayer):
+        position = []
+        center_x, center_y = 60, 60
+        radius = 20
+        for i in range(nbPlayer):
+            x = center_x + radius * math.cos(2 * math.pi * i / nbPlayer)
+            y = center_y + radius * math.sin(2 * math.pi * i / nbPlayer)
+            position.append((x, y))
+        
+        for i in position:
+            for j in range(4):
+                for k in range(4):
+                    self.map.getMap()[int(i[0]+j)][int(i[1]+k)] = 'T'
+                    #self.map.getBuildings()[int(i[0]+j)][int(i[1]+k)] = lstPlayers[i].getPlayer().getTownCenter()
+    def genRessources(self,map_type):
+        if map_type == MapType.GENEROUS_RESOURCES:
+            self.map.generateGenerousResources()
+        elif map_type == MapType.CENTER_RESOURCES:
+            self.map.generateCenterResources()
+        self.map.generateForest()
 
     def run(self):
         while True:

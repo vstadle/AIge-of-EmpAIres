@@ -16,3 +16,9 @@ class Buildings():
         print("Build Time: ", self.bTime)
         print("Health: ", self.hp)
         print("Size: ", self.sizeMap)
+
+    def getHp(self):
+        return self.hp
+
+    def setHp(self, hp):
+        self.hp = hp

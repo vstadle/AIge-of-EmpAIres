@@ -1,4 +1,6 @@
 
+from model.TownCenter import TownCenter
+
 class Player():
 
     def __init__(self, name, f, w, g):
@@ -35,3 +37,12 @@ class Player():
     
     def countUnits(self):
         return len(self.units)
+    
+    def getBuildings(self):
+        return self.buildings
+    
+    def getTownCenter(self):
+        for building in self.buildings:
+            if isinstance(building, TownCenter):
+                return building
+        return None

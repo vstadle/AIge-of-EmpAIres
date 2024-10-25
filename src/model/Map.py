@@ -24,15 +24,13 @@ class Map():
         self.players = []
         self.buildings = []
         self.map[0][0] = 'R'
-        if map_type == MapType.GENEROUS_RESOURCES:
-            self.generateGenerousResources()
-        elif map_type == MapType.CENTER_RESOURCES:
-            self.generateCenterResources()
-        self.addTownCenter()
-        self.generateForest()
+        
     '''
     def generateGenerousResources(self):
     '''
+
+    def addPlayer(self, controller_player):
+        self.players.append(controller_player)
 
     def generateCenterResources(self):
         center_x, center_y = 60, 60 
@@ -111,6 +109,7 @@ class Map():
         for i in range (building.sizeMap):
             for j in range (building.sizeMap):
                 self.map[x+i][y+j] = letter
+
     def generateForest(self):
         max_percentage_wood = 0.1 
         total_cells = 120 * 120
@@ -147,7 +146,11 @@ class Map():
             if trees_planted_in_this_forest == 0:
                 break
 
-    def addTownCenter(self): 
+    def addBuildings(self, building):
+        if(isinstance(building, TownCenter)):
+            self.addTownCenter()
+
+    def addTownCenter(self, towncenter): 
         center_x, center_y = 60, 60
         distance_from_center = random.randint(40,55)
         angle = random.uniform(0, 2 * 3.14159)
@@ -155,5 +158,8 @@ class Map():
         pos1_y = int(center_y + distance_from_center * random.uniform(-1, 1))
         pos2_x = center_x - (pos1_x - center_x)
         pos2_y = center_y - (pos1_y - center_y)
-        self.addBuilding(TownCenter(), pos1_x, pos1_y)
-        self.addBuilding(TownCenter(), pos2_x, pos2_y)
+        self.addBuilding(towncenter, pos1_x, pos1_y)
+        self.addBuilding(towncenter, pos2_x, pos2_y)
+    
+    def getMap(self):
+        return self.map
