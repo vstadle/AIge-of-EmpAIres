@@ -82,7 +82,6 @@ class Map():
         for i in range(building.sizeMap):
             cpt += 1
             for j in range(building.sizeMap):
-                print(cpt)
                 self.mapBuildings[x + i][y + j] = building
                 self.map[x + i][y + j] = building.letter
 
@@ -133,17 +132,11 @@ class Map():
         self.addBuilding(towncenter, pos1_x, pos1_y)
         self.addBuilding(towncenter, pos2_x, pos2_y)
     
-    def fillMapPrint(self):
-
-        maptemp = [[" " for x in range(120)] for y in range(120)]
-
-        for i in range(120):
-            for j in range(120):
-                if self.mapBuildings[i][j] != None:
-                    maptemp[i][j] = self.mapBuildings[i][j].letter
-                elif self.mapRessources[i][j] != None:
-                    maptemp[i][j] = self.mapRessources[i][j].letter
-        return maptemp
-    
     def getMap(self):
         return self.map
+    
+    def getBuildings(self):
+        return self.mapBuildings
+    
+    def getRessources(self):
+        return self.mapRessources

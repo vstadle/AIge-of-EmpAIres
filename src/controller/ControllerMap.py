@@ -64,3 +64,6 @@ class ControllerMap():
             pygame.display.flip()
 
             clock.tick(30)
+
+    def getMap(self):
+        return self.map
