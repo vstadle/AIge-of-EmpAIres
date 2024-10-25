@@ -14,6 +14,7 @@ class ControllerMap():
         self.pos_x=0
         self.pos_y=0
 
+
     def placementTownCenter(self,nbPlayer):
         position = []
         center_x, center_y = 60, 60
@@ -36,6 +37,7 @@ class ControllerMap():
         self.map.generateForest()
 
     def run(self):
+        clock = pygame.time.Clock()
         while True:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
@@ -50,7 +52,7 @@ class ControllerMap():
                 self.pos_x -= 1 
             if keys[pygame.K_d]:  
                 self.pos_x += 1  
-            
+
             max_x = len(self.map.map[0]) - self.vMap.GRID_WIDTH  # Largeur maximale
             max_y = len(self.map.map) - self.vMap.GRID_HEIGHT  # Hauteur maximale
 
@@ -58,4 +60,6 @@ class ControllerMap():
             self.pos_y = max(0, min(self.pos_y, max_y))
 
             self.vMap.draw_map(self.vMap.screen, self.pos_x,self.pos_y) 
-            pygame.display.flip() 
+            pygame.display.flip()
+
+            clock.tick(30)
