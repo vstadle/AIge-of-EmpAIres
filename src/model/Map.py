@@ -33,9 +33,29 @@ class Map():
         self.map = [[" " for x in range(120)] for y in range(120)]
         self.map[0][0] = 'R'
         
-    '''
+    
     def generateGenerousResources(self):
-    '''
+        max_percentage_gold = 0.01
+        max_percentage_food = 0.01
+        total_cells = 120*120
+        max_gold = max_percentage_gold * total_cells
+        max_food = max_percentage_food * total_cells
+        food_planted = 0
+        gold_planted = 0
+        while (gold_planted < max_gold):
+            x = random.randint(0,119)
+            y = random.randint(0,119)
+            if(self.map[x][y]== " "):
+                self.addRessources(Gold(), x, y)
+                gold_planted+=1
+        while (food_planted < max_food):
+            x = random.randint(0,119)
+            y = random.randint(0,119)
+            if(self.map[x][y]== " "):
+                self.addRessources(Food(), x, y)
+                food_planted+=1
+
+
 
     def addControllerPlayer(self, controller_player):
         self.players.append(controller_player)

@@ -11,7 +11,7 @@ from model.TownCenter import TownCenter
 class ControllerMap():
     def __init__(self):
         pygame.init()
-        self.map = Map(MapType.CENTER_RESOURCES)
+        self.map = Map(MapType.GENEROUS_RESOURCES)
         self.vMap = ViewMap(self.map, self)  # Passer la référence de la carte
         self.pos_x=0
         self.pos_y=0

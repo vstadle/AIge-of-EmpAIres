@@ -18,5 +18,8 @@ class ControllerPlayer():
     def addBuilding(self, building):
         self.player.addBuilding(building)
 
+    def addUnit(self,unit):
+        self.player.addUnit(unit)
+
     def getPlayer(self):
         return self.player

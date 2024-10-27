@@ -45,4 +45,4 @@ class Player():
         for building in self.buildings:
             if isinstance(building, TownCenter):
                 return building
-        return None
+        return None        
