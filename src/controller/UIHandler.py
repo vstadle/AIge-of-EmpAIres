@@ -21,7 +21,7 @@ class UIHandler():
         self.controllerMap.placementTownCenter(len(self.lstPlayers), self.lstPlayers)
 
         # Génération des ressources de la Map
-        self.controllerMap.genRessources(MapType.GENEROUS_RESOURCES)
+        self.controllerMap.genRessources(MapType.CENTER_RESOURCES)
 
         '''Test références des batiments sur la map avec prise de dégats'''
         '''self.controllerMap.getMap().addBuilding(TownCenter(), 0, 0)

@@ -20,11 +20,12 @@ class ControllerMap():
     def placementTownCenter(self,nbPlayer,lstPlayers):
         position = []
         center_x, center_y = 60, 60
-        radius = 20
+        radius = 30
+        k = random.uniform(0,1) * 2 * math.pi 
         for i in range(nbPlayer):
-            x = center_x + radius * math.cos(2 * math.pi * i / nbPlayer)
-            y = center_y + radius * math.sin(2 * math.pi * i / nbPlayer)
-            position.append((x, y))
+            x =  radius * math.cos(2 * math.pi * i / nbPlayer)
+            y =  radius * math.sin(2 * math.pi * i / nbPlayer)
+            position.append((x*math.cos(k)-y*math.sin(k) + center_x, x*math.sin(k)+y*math.cos(k) + center_y))
 
         for i in position:
             self.map.addBuilding(TownCenter(), int(i[0]), int(i[1]))
