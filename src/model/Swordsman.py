@@ -1,4 +1,4 @@
-from Units import Units
+from model.Units import Units
 
 class Swordsman(Units):
 

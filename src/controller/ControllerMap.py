@@ -65,11 +65,14 @@ class ControllerMap():
             if current_time - start_time >= unit.trainingTime:
                 building = None
                 if isinstance(unit, Villager):
-                    building = player.getPlayer().getTowncenter()
+                    building = player.getPlayer().getTownCenter()
                 elif isinstance(unit, Archer):
                     building = player.getPlayer().getArcheryRange()
                 elif isinstance(unit, Horseman):
                     building = player.getPlayer().getStable()
+                elif isinstance(unit, Swordsman):
+                    building = player.getPlayer().getBarracks()
+                
 
                 x = building.getX()
                 y = building.getY()
