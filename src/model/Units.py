@@ -3,7 +3,7 @@ class Units():
 
 
     #Parameters costF: int, costG: int, costW: int, health: int, trainingTime: int, attack: int, speedAtack: int, speed: int, range: int
-    def __init__(self, costF, costG, costW, health, trainingTime, attack, speedAtack, speed, range):
+    def __init__(self, costF, costG, costW, health, trainingTime, attack, speedAtack, speed, range, letter):
         self.costF = costF
         self.costG = costG
         self.costW = costW
@@ -13,6 +13,7 @@ class Units():
         self.speedAtack = speedAtack
         self.speed = speed
         self.range = range
+        self.letter = letter
 
     def __repr__(self):
         return "Units(%r, %r, %r, %r, %r, %r, %r, %r, %r)" % (self.costF, self.costG, self.costW, self.health, self.trainingTime, self.attack, self.speedAtack, self.speed, self.range)
@@ -35,4 +36,6 @@ class Units():
     #Parameters target: Building
     def attackBuildings(self, target):
         target.health -= self.attack
-        
+    
+    def getLetter(self):
+        return self.letter

@@ -23,3 +23,15 @@ class Buildings():
 
     def setHp(self, hp):
         self.hp = hp
+
+    def setX (self, x):
+        self.x = x
+    
+    def setY (self, y):
+        self.y = y
+
+    def getX (self):
+        return self.x
+    
+    def getY (self):
+        return self.y

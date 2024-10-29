@@ -100,12 +100,18 @@ class Map():
         self.map[x][y] = Ressources.letter
 
     def addBuilding(self, building, x, y):
+        building.setX(x)
+        building.setY(y)
         cpt = 0
         for i in range(building.sizeMap):
             cpt += 1
             for j in range(building.sizeMap):
                 self.mapBuildings[x + i][y + j] = building
                 self.map[x + i][y + j] = building.letter
+
+
+    def addUnits(self, units, x, y):
+        self.map[x][y] = units.letter
 
     def generateForest(self):
         max_percentage_wood = 0.1 
