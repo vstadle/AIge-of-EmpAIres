@@ -15,10 +15,16 @@ class ControllerPlayer():
         self.player.addBuilding(Farm())
         self.player.addBuilding(Camp())
     
-    def addBuilding(self, building):
-        self.player.addBuilding(building)
+    def addBuilding(self, building,x,y):
+        if self.player.canAffordBuilding(building):
+            self.player.addBuilding(building,x,y)
+            self.player.removeResourcesForBuilding(building)
 
     def addUnit(self,unit):
+        if self.player.canAffordUnit(unit):
+            self.player.addUnit(unit)
+            self.player.removeResourcesForUnit(unit)
+
         self.player.addUnit(unit)
 
     def getPlayer(self):

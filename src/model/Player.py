@@ -45,4 +45,18 @@ class Player():
         for building in self.buildings:
             if isinstance(building, TownCenter):
                 return building
-        return None        
+        return None    
+
+    def canAffordBuilding(self, building):
+        return (self.food >= building.costFood and self.wood >= building.costWood and self.gold >= building.costGold)
+
+    def canAffordUnit(self, unit_type):
+        return (self.food >= unit_type.costFood and self.wood >= unit_type.costWood and self.gold >= unit_type.costGold)
+
+    def removeResourcesForBuilding(self, building):
+        self.wood -= building.costWood
+
+    def removeResourcesForUnit(self, unit_type):
+        self.food -= unit_type.costFood
+        self.wood -= unit_type.costWood
+        self.gold -= unit_type.costGold
