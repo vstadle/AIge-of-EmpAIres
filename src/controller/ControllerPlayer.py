@@ -1,7 +1,6 @@
 import pygame
 import sys
 import random
-
 from model.Player import Player
 from model.TownCenter import TownCenter
 from model.Farm import Farm
