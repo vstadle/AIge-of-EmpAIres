@@ -65,11 +65,13 @@ class Map():
         width = random.randint(3, 7)  
         height = random.randint(3, 7)  
 
-        for dx in range(-width // 2, width // 2 + 1): 
-            for dy in range(-height // 2, height // 2 + 1):
-                x = center_x + dx
-                y = center_y + dy
-                if 0 <= x < 120 and 0 <= y < 120:  # Vérifier que les coordonnées sont dans les limites
+        start_x = center_x - width // 2
+        start_y = center_y - height // 2
+        for dx in range(width): 
+            for dy in range(height):
+                x = start_x + dx
+                y = start_y + dy
+                if 0 <= x < 120 and 0 <= y < 120:
                     self.addRessources(Gold(), x, y)
 
 

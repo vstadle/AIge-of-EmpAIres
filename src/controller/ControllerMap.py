@@ -20,7 +20,8 @@ class ControllerMap():
     def placementTownCenter(self,nbPlayer,lstPlayers):
         position = []
         center_x, center_y = 60, 60
-        radius = 30
+        
+        radius = 40
         k = random.uniform(0,1) * 2 * math.pi 
         for i in range(nbPlayer):
             x =  radius * math.cos(2 * math.pi * i / nbPlayer)
