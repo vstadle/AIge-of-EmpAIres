@@ -25,10 +25,6 @@ class ControllerPlayer():
             self.player.removeResourcesForBuilding(building)
 
     def addUnit(self,unit):
-        if self.player.canAffordUnit(unit):
-            self.player.addUnit(unit)
-            self.player.removeResourcesForUnit(unit)
-
         self.player.addUnit(unit)
 
     def getPlayer(self):

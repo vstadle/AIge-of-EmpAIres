@@ -27,8 +27,12 @@ class Map():
         #Matrice de 120x120 qui va contenir les ressources
         self.mapRessources = [[None for x in range(120)] for y in range(120)]
 
+        #Matrice de 120x120 qui va contenir les unités
+        self.mapUnits = [[None for x in range(120)] for y in range(120)]
+
         #Liste des joueurs
         self.players = []
+
 
         self.map = [[" " for x in range(120)] for y in range(120)]
         self.map[0][0] = 'R'
@@ -111,6 +115,7 @@ class Map():
 
 
     def addUnits(self, units, x, y):
+        self.mapUnits[x][y] = units
         self.map[x][y] = units.letter
 
     def generateForest(self):
@@ -168,3 +173,6 @@ class Map():
     
     def getRessources(self):
         return self.mapRessources
+    
+    def is_free(self, x, y):
+        return self.map[x][y] == " "

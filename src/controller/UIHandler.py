@@ -6,6 +6,7 @@ from controller.ControllerPlayer import ControllerPlayer
 from model.Map import MapType
 from model.TownCenter import TownCenter
 from model.Farm import Farm
+from model.Villager import Villager
 
 class UIHandler():
     def __init__(self):
@@ -15,7 +16,7 @@ class UIHandler():
         self.lstPlayers = []
     
         # Création de 4 joueurs
-        for i in range(4):
+        for i in range(1):
             self.lstPlayers.append(ControllerPlayer("Player"+str(i), 100, 100, 100))
 
         # Placement des town centers sur la map
@@ -34,6 +35,9 @@ class UIHandler():
                 print("Farm du joueur 0 : ", temp.getX(), temp.getY())
                 break
 
+        self.controllerMap.addUnits(Villager(), self.lstPlayers[0])
+        self.controllerMap.addUnits(Villager(), self.lstPlayers[0])
+        self.controllerMap.addUnits(Villager(), self.lstPlayers[0])
         '''Test références des batiments sur la map avec prise de dégats'''
         '''self.controllerMap.getMap().addBuilding(TownCenter(), 0, 0)
         self.controllerMap.getMap().getBuildings()[0][0].setHp(300)
