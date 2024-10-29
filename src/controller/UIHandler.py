@@ -5,6 +5,7 @@ from controller.ControllerMap import ControllerMap
 from controller.ControllerPlayer import ControllerPlayer
 from model.Map import MapType
 from model.TownCenter import TownCenter
+from model.Farm import Farm
 
 class UIHandler():
     def __init__(self):
@@ -22,6 +23,16 @@ class UIHandler():
 
         # Génération des ressources de la Map
         self.controllerMap.genRessources(MapType.CENTER_RESOURCES)
+
+        if self.lstPlayers[0].getPlayer().getTownCenter() != None:
+            print("TownCenter du joueur 0 : ", self.lstPlayers[0].getPlayer().getTownCenter().getX(), self.lstPlayers[0].getPlayer().getTownCenter().getY())
+
+        self.controllerMap.addBuilding(Farm(), 0, 0, self.lstPlayers[0])
+        templstBuildings = self.lstPlayers[0].getPlayer().getBuildings()
+        for temp in templstBuildings:
+            if isinstance(temp, Farm):
+                print("Farm du joueur 0 : ", temp.getX(), temp.getY())
+                break
 
         '''Test références des batiments sur la map avec prise de dégats'''
         '''self.controllerMap.getMap().addBuilding(TownCenter(), 0, 0)

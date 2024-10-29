@@ -28,8 +28,15 @@ class ControllerMap():
             y =  radius * math.sin(2 * math.pi * i / nbPlayer)
             position.append((x*math.cos(k)-y*math.sin(k) + center_x, x*math.sin(k)+y*math.cos(k) + center_y))
 
+        cpt = 0
         for i in position:
             self.map.addBuilding(TownCenter(), int(i[0]), int(i[1]))
+            lstPlayers[cpt].addBuilding(TownCenter(), int(i[0]), int(i[1]))
+            cpt+=1
+    
+    def addBuilding(self, building,x,y, player):
+        self.map.addBuilding(building, x, y)
+        player.addBuilding(building, x, y)
 
     def genRessources(self,map_type):
         if map_type == MapType.GENEROUS_RESOURCES:

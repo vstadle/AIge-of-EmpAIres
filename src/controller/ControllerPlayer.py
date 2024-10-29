@@ -11,13 +11,17 @@ class ControllerPlayer():
     
     def __init__(self, name, f, w, g):
         self.player = Player(name, f, w, g)
-        self.player.addBuilding(TownCenter())
-        self.player.addBuilding(Farm())
-        self.player.addBuilding(Camp())
     
     def addBuilding(self, building,x,y):
-        if self.player.canAffordBuilding(building):
-            self.player.addBuilding(building,x,y)
+        if isinstance(building, TownCenter):
+            self.player.addBuilding(building)
+            building.setX(x)
+            building.setY(y)
+
+        elif self.player.canAffordBuilding(building):
+            self.player.addBuilding(building)
+            building.setX(x)
+            building.setY(y)
             self.player.removeResourcesForBuilding(building)
 
     def addUnit(self,unit):
