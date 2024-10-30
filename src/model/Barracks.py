@@ -1,4 +1,5 @@
 from model.Buildings import Buildings
+from model.Swordsman import Swordsman
 
 class Barracks(Buildings):
 
@@ -16,3 +17,6 @@ class Barracks(Buildings):
         print("Health: ", self.hp)
         print("Size: ", self.sizeMap)
         print("Competence 1: ", self.competence1)
+
+    def spawnSwordsman(self):
+        return Swordsman()
