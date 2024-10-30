@@ -39,3 +39,12 @@ class Units():
     
     def getLetter(self):
         return self.letter
+    
+    def getCostF(self):
+        return self.costF
+    
+    def getCostG(self):
+        return self.costG
+    
+    def getCostW(self):
+        return self.costW

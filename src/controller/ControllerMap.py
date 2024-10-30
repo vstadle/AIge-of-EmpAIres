@@ -51,9 +51,9 @@ class ControllerMap():
             self.map.generateCenterResources()
         self.map.generateForest()
 
-    def addUnits(self, unit, player):
+    def addUnits(self, unit, player, building):
         start_time = time.time()
-        self.training_queue.append({"unit": unit, "player": player, "start_time": start_time})
+        self.training_queue.append({"unit": unit, "player": player, "start_time": start_time, "building": building})
 
     def update_training_units(self):
         current_time = time.time()
@@ -61,18 +61,9 @@ class ControllerMap():
             unit = item["unit"]
             player = item["player"]
             start_time = item["start_time"]
-            
+            building = item["building"]
+
             if current_time - start_time >= unit.trainingTime:
-                building = None
-                if isinstance(unit, Villager):
-                    building = player.getPlayer().getTownCenter()
-                elif isinstance(unit, Archer):
-                    building = player.getPlayer().getArcheryRange()
-                elif isinstance(unit, Horseman):
-                    building = player.getPlayer().getStable()
-                elif isinstance(unit, Swordsman):
-                    building = player.getPlayer().getBarracks()
-                
 
                 x = building.getX()
                 y = building.getY()
@@ -120,3 +111,6 @@ class ControllerMap():
 
     def getMap(self):
         return self.map
+    
+    def is_free(self, x, y):
+        return self.map.is_free(x, y)

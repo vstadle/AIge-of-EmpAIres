@@ -9,7 +9,7 @@ class TownCenter(Buildings):
         self.population = 5
 
     def __repr__(self):
-        return "TownCenter(%r, %r, %r, %r, %r, %r)" % (self.costW, self.bTime, self.hp, self.sizeMap, self.competence2)
+        return "TownCenter(%r, %r, %r, %r, %r, %r, %r)" % (self.costW, self.bTime, self.hp, self.sizeMap, self.competence2, self.x, self.y)
     
     def print_TownCenter(self):
         print("TownCenter")
