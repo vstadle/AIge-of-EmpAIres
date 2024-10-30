@@ -7,7 +7,7 @@ class ArcheryRange(Buildings):
         super().__init__(175, 50, 500, 3, 'A')
 
     def __repr__(self):
-        return "ArcheryRange(%r, %r, %r, %r, %r)" % (self.costW, self.bTime, self.hp, self.sizeMap)
+        return "ArcheryRange(%r, %r, %r, %r, %r, %r)" % (self.costW, self.bTime, self.hp, self.sizeMap, self.x, self.y)
     
     def print_ArcheryRange(self):
         print("ArcheryRange")

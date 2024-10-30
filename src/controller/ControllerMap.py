@@ -37,12 +37,11 @@ class ControllerMap():
         cpt = 0
         for i in position:
             self.map.addBuilding(TownCenter(), int(i[0]), int(i[1]))
-            lstPlayers[cpt].addBuilding(TownCenter(), int(i[0]), int(i[1]))
+            lstPlayers[cpt].addBuildingInitialize(TownCenter(), int(i[0]), int(i[1]))
             cpt += 1
 
-    def addBuilding(self, building, x, y, player):
+    def addBuilding(self, building, x, y):
         self.map.addBuilding(building, x, y)
-        player.addBuilding(building, x, y)
 
     def genRessources(self, map_type):
         if map_type == MapType.GENEROUS_RESOURCES:
