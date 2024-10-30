@@ -63,24 +63,34 @@ class ControllerMap():
             building = item["building"]
 
             if current_time - start_time >= unit.trainingTime:
-
                 x = building.getX()
                 y = building.getY()
-                
-                placed = False  # Pour savoir si l'unité a été placée
-                for dx, dy in [(-1, -1), (0, -1), (1, -1), (1, 0), (1, 1), (0, 1), (-1, 1), (-1, 0)]:
-                    nx, ny = x + dx, y + dy
-                    if self.map.is_free(nx, ny):
-                        self.map.addUnits(unit, nx, ny)
-                        player.addUnit(unit)
-                        placed = True
-                        break
+                building_width, building_height = building.getSizeMap(), building.getSizeMap()
 
-                if not placed:
-                    print("Aucune position libre disponible pour l'unité.")
+                placed = False
+                layer = 1  # On commence par la couche directement autour du bâtiment
 
+                while not placed:
+                    # Parcours des cases autour de la couche actuelle
+                    for dx in range(-layer, layer + 1):
+                        for dy in range(-layer, layer + 1):
+                            # Vérifier uniquement les positions aux bords de la couche
+                            if abs(dx) == layer or abs(dy) == layer:
+                                nx, ny = x + dx, y + dy
+                                if self.map.is_free(nx, ny):
+                                    self.map.addUnits(unit, nx, ny)
+                                    player.addUnit(unit)
+                                    placed = True
+                                    break
+                        if placed:
+                            break
+                    if not placed:
+                        # Étendre la recherche à la couche suivante
+                        layer += 1
+
+                # Retirer l'unité de la file d'attente après son placement
                 self.training_queue.remove(item)
-
+    
     def run(self):
         clock = pygame.time.Clock()
         while True:

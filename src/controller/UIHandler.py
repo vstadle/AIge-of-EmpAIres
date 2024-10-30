@@ -30,7 +30,7 @@ class UIHandler():
             
             for cplayer in self.lstPlayers:
                 for j in range(3):
-                    cplayer.trainVillager(cplayer.getPlayers().getBuildings()[0])
+                    cplayer.trainVillager(cplayer.getPlayer().getBuildings()[0])
                     
         elif(typeGame == "Mean"):
             
@@ -41,7 +41,7 @@ class UIHandler():
             
             for cplayer in self.lstPlayers:
                 for j in range(3):
-                    cplayer.trainVillager(cplayer.getPlayers().getBuildings()[0])
+                    cplayer.trainVillager(cplayer.getPlayer().getBuildings()[0])
 
         elif(typeGame ==  "Marines"):
 
@@ -52,7 +52,10 @@ class UIHandler():
             
             for cplayer in self.lstPlayers:
                 cplayer.initializeTownCenter(2)
-                
+                for t in range(5):
+                    cplayer.trainVillager(cplayer.getPlayer().getBuildings()[0])
+                    cplayer.trainVillager(cplayer.getPlayer().getBuildings()[1])
+                    cplayer.trainVillager(cplayer.getPlayer().getBuildings()[2])
     
     def start(self):
         self.controllerMap.run()
