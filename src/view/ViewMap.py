@@ -35,6 +35,9 @@ class ViewMap():
         self.GRAY = (200, 200, 200)
         self.GREEN = (34, 139, 34)    # Bois
         self.YELLOW = (255, 215, 0)   # Or
+        self.BROWN = (168,128,94) #Barracks
+        self.RED = (0,0,255) #food
+
         
         # Initialisation de la police
         self.font = pygame.font.Font(None, 30)
@@ -210,6 +213,10 @@ class ViewMap():
                     mini_color = self.YELLOW
                 elif mini_tile == "T":
                     mini_color = self.GRAY
+                elif mini_tile == "B":
+                    mini_color = self.BROWN
+                elif mini_tile == "F":
+                    mini_color = self.RED
                 else:
                     mini_color = self.BLACK  # Case vide
 
