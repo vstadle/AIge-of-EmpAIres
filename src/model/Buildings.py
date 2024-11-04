@@ -7,9 +7,11 @@ class Buildings():
         self.hp = hp
         self.sizeMap = sizeMap
         self.letter = letter
+        self.x = 0
+        self.y = 0
 
     def __repr__(self):
-        return "Buildings(%r, %r, %r, %r)" % (self.costW, self.bTime, self.hp, self.sizeMap)
+        return "Buildings(%r, %r, %r, %r, %r, %r)" % (self.costW, self.bTime, self.hp, self.sizeMap, self.x, self.y)
     
     def print_Buildings(self):
         print("Buildings")
@@ -23,3 +25,18 @@ class Buildings():
 
     def setHp(self, hp):
         self.hp = hp
+
+    def setX (self, x):
+        self.x = x
+    
+    def setY (self, y):
+        self.y = y
+
+    def getX (self):
+        return self.x
+    
+    def getY (self):
+        return self.y
+    
+    def getSizeMap(self):
+        return self.sizeMap

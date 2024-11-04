@@ -1,13 +1,13 @@
 from model.Buildings import Buildings
+from model.Archer import Archer
 
 class ArcheryRange(Buildings):
 
     def __init__(self):
         super().__init__(175, 50, 500, 3, 'A')
-        self.competence1 = "Spawns Archers"
 
     def __repr__(self):
-        return "ArcheryRange(%r, %r, %r, %r, %r)" % (self.costW, self.bTime, self.hp, self.sizeMap, self.competence1)
+        return "ArcheryRange(%r, %r, %r, %r, %r, %r)" % (self.costW, self.bTime, self.hp, self.sizeMap, self.x, self.y)
     
     def print_ArcheryRange(self):
         print("ArcheryRange")
@@ -15,5 +15,7 @@ class ArcheryRange(Buildings):
         print("Build Time: ", self.bTime)
         print("Health: ", self.hp)
         print("Size: ", self.sizeMap)
-        print("Competence 1: ", self.competence1)
+    
+    def spawnArcher(self):
+        return Archer()
     
