@@ -107,13 +107,21 @@ class ControllerMap():
             if keys[pygame.K_q]: self.pos_x -= 1
             if keys[pygame.K_d]: self.pos_x += 1
             if keys[pygame.K_p]: sys.exit()
+            if keys[pygame.K_v]:
+                self.display_mode = "2.5D" if self.display_mode == "2D" else "2D"
 
-            max_x = len(self.map.map[0]) - self.vMap.GRID_WIDTH
-            max_y = len(self.map.map) - self.vMap.GRID_HEIGHT
+
+            max_x = len(self.map.map[0]) - self.vMap.GRID_WIDTH  # Largeur maximale
+            max_y = len(self.map.map) - self.vMap.GRID_HEIGHT  # Hauteur maximale
+
             self.pos_x = max(0, min(self.pos_x, max_x))
             self.pos_y = max(0, min(self.pos_y, max_y))
 
-            self.vMap.draw_map(self.vMap.screen, self.pos_x, self.pos_y)
+            if self.display_mode == "2D":
+                self.vMap.draw_map(self.vMap.screen, self.pos_x, self.pos_y)
+            else:
+                self.vMap.draw_map_2_5d(self.vMap.screen, self.pos_x, self.pos_y)
+
             pygame.display.flip()
 
             self.update_training_units()  # Mettre à jour les unités en entraînement
