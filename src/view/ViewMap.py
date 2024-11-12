@@ -33,11 +33,10 @@ class ViewMap():
         self.WHITE = (255, 255, 255)
         self.BLACK = (0, 0, 0)
         self.GRAY = (200, 200, 200)
-        self.GREEN = (34, 139, 34)    # Bois
+        self.GREEN_LIGHT = (34, 139, 34)    # Bois
+        self.GREEN_DARK = (0,70,0)
         self.YELLOW = (255, 215, 0)   # Or
-        self.BROWN = (168,128,94) #Barracks
-        self.RED = (0,0,255) #food
-
+        self.BROWN = (127,42,42)
         
         # Initialisation de la police
         self.font = pygame.font.Font(None, 30)
@@ -74,161 +73,92 @@ class ViewMap():
                         screen.blit(text_surface, (x + self.TILE_SIZE // 4, y + self.TILE_SIZE // 4))
 
         pygame.display.flip()  # Actualiser l'affichage
-    def draw_map_2_5d(self, screen, pos_x, pos_y):
-        # Remplir l'écran de blanc
-        screen.fill(self.WHITE)
+    def draw_map_2_5D(self, screen, pos_x, pos_y):
+        # Couleur de fond noir
+        screen.fill(self.BLACK)
 
-        # Propriétés de projection isométrique
-        iso_offset_x = self.TILE_SIZE_2_5D // 2
-        iso_offset_y = self.TILE_SIZE_2_5D // 4
+        # Taille des losanges pour le rendu isométrique
+        iso_width = self.TILE_SIZE_2_5D
+        iso_height = self.TILE_SIZE_2_5D // 2
 
-        # Parcours de la carte pour dessiner les ressources
+        # Parcours de la carte pour dessiner les ressources en vue isométrique
         for row in range(self.GRID_HEIGHT):
             for col in range(self.GRID_WIDTH):
                 map_row = pos_y + row
                 map_col = pos_x + col
 
-                # Vérifier si les indices sont dans les limites de la carte
+                # Vérification des indices pour rester dans les limites de la carte
                 if 0 <= map_row < len(self.map.getMap()) and 0 <= map_col < len(self.map.getMap()[0]):
                     tile = self.map.getMap()[map_row][map_col]
 
-                    # Calcul de la position isométrique
-                    x = (col - row) * iso_offset_x + self.GRID_WIDTH * self.TILE_SIZE_2_5D // 2 
-                    y = (col + row) * iso_offset_y 
+                    # Calcul de la position isométrique pour créer un effet 2.5D
+                    x = (col - row) * iso_width // 2 + self.GRID_WIDTH * iso_width // 2 - 10
+                    y = (col + row) * iso_height // 2
 
-                    # Définir la couleur en fonction de la ressource
+                    # Choix de la couleur en fonction du type de ressource
                     if tile == "W":  # Bois
-                        color = self.GREEN
+                        color = self.GREEN_DARK
                     elif tile == "G":  # Or
                         color = self.YELLOW
-                    elif tile == "T":
+                    elif tile == "T":  # Pierre
                         color = self.GRAY
+                    elif tile == "B":  # Bâtiment
+                        color = self.BROWN
                     else:
-                        color = self.BLACK  # Case vide
+                        color = self.GREEN_LIGHT  # Terrain vide
 
-                    # Dessiner le rectangle coloré pour représenter la ressource
-                    pygame.draw.rect(screen, color, (x, y, self.TILE_SIZE_2_5D, self.TILE_SIZE_2_5D // 2))
+                    # Dessiner un losange pour représenter chaque cellule en 2.5D
+                    points = [
+                        (x, y + iso_height // 2),
+                        (x + iso_width // 2, y),
+                        (x + iso_width, y + iso_height // 2),
+                        (x + iso_width // 2, y + iso_height)
+                    ]
+                    pygame.draw.polygon(screen, color, points)
 
-        mini_map_width = 200
-        mini_map_height = 200
-        mini_map_x = screen.get_width() - mini_map_width - 10 
-        mini_map_y = screen.get_height() - mini_map_height - 10 
+        # Dessin de la mini-carte en version compacte et orientée
+        mini_map_width = 150
+        mini_map_height = 150
+        mini_map_x = screen.get_width() - mini_map_width - 10
+        mini_map_y = screen.get_height() - mini_map_height - 10
 
-        # Dessiner le fond de la mini-carte
+        # Fond de la mini-carte
         pygame.draw.rect(screen, self.GRAY, (mini_map_x, mini_map_y, mini_map_width, mini_map_height))
+        pygame.draw.rect(screen, self.BLACK, (mini_map_x, mini_map_y, mini_map_width, mini_map_height), 2)  # Bordure noire
 
-        # Dessiner un contour pour la mini-carte
-        pygame.draw.rect(screen, self.BLACK, (mini_map_x, mini_map_y, mini_map_width, mini_map_height), 2)
+        # Affichage des ressources dans la mini-carte sans quadrillage
+        cell_width = mini_map_width / len(self.map.getMap()[0])
+        cell_height = mini_map_height / len(self.map.getMap())
 
-        # Dessiner la carte dans la mini-carte
         for mini_row in range(len(self.map.getMap())):
             for mini_col in range(len(self.map.getMap()[0])):
                 mini_tile = self.map.getMap()[mini_row][mini_col]
 
-                # Échelle pour la mini-carte
-                mini_x = mini_col * (mini_map_width / len(self.map.getMap()[0]))
-                mini_y = mini_row * (mini_map_height / len(self.map.getMap()))
+                # Calcul des coordonnées de chaque cellule dans la mini-carte
+                mini_x = mini_col * cell_width + mini_map_x
+                mini_y = mini_row * cell_height + mini_map_y
 
-                # Définir la couleur en fonction de la ressource
+                # Déterminer la couleur de la cellule en fonction de la ressource
                 if mini_tile == "W":  # Bois
-                    mini_color = self.GREEN
+                    mini_color = self.GREEN_DARK
                 elif mini_tile == "G":  # Or
                     mini_color = self.YELLOW
-                elif mini_tile == "T":
+                elif mini_tile == "T":  # Pierre
                     mini_color = self.GRAY
-                else:
-                    mini_color = self.BLACK  # Case vide
-
-                # Dessiner le rectangle coloré pour représenter la ressource dans la mini-carte
-                pygame.draw.rect(screen, mini_color, (mini_x + mini_map_x, mini_y + mini_map_y, mini_map_width / len(self.map.getMap()[0]), mini_map_height / len(self.map.getMap())))
-
-        # Dessiner la position actuelle sur la mini-carte (représentée par un rectangle rouge)
-        mini_map_scale_x = mini_map_width / len(self.map.getMap()[0]) 
-        mini_map_scale_y = mini_map_height / len(self.map.getMap()) 
-        current_pos_x = pos_x * mini_map_scale_x + mini_map_x
-        current_pos_y = pos_y * mini_map_scale_y + mini_map_y
-        rectangle_size = 50
-        pygame.draw.rect(screen, (255, 0, 0), (current_pos_x, current_pos_y, rectangle_size, rectangle_size))
-
-        pygame.display.flip()
-    def draw_map_2_5d(self, screen, pos_x, pos_y):
-        # Remplir l'écran de blanc
-        screen.fill(self.WHITE)
-
-        # Propriétés de projection isométrique
-        iso_offset_x = self.TILE_SIZE_2_5D // 2
-        iso_offset_y = self.TILE_SIZE_2_5D // 4
-
-        # Parcours de la carte pour dessiner les ressources
-        for row in range(self.GRID_HEIGHT):
-            for col in range(self.GRID_WIDTH):
-                map_row = pos_y + row
-                map_col = pos_x + col
-
-                # Vérifier si les indices sont dans les limites de la carte
-                if 0 <= map_row < len(self.map.getMap()) and 0 <= map_col < len(self.map.getMap()[0]):
-                    tile = self.map.getMap()[map_row][map_col]
-
-                    # Calcul de la position isométrique
-                    x = (col - row) * iso_offset_x + self.GRID_WIDTH * self.TILE_SIZE_2_5D // 2 
-                    y = (col + row) * iso_offset_y 
-
-                    # Définir la couleur en fonction de la ressource
-                    if tile == "W":  # Bois
-                        color = self.GREEN
-                    elif tile == "G":  # Or
-                        color = self.YELLOW
-                    elif tile == "T":
-                        color = self.GRAY
-                    else:
-                        color = self.BLACK  # Case vide
-
-                    # Dessiner le rectangle coloré pour représenter la ressource
-                    pygame.draw.rect(screen, color, (x, y, self.TILE_SIZE_2_5D, self.TILE_SIZE_2_5D // 2))
-
-        mini_map_width = 200
-        mini_map_height = 200
-        mini_map_x = screen.get_width() - mini_map_width - 10 
-        mini_map_y = screen.get_height() - mini_map_height - 10 
-
-        # Dessiner le fond de la mini-carte
-        pygame.draw.rect(screen, self.GRAY, (mini_map_x, mini_map_y, mini_map_width, mini_map_height))
-
-        # Dessiner un contour pour la mini-carte
-        pygame.draw.rect(screen, self.BLACK, (mini_map_x, mini_map_y, mini_map_width, mini_map_height), 2)
-
-        # Dessiner la carte dans la mini-carte
-        for mini_row in range(len(self.map.getMap())):
-            for mini_col in range(len(self.map.getMap()[0])):
-                mini_tile = self.map.getMap()[mini_row][mini_col]
-
-                # Échelle pour la mini-carte
-                mini_x = mini_col * (mini_map_width / len(self.map.getMap()[0]))
-                mini_y = mini_row * (mini_map_height / len(self.map.getMap()))
-
-                # Définir la couleur en fonction de la ressource
-                if mini_tile == "W":  # Bois
-                    mini_color = self.GREEN
-                elif mini_tile == "G":  # Or
-                    mini_color = self.YELLOW
-                elif mini_tile == "T":
-                    mini_color = self.GRAY
-                elif mini_tile == "B":
+                elif mini_tile == "B":  # Bâtiment
                     mini_color = self.BROWN
-                elif mini_tile == "F":
-                    mini_color = self.RED
                 else:
-                    mini_color = self.BLACK  # Case vide
+                    mini_color = self.GREEN_LIGHT  # Terrain vide
 
-                # Dessiner le rectangle coloré pour représenter la ressource dans la mini-carte
-                pygame.draw.rect(screen, mini_color, (mini_x + mini_map_x, mini_y + mini_map_y, mini_map_width / len(self.map.getMap()[0]), mini_map_height / len(self.map.getMap())))
+                # Dessiner chaque cellule de la mini-carte sans espace entre elles
+                pygame.draw.rect(screen, mini_color, (mini_x, mini_y, cell_width, cell_height))
 
-        # Dessiner la position actuelle sur la mini-carte (représentée par un rectangle rouge)
-        mini_map_scale_x = mini_map_width / len(self.map.getMap()[0]) 
-        mini_map_scale_y = mini_map_height / len(self.map.getMap()) 
+        # Position actuelle dans la mini-carte (petit rectangle rouge pour repérer la position)
+        mini_map_scale_x = mini_map_width / len(self.map.getMap()[0])
+        mini_map_scale_y = mini_map_height / len(self.map.getMap())
         current_pos_x = pos_x * mini_map_scale_x + mini_map_x
         current_pos_y = pos_y * mini_map_scale_y + mini_map_y
-        rectangle_size = 50
-        pygame.draw.rect(screen, (255, 0, 0), (current_pos_x, current_pos_y, rectangle_size, rectangle_size))
+        rectangle_size = 38
+        pygame.draw.rect(screen, (255, 0, 0), (current_pos_x, current_pos_y, rectangle_size, rectangle_size), width=3)
 
         pygame.display.flip()
