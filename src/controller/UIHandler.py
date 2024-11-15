@@ -15,10 +15,12 @@ class UIHandler():
         self.controllerMap = ControllerMap()
         self.lstPlayers = []
 
-        self.initialize("Marines", 2)
+        self.controllerMap.genRessources(MapType.CENTER_RESOURCES)
+
+        self.initialize("Marines", 4)
 
         # Génération des ressources de la Map
-        self.controllerMap.genRessources(MapType.CENTER_RESOURCES)
+        #self.controllerMap.genRessources(MapType.CENTER_RESOURCES)
 
     def initialize(self, typeGame, nbPlayers):
         if(typeGame == "Lean"):
