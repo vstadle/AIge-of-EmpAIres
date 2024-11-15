@@ -19,6 +19,7 @@ class UIHandler():
 
         self.initialize("Marines", 4)
 
+        self.controllerMap.setLstPlayers(self.lstPlayers)
         # Génération des ressources de la Map
         #self.controllerMap.genRessources(MapType.CENTER_RESOURCES)
 

@@ -10,6 +10,7 @@ class Player():
         self.food = f
         self.wood = w
         self.gold = g
+        self.training_queue = []
 
     def addUnit(self, unit):
         self.units.append(unit)
@@ -60,3 +61,6 @@ class Player():
         self.food -= unit_type.costF
         self.wood -= unit_type.costW
         self.gold -= unit_type.costG
+
+    def getTrainingQueue(self):
+        return self.training_queue

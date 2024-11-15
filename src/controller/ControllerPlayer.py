@@ -1,6 +1,7 @@
 import pygame
 import sys
 import random
+import time
 
 from model.Player import Player
 from model.TownCenter import TownCenter
@@ -227,15 +228,54 @@ class ControllerPlayer():
                 return -1
         else : return -1
 
-    def addUnit(self,unit):
-        self.player.addUnit(unit)
+    def addUnit(self,unit, player, building):
+        start_time = time.time()
+        print("Ajout d'une unité à la file d'attente")
+        self.player.getTrainingQueue().append({"unit": unit, "player": player, "start_time": start_time, "building": building})
+
+    def update_training(self):
+        current_time = time.time()
+        print(current_time)
+        for item in self.player.getTrainingQueue()[:]:
+            unit = item["unit"]
+            player = item["player"]
+            start_time = item["start_time"]
+            building = item["building"]
+
+            if current_time - start_time >= unit.trainingTime:
+                x = building.getX()
+                y = building.getY()
+                building_width, building_height = building.getSizeMap(), building.getSizeMap()
+
+                placed = False
+                layer = 1
+
+                while not placed :
+
+                    for dx in range(-layer, layer, + 1):
+                        for dy in range(-layer, layer, + 1):
+                            if abs(dx) == layer or abs(dy) == layer:
+                                nx, ny = x + dx, y + dy
+                                if self.cmap.map.is_free(nx,ny):
+                                    print("Le villageois est placé")
+                                    self.cmap.map.addUnits(unit, nx, ny)
+                                    self.player.addUnit(unit)
+                                    placed = True
+                                    break
+                        if placed:
+                            break
+                    if not placed:
+                        layer += 1
+
+                self.player.getTrainingQueue().remove(item)
+
 
     def trainVillager(self, building):
         villager = Villager()
         if self.player.canAffordUnit(villager):
-            self.addUnit(villager)
+            print("Le joueur peut entrainer un villageois")
             self.player.removeResourcesForUnit(villager)
-            self.cmap.addUnits(villager, self, building)
+            self.addUnit(villager, self.player, building)
             return 0
         return -1
     

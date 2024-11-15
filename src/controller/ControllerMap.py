@@ -21,6 +21,10 @@ class ControllerMap():
         self.pos_x = 0
         self.pos_y = 0
         self.training_queue = []
+        self.lstPlayers = []
+
+    def setLstPlayers(self, lstPlayers):
+        self.lstPlayers = lstPlayers
 
     def placementTownCenter(self, nbPlayer, lstPlayers):
         position = []
@@ -114,7 +118,10 @@ class ControllerMap():
             self.vMap.draw_map(self.vMap.screen, self.pos_x, self.pos_y)
             pygame.display.flip()
 
-            self.update_training_units()  # Mettre à jour les unités en entraînement
+            #self.update_training_units()  # Mettre à jour les unités en entraînement
+
+            for player in self.lstPlayers:
+                player.update_training()
 
             clock.tick(30)
 
