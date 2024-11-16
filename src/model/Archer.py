@@ -3,7 +3,7 @@ from model.Units import Units
 class Archer(Units):
 
     def __init__(self):
-        super().__init__(0, 45, 25, 30, 35, 4, 1, 1, 4)
+        super().__init__(0, 45, 25, 30, 35, 4, 1, 1, 4, 'a')
 
     def __repr__(self):
         return "Archer(%r, %r, %r, %r, %r, %r, %r, %r, %r)" % (self.costF, self.costG, self.costW, self.health, self.trainingTime, self.attack, self.speedAtack, self.speed, self.range)

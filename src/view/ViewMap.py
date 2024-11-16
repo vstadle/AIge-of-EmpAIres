@@ -1,6 +1,15 @@
 import pygame
 import sys 
 
+from model.Farm import Farm
+from model.Keep import Keep
+from model.Barracks import Barracks
+from model.ArcheryRange import ArcheryRange
+from model.Stable import Stable
+from model.House import House
+from model.Camp import Camp
+from model.TownCenter import TownCenter
+
 class ViewMap():
 
     def __init__(self, map, cmap):
@@ -54,9 +63,9 @@ class ViewMap():
                 map_col = pos_x + col
 
                 # Vérifier si les indices sont dans les limites de la carte
-                if 0 <= map_row < len(self.map.map) and 0 <= map_col < len(self.map.map[0]):
-                    if self.map.map[map_row][map_col] != ' ':
-                        text_surface = self.font.render(self.map.map[map_row][map_col], True, self.BLACK)
+                if 0 <= map_row < len(self.map.getMap()) and 0 <= map_col < len(self.map.getMap()[0]):
+                    if self.map.getMap()[map_row][map_col] != ' ':
+                        text_surface = self.font.render(self.map.getMap()[map_row][map_col], True, self.BLACK)
                         screen.blit(text_surface, (x + self.TILE_SIZE // 4, y + self.TILE_SIZE // 4))
 
         pygame.display.flip()  # Actualiser l'affichage

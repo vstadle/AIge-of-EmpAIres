@@ -3,7 +3,7 @@ from model.Units import Units
 class Villager(Units):
 
     def __init__(self):
-        super().__init__(50, 0, 0, 25, 25, 2, 1, 0.8, 1)
+        super().__init__(50, 0, 0, 25, 25, 2, 1, 0.8, 1,"v")
         self.collectRessources = 25 #min
         self.carryingCapacity = 20 #min
     

@@ -1,13 +1,13 @@
 from model.Buildings import Buildings
+from model.Horseman import Horseman
 
 class Stable(Buildings):
     
     def __init__(self):
-        super().__init__(175, 50, 500, 3)
-        self.competence1 = "Spawns Horsemen"
+        super().__init__(175, 50, 500, 3, 'S')
 
     def __repr__(self):
-        return "Stable(%r, %r, %r, %r, %r)" % (self.costW, self.bTime, self.hp, self.sizeMap, self.competence1)
+        return "Stable(%r, %r, %r, %r, %r, %r)" % (self.costW, self.bTime, self.hp, self.sizeMap, self.x, self.y)
     
     def print_Stable(self):
         print("Stable")
@@ -15,4 +15,6 @@ class Stable(Buildings):
         print("Build Time: ", self.bTime)
         print("Health: ", self.hp)
         print("Size: ", self.sizeMap)
-        print("Competence 1: ", self.competence1)
+
+    def spawnHorseman(self):
+        return Horseman()

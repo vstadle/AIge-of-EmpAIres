@@ -3,7 +3,7 @@ from model.Units import Units
 class Horseman(Units):
 
     def __init__(self):
-        super().__init__(80, 20, 0, 40, 20, 4, 1, 1.2, 1)
+        super().__init__(80, 20, 0, 40, 20, 4, 1, 1.2, 1, 'h')
 
     def __repr__(self):
         return "Horseman(%r, %r, %r, %r, %r, %r, %r, %r, %r)" % (self.costF, self.costG, self.costW, self.health, self.trainingTime, self.attack, self.speedAtack, self.speed, self.range)

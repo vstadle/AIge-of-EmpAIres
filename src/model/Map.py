@@ -20,29 +20,62 @@ class MapType():
     CENTER_RESOURCES = 2
 class Map():
     def __init__(self,map_type):
-        self.map = [[" " for x in range(120)] for y in range(120)]
+
+        #Matrice de 120x120 qui va contenir les batiments
+        self.mapBuildings = [[None for x in range(120)] for y in range(120)]
+
+        #Matrice de 120x120 qui va contenir les ressources
+        self.mapRessources = [[None for x in range(120)] for y in range(120)]
+
+        #Matrice de 120x120 qui va contenir les unités
+        self.mapUnits = [[None for x in range(120)] for y in range(120)]
+
+        #Liste des joueurs
         self.players = []
-        self.buildings = []
+
+
+        self.map = [[" " for x in range(120)] for y in range(120)]
         self.map[0][0] = 'R'
-        if map_type == MapType.GENEROUS_RESOURCES:
-            self.generateGenerousResources()
-        elif map_type == MapType.CENTER_RESOURCES:
-            self.generateCenterResources()
-        self.generateForest()
-    '''
+        
+    
     def generateGenerousResources(self):
-    '''
+        max_percentage_gold = 0.01
+        max_percentage_food = 0.01
+        total_cells = 120*120
+        max_gold = max_percentage_gold * total_cells
+        max_food = max_percentage_food * total_cells
+        food_planted = 0
+        gold_planted = 0
+        while (gold_planted < max_gold):
+            x = random.randint(0,119)
+            y = random.randint(0,119)
+            if(self.map[x][y]== " "):
+                self.addRessources(Gold(), x, y)
+                gold_planted+=1
+        while (food_planted < max_food):
+            x = random.randint(0,119)
+            y = random.randint(0,119)
+            if(self.map[x][y]== " "):
+                self.addRessources(Food(), x, y)
+                food_planted+=1
+
+
+
+    def addControllerPlayer(self, controller_player):
+        self.players.append(controller_player)
 
     def generateCenterResources(self):
         center_x, center_y = 60, 60 
         width = random.randint(3, 7)  
         height = random.randint(3, 7)  
 
-        for dx in range(-width // 2, width // 2 + 1): 
-            for dy in range(-height // 2, height // 2 + 1):
-                x = center_x + dx
-                y = center_y + dy
-                if 0 <= x < 120 and 0 <= y < 120:  # Vérifier que les coordonnées sont dans les limites
+        start_x = center_x - width // 2
+        start_y = center_y - height // 2
+        for dx in range(width): 
+            for dy in range(height):
+                x = start_x + dx
+                y = start_y + dy
+                if 0 <= x < 120 and 0 <= y < 120:
                     self.addRessources(Gold(), x, y)
 
 
@@ -53,17 +86,6 @@ class Map():
         for i in range(r_x):
             for j in range(r_y):
                 self.addRessources(r, x + i, y+j)
-
-
-    def addPlayer(self, player):
-        self.players.append(player)
-
-    def printMap(self):
-        self.map[0][0] = 'R'
-        for i in range(35, 70):
-            for j in range(35, 70):
-                print(self.map[i][j], end=' ')
-            print()
 
     def draw_map(self, win,pos_x,pos_y):
 
@@ -78,38 +100,24 @@ class Map():
         #win.getch()
 
     def addRessources(self, Ressources, x,y):
-        letter = 'P'
-        if(isinstance(Ressources,Food)):
-            letter = 'F'
-        elif(isinstance(Ressources,Wood)):
-            letter = 'W'
-        elif(isinstance(Ressources,Gold)):
-            letter = 'G'
-        self.map[x][y] = letter 
+        self.mapRessources[x][y] = Ressources
+        self.map[x][y] = Ressources.letter
 
     def addBuilding(self, building, x, y):
-        letter = 'P'
-        if(isinstance(building, Farm)):
-            letter = 'F'
-        elif(isinstance(building, TownCenter)):
-            letter = 'T'
-        elif(isinstance(building, Barracks)):
-            letter = 'B'
-        elif(isinstance(building, ArcheryRange)):
-            letter = 'A'
-        elif(isinstance(building, Stable)):
-            letter = 'S'
-        elif(isinstance(building, House)):
-            letter = 'H'
-        elif(isinstance(building, Keep)):
-            letter = 'K'
-        elif(isinstance(building, Camp)):
-            letter = 'C'
-        
-        self.buildings.append(building)
-        for i in range (building.sizeMap):
-            for j in range (building.sizeMap):
-                self.map[x+i][y+j] = letter
+        building.setX(x)
+        building.setY(y)
+        cpt = 0
+        for i in range(building.sizeMap):
+            cpt += 1
+            for j in range(building.sizeMap):
+                self.mapBuildings[x + i][y + j] = building
+                self.map[x + i][y + j] = building.letter
+
+
+    def addUnits(self, units, x, y):
+        self.mapUnits[x][y] = units
+        self.map[x][y] = units.letter
+
     def generateForest(self):
         max_percentage_wood = 0.1 
         total_cells = 120 * 120
@@ -145,3 +153,26 @@ class Map():
             total_trees_planted += trees_planted_in_this_forest
             if trees_planted_in_this_forest == 0:
                 break
+
+    def addTownCenter(self, towncenter): 
+        center_x, center_y = 60, 60
+        distance_from_center = random.randint(40,55)
+        angle = random.uniform(0, 2 * 3.14159)
+        pos1_x = int(center_x + distance_from_center * random.uniform(-1, 1))
+        pos1_y = int(center_y + distance_from_center * random.uniform(-1, 1))
+        pos2_x = center_x - (pos1_x - center_x)
+        pos2_y = center_y - (pos1_y - center_y)
+        self.addBuilding(towncenter, pos1_x, pos1_y)
+        self.addBuilding(towncenter, pos2_x, pos2_y)
+    
+    def getMap(self):
+        return self.map
+    
+    def getBuildings(self):
+        return self.mapBuildings
+    
+    def getRessources(self):
+        return self.mapRessources
+    
+    def is_free(self, x, y):
+        return self.map[x][y] == " "

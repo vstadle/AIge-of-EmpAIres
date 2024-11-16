@@ -3,7 +3,7 @@ from model.Buildings import Buildings
 class Farm(Buildings):
 
     def __init__(self):
-        super().__init__(60, 10, 100, 2)
+        super().__init__(60, 10, 100, 2, 'F')
         self.food = 300
 
     def __repr__(self):

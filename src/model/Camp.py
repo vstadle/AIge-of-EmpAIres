@@ -3,7 +3,7 @@ from model.Buildings import Buildings
 class Camp(Buildings):
 
     def __init__(self):
-        super().__init__(100, 25, 200, 2)
+        super().__init__(100, 25, 200, 2, 'C')
         self.competence1 = "Drop points of resources"
 
     def __repr__(self):
