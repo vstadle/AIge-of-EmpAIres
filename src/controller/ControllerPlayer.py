@@ -208,10 +208,21 @@ class ControllerPlayer():
         building.setY(y)
 
     def addBuilding(self, building,x,y):
+
         if self.player.canAffordBuilding(building):
-            print(building, " add to building queue")
-            self.player.removeResourcesForBuilding(building)
-            self.player.getBuildingQueue().append({"building": building, "player": self.player, "start_time": time.time(), "x": x, "y": y})
+            is_free = True
+            if x + building.getSizeMap() < 120 or y + building.getSizeMap() < 120:
+                for i in range (building.getSizeMap()):
+                    for j in range (building.getSizeMap()):
+                        if not self.cmap.is_free(x+i, y+j):
+                            is_free = False
+                            break
+                    if not is_free:
+                        break
+                if is_free:
+                    print(building, " add to building queue")
+                    self.player.removeResourcesForBuilding(building)
+                    self.player.getBuildingQueue().append({"building": building, "player": self.player, "start_time": time.time(), "x": x, "y": y})
 
     def update_building(self):
         current_time = time.time()
