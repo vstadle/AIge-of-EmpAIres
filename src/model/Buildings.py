@@ -40,3 +40,6 @@ class Buildings():
     
     def getSizeMap(self):
         return self.sizeMap
+    
+    def getBuildingTime(self):
+        return self.bTime

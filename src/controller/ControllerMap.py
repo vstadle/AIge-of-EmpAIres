@@ -45,7 +45,8 @@ class ControllerMap():
             cpt += 1
 
     def addBuilding(self, building, x, y):
-        self.map.addBuilding(building, x, y)
+        start_time = time.time()
+        self.training_queue.append({"building": building, "start_time" : start_time, "x": x, "y": y})
 
     def genRessources(self, map_type):
         if map_type == MapType.GENEROUS_RESOURCES:
@@ -122,6 +123,7 @@ class ControllerMap():
 
             for player in self.lstPlayers:
                 player.update_training()
+                player.update_building()
 
             clock.tick(30)
 

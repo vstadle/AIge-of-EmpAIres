@@ -11,6 +11,7 @@ class Player():
         self.wood = w
         self.gold = g
         self.training_queue = []
+        self.buildings_queue = []
 
     def addUnit(self, unit):
         self.units.append(unit)
@@ -64,3 +65,6 @@ class Player():
 
     def getTrainingQueue(self):
         return self.training_queue
+    
+    def getBuildingQueue(self):
+        return self.buildings_queue

@@ -60,5 +60,7 @@ class UIHandler():
                     cplayer.trainVillager(cplayer.getPlayer().getBuildings()[1])
                     cplayer.trainVillager(cplayer.getPlayer().getBuildings()[2])
     
+            self.lstPlayers[0].addBuilding(Farm(), 10, 10)
+
     def start(self):
         self.controllerMap.run()

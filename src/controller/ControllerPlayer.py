@@ -203,30 +203,54 @@ class ControllerPlayer():
 
     def addBuildingInitialize(self, building, x, y):
         self.player.addBuilding(building)
-        self.cmap.addBuilding(building, x, y)
+        self.cmap.map.addBuilding(building, x, y)
         building.setX(x)
         building.setY(y)
 
     def addBuilding(self, building,x,y):
         if self.player.canAffordBuilding(building):
-            is_free = True
-            for i in range(building.getSizeMap()):
-                for j in range(building.getSizeMap()):
-                    if(not self.cmap.is_free(x+i, y+j)):
-                        is_free = False
+            print("Le joueur peut construire le batiment")
+            self.player.removeResourcesForBuilding(building)
+            self.player.getBuildingQueue().append({"building": building, "player": self.player, "start_time": time.time(), "x": x, "y": y})
+
+    def update_building(self):
+        current_time = time.time()
+        
+        for item in self.player.getBuildingQueue()[:]:
+            building = item["building"]
+            player = item["player"]
+            start_time = item["start_time"]
+            building = item["building"]
+            x = item["x"]
+            y = item["y"]
+
+            if current_time - start_time >= building.getBuildingTime():
+
+                is_free = True
+                for i in range(building.getSizeMap()):
+                    for j in range(building.getSizeMap()):
+                        if(not self.cmap.is_free(x+i, y+j)):
+                            print(x+i, y+j)
+                            print("Erreur de placement du batiment" , building, player)
+                            is_free = False
+                            break
+                    if(not is_free):
                         break
-                if(not is_free):
-                    break
-            if(not is_free):
-                self.player.addBuilding(building)
-                self.cmap.addBuilding(building, x, y)
-                building.setX(x)
-                building.setY(y)
-                self.player.removeResourcesForBuilding(building)
-                return 0
-            else:
-                return -1
-        else : return -1
+
+                if(is_free):
+                    self.player.addBuilding(building)
+                    self.cmap.map.addBuilding(building, x, y)
+                    building.setX(x)
+                    building.setY(y)
+                    self.player.getBuildingQueue().remove(item)
+                    print("Le batiment est placé")
+                else:
+                    print()
+                    #print("Erreur de placement du batiment" , building, player)
+                
+    def addUnitInitialize(self, unit):
+        self.player.addUnit(unit)
+        self.cmap.addUnits(unit, self, self.player.getBuildings()[0])
 
     def addUnit(self,unit, player, building):
         start_time = time.time()
@@ -235,7 +259,7 @@ class ControllerPlayer():
 
     def update_training(self):
         current_time = time.time()
-        print(current_time)
+        #print(current_time)
         for item in self.player.getTrainingQueue()[:]:
             unit = item["unit"]
             player = item["player"]
