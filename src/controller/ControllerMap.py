@@ -44,57 +44,12 @@ class ControllerMap():
             lstPlayers[cpt].addBuildingInitialize(TownCenter(), int(i[0]), int(i[1]))
             cpt += 1
 
-    def addBuilding(self, building, x, y):
-        start_time = time.time()
-        self.training_queue.append({"building": building, "start_time" : start_time, "x": x, "y": y})
-
     def genRessources(self, map_type):
         if map_type == MapType.GENEROUS_RESOURCES:
             self.map.generateGenerousResources()
         elif map_type == MapType.CENTER_RESOURCES:
             self.map.generateCenterResources()
         self.map.generateForest()
-
-    def addUnits(self, unit, player, building):
-        start_time = time.time()
-        self.training_queue.append({"unit": unit, "player": player, "start_time": start_time, "building": building})
-
-    def update_training_units(self):
-        current_time = time.time()
-        for item in self.training_queue[:]:  # Itérer sur une copie de la liste
-            unit = item["unit"]
-            player = item["player"]
-            start_time = item["start_time"]
-            building = item["building"]
-
-            if current_time - start_time >= unit.trainingTime:
-                x = building.getX()
-                y = building.getY()
-                building_width, building_height = building.getSizeMap(), building.getSizeMap()
-
-                placed = False
-                layer = 1  # On commence par la couche directement autour du bâtiment
-
-                while not placed:
-                    # Parcours des cases autour de la couche actuelle
-                    for dx in range(-layer, layer + 1):
-                        for dy in range(-layer, layer + 1):
-                            # Vérifier uniquement les positions aux bords de la couche
-                            if abs(dx) == layer or abs(dy) == layer:
-                                nx, ny = x + dx, y + dy
-                                if self.map.is_free(nx, ny):
-                                    self.map.addUnits(unit, nx, ny)
-                                    player.addUnit(unit)
-                                    placed = True
-                                    break
-                        if placed:
-                            break
-                    if not placed:
-                        # Étendre la recherche à la couche suivante
-                        layer += 1
-
-                # Retirer l'unité de la file d'attente après son placement
-                self.training_queue.remove(item)
     
     def run(self):
         clock = pygame.time.Clock()
