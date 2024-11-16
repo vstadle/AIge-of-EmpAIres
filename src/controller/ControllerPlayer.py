@@ -209,7 +209,7 @@ class ControllerPlayer():
 
     def addBuilding(self, building,x,y):
         if self.player.canAffordBuilding(building):
-            print("Le joueur peut construire le batiment")
+            print(building, " add to building queue")
             self.player.removeResourcesForBuilding(building)
             self.player.getBuildingQueue().append({"building": building, "player": self.player, "start_time": time.time(), "x": x, "y": y})
 
@@ -231,7 +231,7 @@ class ControllerPlayer():
                     for j in range(building.getSizeMap()):
                         if(not self.cmap.is_free(x+i, y+j)):
                             print(x+i, y+j)
-                            print("Erreur de placement du batiment" , building, player)
+                            print("Error  with building placement : ", building)
                             is_free = False
                             break
                     if(not is_free):
@@ -243,18 +243,37 @@ class ControllerPlayer():
                     building.setX(x)
                     building.setY(y)
                     self.player.getBuildingQueue().remove(item)
-                    print("Le batiment est placé")
+                    print(building, " is placed")
                 else:
                     print()
                     #print("Erreur de placement du batiment" , building, player)
                 
-    def addUnitInitialize(self, unit):
-        self.player.addUnit(unit)
-        self.cmap.addUnits(unit, self, self.player.getBuildings()[0])
+    def addUnitInitialize(self, unit, building):
+        x = building.getX()
+        y = building.getY()
+
+        placed = False
+        layer = 1
+
+        while not placed :
+
+            for dx in range(-layer, layer, + 1):
+                for dy in range(-layer, layer, + 1):
+                    if abs(dx) == layer or abs(dy) == layer:
+                        nx, ny = x + dx, y + dy
+                        if self.cmap.map.is_free(nx,ny):
+                            self.cmap.map.addUnits(unit, nx, ny)
+                            self.player.addUnit(unit)
+                            placed = True
+                            break
+                if placed:
+                    break
+            if not placed:
+                layer += 1
 
     def addUnit(self,unit, player, building):
         start_time = time.time()
-        print("Ajout d'une unité à la file d'attente")
+        print(unit, " add to training queue")
         self.player.getTrainingQueue().append({"unit": unit, "player": player, "start_time": start_time, "building": building})
 
     def update_training(self):
@@ -281,10 +300,10 @@ class ControllerPlayer():
                             if abs(dx) == layer or abs(dy) == layer:
                                 nx, ny = x + dx, y + dy
                                 if self.cmap.map.is_free(nx,ny):
-                                    print("Le villageois est placé")
                                     self.cmap.map.addUnits(unit, nx, ny)
                                     self.player.addUnit(unit)
                                     placed = True
+                                    print(unit , " is placed")
                                     break
                         if placed:
                             break
@@ -297,7 +316,6 @@ class ControllerPlayer():
     def trainVillager(self, building):
         villager = Villager()
         if self.player.canAffordUnit(villager):
-            print("Le joueur peut entrainer un villageois")
             self.player.removeResourcesForUnit(villager)
             self.addUnit(villager, self.player, building)
             return 0
