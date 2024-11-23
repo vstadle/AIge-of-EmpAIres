@@ -20,7 +20,7 @@ class Player():
 
     cptPlayer = 0
 
-    lstColor = [Color.GREEN, Color.BLUE, Color.RED]
+    lstColor = [Color.GREEN, Color.BLUE, Color.RED, Color.YELLOW, Color.PURPLE, Color.ORANGE, Color.CYAN, Color.PINK, Color.BROWN, Color.GREY]
 
     def __init__(self, name, f, w, g):
         self.name = name

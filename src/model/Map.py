@@ -181,3 +181,6 @@ class Map():
     
     def is_free(self, x, y):
         return self.map[x][y] == " "
+    
+    def getColor(self, x, y):
+        return self.lstColor[x][y]

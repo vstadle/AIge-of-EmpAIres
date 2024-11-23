@@ -57,7 +57,7 @@ class ViewMap():
                 y = row * self.TILE_SIZE
 
                 # Dessiner un rectangle pour chaque cellule
-                pygame.draw.rect(screen, self.GRAY, (x, y, self.TILE_SIZE, self.TILE_SIZE))
+                pygame.draw.rect(screen, self.BLACK, (x, y, self.TILE_SIZE, self.TILE_SIZE))
 
                 map_row = pos_y + row
                 map_col = pos_x + col
@@ -65,7 +65,10 @@ class ViewMap():
                 # Vérifier si les indices sont dans les limites de la carte
                 if 0 <= map_row < len(self.map.getMap()) and 0 <= map_col < len(self.map.getMap()[0]):
                     if self.map.getMap()[map_row][map_col] != ' ':
-                        text_surface = self.font.render(self.map.getMap()[map_row][map_col], True, self.BLACK)
+                        surface_color = self.map.getColor(map_row, map_col)
+                        if surface_color is None:
+                            surface_color = self.WHITE
+                        text_surface = self.font.render(self.map.getMap()[map_row][map_col], True, surface_color)
                         screen.blit(text_surface, (x + self.TILE_SIZE // 4, y + self.TILE_SIZE // 4))
 
         pygame.display.flip()  # Actualiser l'affichage

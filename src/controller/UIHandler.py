@@ -17,7 +17,9 @@ class UIHandler():
 
         self.controllerMap.genRessources(MapType.CENTER_RESOURCES)
 
-        self.initialize("Marines", 3)
+        # Initialisation de la partie
+        # La fonction initialize prend en paramètre le mode de jeu de la partie et le nombre de joueurs de la partie
+        self.initialize("Marines", 6)
 
         self.controllerMap.setLstPlayers(self.lstPlayers)
         # Génération des ressources de la Map
