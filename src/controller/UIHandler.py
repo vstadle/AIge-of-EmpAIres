@@ -15,15 +15,53 @@ class UIHandler():
         self.controllerMap = ControllerMap()
         self.lstPlayers = []
 
+    def show_menu(self):
+        pygame.init()
+        screen = pygame.display.set_mode((800, 600))
+        pygame.display.set_caption("Menu Principal")
+
+        font = pygame.font.Font(None, 36)
+        clock = pygame.time.Clock()
+
+        menu_active = True
+        while menu_active:
+            screen.fill((0, 0, 0))
+
+            new_game = font.render("Nouvelle Partie", True, (255, 255, 255))
+            load_game = font.render("Charger Partie", True, (255, 255, 255))
+            quit_game = font.render("Quitter", True, (255, 255, 255))
+
+            screen.blit(new_game, (300, 200))
+            screen.blit(load_game, (300, 250))
+            screen.blit(quit_game, (300, 300))
+    
+            pygame.display.flip()
+
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    menu_active = False
+                    pygame.quit()
+                    sys.exit()
+                if event.type == pygame.MOUSEBUTTONDOWN:
+                    x, y = event.pos
+                    if x > 300 and x < 500:
+                        if y > 200 and y < 230:
+                            menu_active = False
+                            self.start_new_game()
+                        if y > 250 and y < 280:
+                            menu_active = False
+                            #self.load_game()
+                        if y > 300 and y < 330:
+                            menu_active = False
+                            pygame.quit()
+                            sys.exit()
+
+    def start_new_game(self):
+        # Lancer une nouvelle partie
         self.controllerMap.genRessources(MapType.CENTER_RESOURCES)
-
-        # Initialisation de la partie
-        # La fonction initialize prend en paramètre le mode de jeu de la partie et le nombre de joueurs de la partie
-        self.initialize("Marines", 6)
-
+        self.initialize("Marines", 6)  # Exemple : type "Marines", 6 joueurs
         self.controllerMap.setLstPlayers(self.lstPlayers)
-        # Génération des ressources de la Map
-        #self.controllerMap.genRessources(MapType.CENTER_RESOURCES)
+        self.start()
 
     def initialize(self, typeGame, nbPlayers):
         if(typeGame == "Lean"):
