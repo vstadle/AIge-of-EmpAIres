@@ -33,6 +33,8 @@ class Map():
         #Liste des joueurs
         self.players = []
 
+        #Listes des couleurs
+        self.lstColor= [[None for x in range(120)] for y in range(120)]
 
         self.map = [[" " for x in range(120)] for y in range(120)]
         self.map[0][0] = 'R'
@@ -103,7 +105,7 @@ class Map():
         self.mapRessources[x][y] = Ressources
         self.map[x][y] = Ressources.letter
 
-    def addBuilding(self, building, x, y):
+    def addBuilding(self, building, x, y, cplayer):
         building.setX(x)
         building.setY(y)
         cpt = 0
@@ -112,11 +114,14 @@ class Map():
             for j in range(building.sizeMap):
                 self.mapBuildings[x + i][y + j] = building
                 self.map[x + i][y + j] = building.letter
+                print(cplayer)
+                self.lstColor[x + i][y + j] = cplayer.getPlayer().getColor()
 
 
-    def addUnits(self, units, x, y):
+    def addUnits(self, units, x, y, cplayer):
         self.mapUnits[x][y] = units
         self.map[x][y] = units.letter
+        self.lstColor[x][y] = cplayer.getPlayer().getColor()
 
     def generateForest(self):
         max_percentage_wood = 0.1 

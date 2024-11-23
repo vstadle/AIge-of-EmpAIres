@@ -17,7 +17,7 @@ class UIHandler():
 
         self.controllerMap.genRessources(MapType.CENTER_RESOURCES)
 
-        self.initialize("Marines", 4)
+        self.initialize("Marines", 3)
 
         self.controllerMap.setLstPlayers(self.lstPlayers)
         # Génération des ressources de la Map
@@ -61,6 +61,11 @@ class UIHandler():
                     cplayer.addUnitInitialize(Villager(), cplayer.getPlayer().getBuildings()[2])
     
             self.lstPlayers[0].addBuilding(Farm(), 10, 10)
+            
+            self.lstPlayers[0].trainArcher(self.lstPlayers[0].getPlayer().getBuildings()[7])
+            self.lstPlayers[0].trainHorseman(self.lstPlayers[0].getPlayer().getBuildings()[6])
+            self.lstPlayers[0].trainVillager(self.lstPlayers[0].getPlayer().getBuildings()[0])
+            self.lstPlayers[0].trainSwordsman(self.lstPlayers[0].getPlayer().getBuildings()[4])
 
     def start(self):
         self.controllerMap.run()

@@ -203,7 +203,7 @@ class ControllerPlayer():
 
     def addBuildingInitialize(self, building, x, y):
         self.player.addBuilding(building)
-        self.cmap.map.addBuilding(building, x, y)
+        self.cmap.map.addBuilding(building, x, y, self)
         building.setX(x)
         building.setY(y)
 
@@ -222,7 +222,7 @@ class ControllerPlayer():
                 if is_free:
                     print(building, " add to building queue")
                     self.player.removeResourcesForBuilding(building)
-                    self.player.getBuildingQueue().append({"building": building, "player": self.player, "start_time": time.time(), "x": x, "y": y})
+                    self.player.getBuildingQueue().append({"building": building, "player": self, "start_time": time.time(), "x": x, "y": y})
 
     def update_building(self):
         current_time = time.time()
@@ -250,7 +250,7 @@ class ControllerPlayer():
 
                 if(is_free):
                     self.player.addBuilding(building)
-                    self.cmap.map.addBuilding(building, x, y)
+                    self.cmap.map.addBuilding(building, x, y, player)
                     building.setX(x)
                     building.setY(y)
                     self.player.getBuildingQueue().remove(item)
@@ -273,7 +273,7 @@ class ControllerPlayer():
                     if abs(dx) == layer or abs(dy) == layer:
                         nx, ny = x + dx, y + dy
                         if self.cmap.map.is_free(nx,ny):
-                            self.cmap.map.addUnits(unit, nx, ny)
+                            self.cmap.map.addUnits(unit, nx, ny, self)
                             self.player.addUnit(unit)
                             placed = True
                             break
@@ -282,10 +282,10 @@ class ControllerPlayer():
             if not placed:
                 layer += 1
 
-    def addUnit(self,unit, player, building):
+    def addUnit(self,unit, cplayer, building):
         start_time = time.time()
         print(unit, " add to training queue")
-        self.player.getTrainingQueue().append({"unit": unit, "player": player, "start_time": start_time, "building": building})
+        self.player.getTrainingQueue().append({"unit": unit, "player": cplayer, "start_time": start_time, "building": building})
 
     def update_training(self):
         current_time = time.time()
@@ -311,7 +311,7 @@ class ControllerPlayer():
                             if abs(dx) == layer or abs(dy) == layer:
                                 nx, ny = x + dx, y + dy
                                 if self.cmap.map.is_free(nx,ny):
-                                    self.cmap.map.addUnits(unit, nx, ny)
+                                    self.cmap.map.addUnits(unit, nx, ny, player)
                                     self.player.addUnit(unit)
                                     placed = True
                                     print(unit , " is placed")
@@ -328,25 +328,23 @@ class ControllerPlayer():
         villager = Villager()
         if self.player.canAffordUnit(villager):
             self.player.removeResourcesForUnit(villager)
-            self.addUnit(villager, self.player, building)
+            self.addUnit(villager, self, building)
             return 0
         return -1
     
     def trainArcher(self, building):
         archer = Archer()
         if self.player.canAffordUnit(archer):
-            self.addUnit(archer)
+            self.addUnit(archer, self, building)
             self.player.removeResourcesForUnit(archer)
-            self.cmap.addUnits(archer, self, building)
             return 0
         return -1
 
     def trainHorseman(self, building):
         horseman = Horseman()
         if self.player.canAffordUnit(horseman):
-            self.addUnit(horseman)
+            self.addUnit(horseman,self, building)
             self.player.removeResourcesForUnit(horseman)
-            self.cmap.addUnits(horseman, self, building)
             return 0
         else:
             return -1
@@ -354,9 +352,8 @@ class ControllerPlayer():
     def trainSwordsman(self, building):
         swordsman = Swordsman()
         if self.player.canAffordUnit(swordsman):
-            self.addUnit(swordsman)
+            self.addUnit(swordsman, self, building)
             self.player.removeResourcesForUnit(swordsman)
-            self.cmap.addUnits(swordsman, self, building)
             return 0
         else:
             return -1

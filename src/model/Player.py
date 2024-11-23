@@ -1,7 +1,26 @@
 
 from model.TownCenter import TownCenter
 
+class Color():
+    WHITE = (255, 255, 255)
+    BLACK = (0, 0, 0)
+    GRAY = (200, 200, 200)
+    GREEN = (0, 255, 0)
+    BLUE = (0, 0, 255)
+    RED = (255, 0, 0)
+    YELLOW = (255, 255, 0)
+    PURPLE = (255, 0, 255)
+    ORANGE = (255, 165, 0)
+    CYAN = (0, 255, 255)
+    PINK = (255, 192, 203)
+    BROWN = (165, 42, 42)
+    GREY = (128, 128, 128)
+
 class Player():
+
+    cptPlayer = 0
+
+    lstColor = [Color.GREEN, Color.BLUE, Color.RED]
 
     def __init__(self, name, f, w, g):
         self.name = name
@@ -12,6 +31,9 @@ class Player():
         self.gold = g
         self.training_queue = []
         self.buildings_queue = []
+        self.id = Player.cptPlayer
+        Player.cptPlayer += 1
+        self.color = Player.lstColor[self.id]
 
     def addUnit(self, unit):
         self.units.append(unit)
@@ -68,3 +90,6 @@ class Player():
     
     def getBuildingQueue(self):
         return self.buildings_queue
+
+    def getColor(self):
+        return self.color
