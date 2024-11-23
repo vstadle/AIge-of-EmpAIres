@@ -32,9 +32,9 @@ class ViewMap():
         self.total_iso_width = (self.map_width + self.map_height) * self.iso_tile_width // 2
         self.total_iso_height = (self.map_width + self.map_height) * self.iso_tile_height // 2
 
-        self.MINIMAP_SIZE = 120  
-        self.MINIMAP_PADDING = 20 
-        self.MINIMAP_TILE_SIZE = self.MINIMAP_SIZE // max(self.map_width, self.map_height)
+        self.MINIMAP_SIZE = 180  
+        self.MINIMAP_PADDING = 20
+        self.MINIMAP_TILE_SIZE = self.MINIMAP_SIZE // max(self.map_width, self.map_height) *1.5
         
         window_width = self.GRID_WIDTH * self.TILE_SIZE
         window_height = self.GRID_HEIGHT * self.TILE_SIZE
@@ -67,55 +67,60 @@ class ViewMap():
                         screen.blit(text_surface, (x + self.TILE_SIZE // 4, y + self.TILE_SIZE // 4))
         pygame.display.flip()
     def draw_minimap(self, screen, view_x, view_y):
+        # Créer une surface pour la mini-map
         minimap_surface = pygame.Surface((self.MINIMAP_SIZE, self.MINIMAP_SIZE))
-        minimap_surface.fill(self.BLACK)
+        minimap_surface.fill(self.BLACK)  # Fond noir rectangulaire
 
+        # Dimensions des tuiles isométriques pour la mini-map
         iso_minimap_tile_width = self.MINIMAP_TILE_SIZE
         iso_minimap_tile_height = self.MINIMAP_TILE_SIZE * 0.5
 
+        # Position centrale pour le losange
+        minimap_center_x = self.MINIMAP_SIZE // 2
+        minimap_center_y = self.MINIMAP_SIZE // 2
+
+        # Dessiner le losange de la carte
         for row in range(self.map_height):
             for col in range(self.map_width):
-                iso_x = (col - row) * iso_minimap_tile_width // 2
-                iso_y = (col + row) * iso_minimap_tile_height // 2
-
-                iso_x += (self.MINIMAP_SIZE // 2)
-                iso_y += (self.MINIMAP_SIZE // 2) - (self.map_height * iso_minimap_tile_height // 2)
+                # Coordonnées isométriques
+                iso_x = (col - row) * iso_minimap_tile_width // 2 + minimap_center_x
+                iso_y = (col + row) * iso_minimap_tile_height // 2 + minimap_center_y - (self.map_height * iso_minimap_tile_height // 2)
 
                 cell_content = self.map.getMap()[row][col]
                 color = self.get_tile_color(cell_content)
 
+                # Points du losange
                 points = [
                     (iso_x, iso_y),
                     (iso_x + iso_minimap_tile_width // 2, iso_y + iso_minimap_tile_height // 2),
                     (iso_x, iso_y + iso_minimap_tile_height),
-                    (iso_x - iso_minimap_tile_width // 2, iso_y + iso_minimap_tile_height // 2)
+                    (iso_x - iso_minimap_tile_width // 2, iso_y + iso_minimap_tile_height // 2),
                 ]
                 pygame.draw.polygon(minimap_surface, color, points)
 
-        viewport_width = (self.GRID_WIDTH * self.iso_tile_width * iso_minimap_tile_width /
-                        (self.map_width * self.iso_tile_width))
-        viewport_height = (self.GRID_HEIGHT * self.iso_tile_height * iso_minimap_tile_height /
-                        (self.map_height * self.iso_tile_height))
+        # Calculer les dimensions de la vue sur la mini-carte
+        viewport_width = self.GRID_WIDTH / self.map_width * self.MINIMAP_SIZE
+        viewport_height = self.GRID_HEIGHT / self.map_height * self.MINIMAP_SIZE
 
-        viewport_x = (view_x * self.MINIMAP_SIZE / self.total_iso_width)
-        viewport_y = (view_y * self.MINIMAP_SIZE / self.total_iso_height)
+        # Calculer la position de la vue sur la mini-carte
+        viewport_x = view_x / self.map_width * self.MINIMAP_SIZE
+        viewport_y = view_y / self.map_height * self.MINIMAP_SIZE
 
-        viewport_x = (view_x * iso_minimap_tile_width / 2 + self.MINIMAP_SIZE // 2)
-        viewport_y = (view_y * iso_minimap_tile_height / 2 + self.MINIMAP_SIZE // 2 -
-                    (self.map_height * iso_minimap_tile_height // 2))
+        # Dessiner le rectangle rouge de la vue
+        pygame.draw.rect(
+            minimap_surface,
+            self.RED,
+            (viewport_x, viewport_y, viewport_width, viewport_height),
+            2,
+        )
 
-        pygame.draw.rect(minimap_surface, self.RED,
-                        (viewport_x, viewport_y, viewport_width, viewport_height), 2)
-
+        # Position finale de la mini-carte sur l'écran
         minimap_x = screen.get_width() - self.MINIMAP_SIZE - self.MINIMAP_PADDING
         minimap_y = screen.get_height() - self.MINIMAP_SIZE - self.MINIMAP_PADDING
 
-        background = pygame.Surface((self.MINIMAP_SIZE + 10, self.MINIMAP_SIZE + 10))
-        background.fill((50, 50, 50))
-        background.set_alpha(128)
-        screen.blit(background, (minimap_x - 5, minimap_y - 5))
-
+        # Dessiner la mini-carte sur l'écran
         screen.blit(minimap_surface, (minimap_x, minimap_y))
+
     def draw_map_2_5D(self, screen, pos_x, pos_y):
         screen.fill(self.BLACK)
         map_surface_width = (self.map_width + self.map_height) * self.iso_tile_width // 2
