@@ -222,7 +222,7 @@ class ControllerPlayer():
                 if is_free:
                     print(building, " add to building queue")
                     self.player.removeResourcesForBuilding(building)
-                    self.player.getBuildingQueue().append({"building": building, "player": self, "start_time": time.time(), "x": x, "y": y})
+                    self.player.getBuildingQueue().append({"building": building, "player": self.player, "start_time": time.time(), "x": x, "y": y})
 
     def update_building(self):
         current_time = time.time()
@@ -249,7 +249,7 @@ class ControllerPlayer():
                         break
 
                 if(is_free):
-                    self.player.addBuilding(building)
+                    player.addBuilding(building)
                     self.cmap.map.addBuilding(building, x, y, player)
                     building.setX(x)
                     building.setY(y)
@@ -282,10 +282,10 @@ class ControllerPlayer():
             if not placed:
                 layer += 1
 
-    def addUnit(self,unit, cplayer, building):
+    def addUnit(self,unit, building):
         start_time = time.time()
         print(unit, " add to training queue")
-        self.player.getTrainingQueue().append({"unit": unit, "player": cplayer, "start_time": start_time, "building": building})
+        self.player.getTrainingQueue().append({"unit": unit, "player": self.player, "start_time": start_time, "building": building})
 
     def update_training(self):
         current_time = time.time()
@@ -328,14 +328,14 @@ class ControllerPlayer():
         villager = Villager()
         if self.player.canAffordUnit(villager):
             self.player.removeResourcesForUnit(villager)
-            self.addUnit(villager, self, building)
+            self.addUnit(villager, building)
             return 0
         return -1
     
     def trainArcher(self, building):
         archer = Archer()
         if self.player.canAffordUnit(archer):
-            self.addUnit(archer, self, building)
+            self.addUnit(archer, building)
             self.player.removeResourcesForUnit(archer)
             return 0
         return -1
@@ -343,7 +343,7 @@ class ControllerPlayer():
     def trainHorseman(self, building):
         horseman = Horseman()
         if self.player.canAffordUnit(horseman):
-            self.addUnit(horseman,self, building)
+            self.addUnit(horseman, building)
             self.player.removeResourcesForUnit(horseman)
             return 0
         else:
@@ -352,7 +352,7 @@ class ControllerPlayer():
     def trainSwordsman(self, building):
         swordsman = Swordsman()
         if self.player.canAffordUnit(swordsman):
-            self.addUnit(swordsman, self, building)
+            self.addUnit(swordsman, building)
             self.player.removeResourcesForUnit(swordsman)
             return 0
         else:
