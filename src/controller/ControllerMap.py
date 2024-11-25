@@ -41,7 +41,7 @@ class ControllerMap():
 
         cpt = 0
         for i in position:
-            self.map.addBuilding(TownCenter(), int(i[0]), int(i[1]), lstPlayers[cpt])
+            self.map.addBuilding(TownCenter(), int(i[0]), int(i[1]), lstPlayers[cpt].getPlayer())
             lstPlayers[cpt].addBuildingInitialize(TownCenter(), int(i[0]), int(i[1]))
             cpt += 1
 

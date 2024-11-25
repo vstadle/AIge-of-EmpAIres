@@ -203,7 +203,7 @@ class ControllerPlayer():
 
     def addBuildingInitialize(self, building, x, y):
         self.player.addBuilding(building)
-        self.cmap.map.addBuilding(building, x, y, self)
+        self.cmap.map.addBuilding(building, x, y, self.player)
         building.setX(x)
         building.setY(y)
 
@@ -273,7 +273,7 @@ class ControllerPlayer():
                     if abs(dx) == layer or abs(dy) == layer:
                         nx, ny = x + dx, y + dy
                         if self.cmap.map.is_free(nx,ny):
-                            self.cmap.map.addUnits(unit, nx, ny, self)
+                            self.cmap.map.addUnits(unit, nx, ny, self.player)
                             self.player.addUnit(unit)
                             placed = True
                             break

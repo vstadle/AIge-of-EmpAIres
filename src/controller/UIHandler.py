@@ -119,7 +119,6 @@ class UIHandler():
                     cplayer.addUnitInitialize(Villager(), cplayer.getPlayer().getBuildings()[2])
     
             self.lstPlayers[0].addBuilding(Farm(), 10, 10)
-            
             self.lstPlayers[0].trainArcher(self.lstPlayers[0].getPlayer().getBuildings()[7])
             self.lstPlayers[0].trainHorseman(self.lstPlayers[0].getPlayer().getBuildings()[6])
             self.lstPlayers[0].trainVillager(self.lstPlayers[0].getPlayer().getBuildings()[0])
