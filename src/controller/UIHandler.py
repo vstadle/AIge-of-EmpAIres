@@ -1,5 +1,6 @@
 import pygame
 import sys
+import pickle
 
 from controller.ControllerMap import ControllerMap
 from controller.ControllerPlayer import ControllerPlayer
@@ -7,12 +8,14 @@ from model.Map import MapType
 from model.TownCenter import TownCenter
 from model.Farm import Farm
 from model.Villager import Villager
+from model.Game import Game
 
 class UIHandler():
     def __init__(self):
 
         #Création de la map
-        self.controllerMap = ControllerMap()
+        self.game = Game()
+        self.controllerMap = ControllerMap(self)
         self.lstPlayers = []
 
     def show_menu(self):
@@ -62,6 +65,21 @@ class UIHandler():
         self.initialize("Marines", 6)  # Exemple : type "Marines", 6 joueurs
         self.controllerMap.setLstPlayers(self.lstPlayers)
         self.start()
+
+    def saveGame(self):
+        # Charger une partie sauvegardée
+        lsttemp = []
+        for players in self.lstPlayers:
+            lsttemp.append(players.getPlayer())
+        print(lsttemp)
+        print(self.controllerMap.map)
+        self.game.setLstPlayer(lsttemp)
+        self.game.setMap(self.controllerMap.map)
+        file = open("save.txt", "wb")
+        pickle.dump(self.game, file)
+        file.close()
+        print("Game saved")
+        
 
     def initialize(self, typeGame, nbPlayers):
         if(typeGame == "Lean"):

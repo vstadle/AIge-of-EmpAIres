@@ -9,7 +9,12 @@ class Game():
     
     
     
-    def set_game(self,game):
+    def setGame(self,game):
         self = game
 
+    def setLstPlayer(self,lstPlayer):
+        self.lstPlayer = lstPlayer
+
+    def setMap(self,map):
+        self.map = map
     

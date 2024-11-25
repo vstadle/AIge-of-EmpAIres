@@ -30,9 +30,6 @@ class Map():
         #Matrice de 120x120 qui va contenir les unités
         self.mapUnits = [[None for x in range(120)] for y in range(120)]
 
-        #Liste des joueurs
-        self.players = []
-
         #Listes des couleurs
         self.lstColor= [[None for x in range(120)] for y in range(120)]
 

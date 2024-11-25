@@ -14,7 +14,7 @@ from model.Horseman import Horseman
 from model.Swordsman import Swordsman
 
 class ControllerMap():
-    def __init__(self):
+    def __init__(self, uiHandler):
         pygame.init()
         self.map = Map(MapType.GENEROUS_RESOURCES)
         self.vMap = ViewMap(self.map, self)  # Passer la référence de la carte
@@ -22,6 +22,7 @@ class ControllerMap():
         self.pos_y = 0
         self.training_queue = []
         self.lstPlayers = []
+        self.uiHandler = uiHandler
 
     def setLstPlayers(self, lstPlayers):
         self.lstPlayers = lstPlayers
@@ -64,7 +65,9 @@ class ControllerMap():
             if keys[pygame.K_s]: self.pos_y += 1
             if keys[pygame.K_q]: self.pos_x -= 1
             if keys[pygame.K_d]: self.pos_x += 1
-            if keys[pygame.K_p]: sys.exit()
+            if keys[pygame.K_p]: 
+                self.uiHandler.saveGame()
+                sys.exit()
 
             max_x = len(self.map.map[0]) - self.vMap.GRID_WIDTH
             max_y = len(self.map.map) - self.vMap.GRID_HEIGHT
