@@ -115,7 +115,6 @@ class Map():
             for j in range(building.sizeMap):
                 self.mapBuildings[x + i][y + j] = building
                 self.map[x + i][y + j] = building.letter
-                print(cplayer)
                 self.lstColor[x + i][y + j] = cplayer.getPlayer().getColor()
 
 
