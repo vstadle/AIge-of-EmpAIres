@@ -64,8 +64,6 @@ class Map():
 
 
 
-    def addControllerPlayer(self, controller_player):
-        self.players.append(controller_player)
 
     def generateCenterResources(self):
         center_x, center_y = 60, 60 
