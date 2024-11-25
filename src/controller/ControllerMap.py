@@ -24,6 +24,14 @@ class ControllerMap():
         self.lstPlayers = []
         self.uiHandler = uiHandler
 
+    def reset(self, map):
+        self.map = map
+        self.vMap = ViewMap(self.map, self)
+        self.pos_x = 0
+        self.pos_y = 0
+        self.training_queue = []
+        self.lstPlayers = []
+
     def setLstPlayers(self, lstPlayers):
         self.lstPlayers = lstPlayers
 

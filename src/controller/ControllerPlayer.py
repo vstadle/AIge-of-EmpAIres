@@ -21,6 +21,10 @@ class ControllerPlayer():
         self.player = Player(name, f, w, g)
         self.cmap = cmap
     
+    @classmethod
+    def from_saved(cls,player,cmap):
+        return cls(player.name, player.food, player.wood, player.gold, cmap)
+    
     def initializeTownCenter(self, nb):
 
         for i in range(nb):

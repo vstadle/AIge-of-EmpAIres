@@ -53,7 +53,7 @@ class UIHandler():
                             self.start_new_game()
                         if y > 250 and y < 280:
                             menu_active = False
-                            #self.load_game()
+                            self.loadGame()
                         if y > 300 and y < 330:
                             menu_active = False
                             pygame.quit()
@@ -80,6 +80,19 @@ class UIHandler():
         file.close()
         print("Game saved")
         
+    def loadGame(self):
+        # Charger une partie sauvegardée
+        file = open("save.txt", "rb")
+        game = pickle.load(file)
+        file.close()
+        self.game = game
+        self.controllerMap.reset(self.game.map)
+        for player in game.lstPlayer:
+            self.lstPlayers.append(ControllerPlayer.from_saved(player, self.controllerMap))
+        self.controllerMap.setLstPlayers(self.lstPlayers)
+        print(self.controllerMap.map)
+        print("Game loaded")
+        self.start()
 
     def initialize(self, typeGame, nbPlayers):
         if(typeGame == "Lean"):
