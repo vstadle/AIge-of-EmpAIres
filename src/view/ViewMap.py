@@ -16,8 +16,8 @@ class ViewMap():
         self.map = map  # Référence vers le modèle Map
         self.cmap = cmap  # Référence vers le contrôleur de la fenêtre
         
-        self.GRID_WIDTH =120  # Largeur de la grille en nombre de cellules
-        self.GRID_HEIGHT = 120  # Hauteur de la grille en nombre de cellules
+        self.GRID_WIDTH = 30  # Largeur de la grille en nombre de cellules
+        self.GRID_HEIGHT = 30  # Hauteur de la grille en nombre de cellules
         
         # Information sur la carte
         display_info = pygame.display.Info()

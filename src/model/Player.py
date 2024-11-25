@@ -1,6 +1,3 @@
-
-from model.TownCenter import TownCenter
-
 class Color():
     WHITE = (255, 255, 255)
     BLACK = (0, 0, 0)
@@ -63,13 +60,7 @@ class Player():
         return len(self.units)
     
     def getBuildings(self):
-        return self.buildings
-    
-    def getTownCenter(self):
-        for building in self.buildings:
-            if isinstance(building, TownCenter):
-                return building
-        return None    
+        return self.buildings  
 
     def canAffordBuilding(self, building):
         return (self.wood >= building.costW)
