@@ -22,7 +22,7 @@ class UIHandler():
 
     def show_menu(self):
         pygame.init()
-        screen = pygame.display.set_mode((800, 600))
+        screen = pygame.display.set_mode((600, 600))
         pygame.display.set_caption("Menu Principal")
 
         font = pygame.font.Font(None, 36)
