@@ -1,6 +1,7 @@
 import pygame
 import sys
 import pickle
+import datetime
 
 from controller.ControllerMap import ControllerMap
 from controller.ControllerPlayer import ControllerPlayer
@@ -9,6 +10,7 @@ from model.TownCenter import TownCenter
 from model.Farm import Farm
 from model.Villager import Villager
 from model.Game import Game
+import os
 
 class UIHandler():
     def __init__(self):
@@ -67,6 +69,12 @@ class UIHandler():
         self.start()
 
     def saveGame(self):
+        if not os.path.exists("../sauv"):
+            os.makedirs("../sauv")
+        screen = pygame.display.set_mode((400, 300))
+        pygame.display.set_caption("Save Game")
+        screen.fill((0, 0, 0))  # Fill the screen with a background color
+        pygame.display.update()
         # Charger une partie sauvegardée
         lsttemp = []
         for players in self.lstPlayers:
@@ -75,14 +83,22 @@ class UIHandler():
         print(self.controllerMap.map)
         self.game.setLstPlayer(lsttemp)
         self.game.setMap(self.controllerMap.map)
-        file = open("save.txt", "wb")
+        current_time = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+        file_name = f"../sauv/Save_{current_time}.dat"
+        print(file_name)
+        file = open(file_name, 'wb')
         pickle.dump(self.game, file)
         file.close()
         print("Game saved")
         
     def loadGame(self):
+        # Set the window size and title for the load game menu
+        screen = pygame.display.set_mode((400, 300))
+        pygame.display.set_caption("Load Game")
+        pygame.display.update()
         # Charger une partie sauvegardée
-        file = open("save.txt", "rb")
+        file_name = "../sauv/save.txt"  # Update this to the correct file name if needed
+        file = open(file_name, "rb")
         game = pickle.load(file)
         file.close()
         self.game = game
