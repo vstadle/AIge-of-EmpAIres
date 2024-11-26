@@ -2,6 +2,7 @@ import pygame
 import sys
 import pickle
 import datetime
+import os
 
 from controller.ControllerMap import ControllerMap
 from controller.ControllerPlayer import ControllerPlayer
@@ -10,7 +11,7 @@ from model.TownCenter import TownCenter
 from model.Farm import Farm
 from model.Villager import Villager
 from model.Game import Game
-import os
+
 
 class UIHandler():
     def __init__(self):
@@ -27,7 +28,7 @@ class UIHandler():
 
         font = pygame.font.Font(None, 36)
         clock = pygame.time.Clock()
-
+        
         menu_active = True
         while menu_active:
             screen.fill((0, 0, 0))
@@ -55,16 +56,17 @@ class UIHandler():
                             self.start_new_game()
                         if y > 250 and y < 280:
                             menu_active = False
-                            self.loadGame()
+                            self.show_load_game_menu(screen, font)
+                                
                         if y > 300 and y < 330:
                             menu_active = False
                             pygame.quit()
                             sys.exit()
 
+
     def start_new_game(self):
-        # Lancer une nouvelle partie
         self.controllerMap.genRessources(MapType.CENTER_RESOURCES)
-        self.initialize("Marines", 6)  # Exemple : type "Marines", 6 joueurs
+        self.initialize("Marines", 6) 
         self.controllerMap.setLstPlayers(self.lstPlayers)
         self.start()
 
@@ -73,9 +75,8 @@ class UIHandler():
             os.makedirs("../sauv")
         screen = pygame.display.set_mode((400, 300))
         pygame.display.set_caption("Save Game")
-        screen.fill((0, 0, 0))  # Fill the screen with a background color
+        screen.fill((0, 0, 0))  
         pygame.display.update()
-        # Charger une partie sauvegardée
         lsttemp = []
         for players in self.lstPlayers:
             lsttemp.append(players.getPlayer())
@@ -85,30 +86,54 @@ class UIHandler():
         self.game.setMap(self.controllerMap.map)
         current_time = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
         file_name = f"../sauv/Save_{current_time}.dat"
-        print(file_name)
         file = open(file_name, 'wb')
         pickle.dump(self.game, file)
         file.close()
         print("Game saved")
-        
-    def loadGame(self):
-        # Set the window size and title for the load game menu
-        screen = pygame.display.set_mode((400, 300))
-        pygame.display.set_caption("Load Game")
-        pygame.display.update()
-        # Charger une partie sauvegardée
-        file_name = "../sauv/save.txt"  # Update this to the correct file name if needed
-        file = open(file_name, "rb")
-        game = pickle.load(file)
-        file.close()
+
+    def start_game_saved(self, game):
         self.game = game
-        self.controllerMap.reset(self.game.map)
-        for player in game.lstPlayer:
-            self.lstPlayers.append(ControllerPlayer.from_saved(player, self.controllerMap))
+        self.controllerMap.map = game.map
+        self.lstPlayers = []
+        for player in self.game.lstPlayer:
+            self.lstPlayers.append(ControllerPlayer(player.name, player.food, player.wood, player.gold, self.controllerMap.map))
         self.controllerMap.setLstPlayers(self.lstPlayers)
-        print(self.controllerMap.map)
-        print("Game loaded")
         self.start()
+
+    def loadGame(self,filename):
+        with open(f'../sauv/{filename}', 'rb') as file:
+            self.game = pickle.load(file)
+            self.start_game_saved(self.game)
+
+    def show_load_game_menu(self, screen, font):
+        clock = pygame.time.Clock()
+        files = os.listdir('../sauv/')
+        load_game_active = True
+        while load_game_active:
+            screen.fill((0, 0, 0))
+
+            y = 100
+            file_positions = []
+            for file in files:
+                file_text = font.render(file, True, (255, 255, 255))
+                screen.blit(file_text, (100, y))
+                file_positions.append((file, 100, y, 100 + file_text.get_width(), y + file_text.get_height()))
+                y += 40
+
+            pygame.display.flip()
+
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    load_game_active = False
+                elif event.type == pygame.MOUSEBUTTONDOWN:
+                    mouse_x, mouse_y = event.pos
+                    for file, x1, y1, x2, y2 in file_positions:
+                        if x1 <= mouse_x <= x2 and y1 <= mouse_y <= y2:
+                            self.loadGame(file)
+                            load_game_active = False
+                            
+
+            clock.tick(60)
 
     def initialize(self, typeGame, nbPlayers):
         if(typeGame == "Lean"):
