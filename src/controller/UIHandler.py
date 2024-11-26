@@ -92,18 +92,29 @@ class UIHandler():
         print("Game saved")
 
     def start_game_saved(self, game):
+        self.game 
+
+    def loadGame(self,path_file):
+        path_file = "../sauv/" + path_file
+        file = open(path_file, "rb")
+        game = pickle.load(file)
+        file.close()
         self.game = game
-        self.controllerMap.map = game.map
-        self.lstPlayers = []
         for player in self.game.lstPlayer:
-            self.lstPlayers.append(ControllerPlayer(player.name, player.food, player.wood, player.gold, self.controllerMap.map))
+            print(f"Après désérialisation : Joueur {player.name}")
+            print(f"  Units: {len(player.units)}")
+            print(f"  Buildings: {len(player.buildings)}")
+
+        self.controllerMap.reset(self.game.map)
+        for player in self.game.lstPlayer:
+            self.lstPlayers.append(ControllerPlayer.from_saved(player, self.controllerMap))
+
         self.controllerMap.setLstPlayers(self.lstPlayers)
+        print(game.lstPlayer)
+        print(self.controllerMap.map)
+        print("Game loaded")
         self.start()
 
-    def loadGame(self,filename):
-        with open(f'../sauv/{filename}', 'rb') as file:
-            self.game = pickle.load(file)
-            self.start_game_saved(self.game)
 
     def show_load_game_menu(self, screen, font):
         clock = pygame.time.Clock()
