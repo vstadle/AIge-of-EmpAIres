@@ -1,3 +1,4 @@
 src/model/__pycache__/*
 src/controller/__pycache__/*
 src/view/__pycache__/*
+src/web/__pycache__/*
