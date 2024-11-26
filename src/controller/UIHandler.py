@@ -113,7 +113,7 @@ class UIHandler():
         if(typeGame == "Lean"):
             
             for i in range(nbPlayers):
-                self.lstPlayers.append(ControllerPlayer.from_new("Player"+str(i), 50, 200, 50, self.controllerMap))
+                self.lstPlayers.append(ControllerPlayer.from_new("Player "+str(i), 50, 200, 50, self.controllerMap))
         
             self.controllerMap.placementTownCenter(len(self.lstPlayers), self.lstPlayers)
             
@@ -124,7 +124,7 @@ class UIHandler():
         elif(typeGame == "Mean"):
             
             for i in range(nbPlayers):
-                self.lstPlayers.append(ControllerPlayer.from_new("Player"+str(i), 2000, 2000, 2000, self.controllerMap))
+                self.lstPlayers.append(ControllerPlayer.from_new("Player "+str(i), 2000, 2000, 2000, self.controllerMap))
             
             self.controllerMap.placementTownCenter(len(self.lstPlayers), self.lstPlayers)
             
@@ -135,7 +135,7 @@ class UIHandler():
         elif(typeGame ==  "Marines"):
 
             for i in range(nbPlayers):
-                self.lstPlayers.append(ControllerPlayer.from_new("Player"+str(i), 20000, 20000, 20000, self.controllerMap))
+                self.lstPlayers.append(ControllerPlayer.from_new("Player "+str(i), 20000, 20000, 20000, self.controllerMap))
             
             self.controllerMap.placementTownCenter(len(self.lstPlayers), self.lstPlayers)
             

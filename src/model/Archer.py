@@ -6,7 +6,7 @@ class Archer(Units):
         super().__init__(0, 45, 25, 30, 35, 4, 1, 1, 4, 'a')
 
     def __repr__(self):
-        return "Archer(%r, %r, %r, %r, %r, %r, %r, %r, %r)" % (self.costF, self.costG, self.costW, self.health, self.trainingTime, self.attack, self.speedAtack, self.speed, self.range)
+        return "Archer :(HP : %r)" % (self.health)
     
     def print_Archer(self):
         print("Archer")

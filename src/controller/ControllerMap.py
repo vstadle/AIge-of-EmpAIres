@@ -3,6 +3,7 @@ import sys
 import random
 import math
 import time
+import webbrowser
 
 from view.ViewMap import ViewMap
 from model.Map import Map, MapType
@@ -12,6 +13,7 @@ from model.Villager import Villager
 from model.Archer import Archer
 from model.Horseman import Horseman
 from model.Swordsman import Swordsman
+from web.generate_html import generateHtml
 
 class ControllerMap():
     def __init__(self, uiHandler):
@@ -23,6 +25,8 @@ class ControllerMap():
         self.training_queue = []
         self.lstPlayers = []
         self.uiHandler = uiHandler
+        self.paused = False
+        self.tab_pressed = False
 
     def reset(self, map):
         self.map = map
@@ -68,30 +72,51 @@ class ControllerMap():
                     pygame.quit()
                     sys.exit()
 
+                if event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_TAB and not self.tab_pressed:
+                        self.tab_pressed = True
+                        self.toggle_pause()
+        
+                if event.type == pygame.KEYUP:
+                    if event.key == pygame.K_TAB:
+                        self.tab_pressed = False
+
             keys = pygame.key.get_pressed()
-            if keys[pygame.K_z]: self.pos_y -= 1
-            if keys[pygame.K_s]: self.pos_y += 1
-            if keys[pygame.K_q]: self.pos_x -= 1
-            if keys[pygame.K_d]: self.pos_x += 1
-            if keys[pygame.K_p]: 
-                self.uiHandler.saveGame()
-                sys.exit()
 
-            max_x = len(self.map.map[0]) - self.vMap.GRID_WIDTH
-            max_y = len(self.map.map) - self.vMap.GRID_HEIGHT
-            self.pos_x = max(0, min(self.pos_x, max_x))
-            self.pos_y = max(0, min(self.pos_y, max_y))
+            if not self.paused:
+                if keys[pygame.K_z]: self.pos_y -= 1
+                if keys[pygame.K_s]: self.pos_y += 1
+                if keys[pygame.K_q]: self.pos_x -= 1
+                if keys[pygame.K_d]: self.pos_x += 1
+                if keys[pygame.K_ESCAPE]: webbrowser.open("https://www.youtube.com/watch?v=dQw4w9WgXcQ")
+                if keys[pygame.K_p]: 
+                    self.uiHandler.saveGame()
+                    sys.exit()
 
-            self.vMap.draw_map(self.vMap.screen, self.pos_x, self.pos_y)
-            pygame.display.flip()
+                max_x = len(self.map.map[0]) - self.vMap.GRID_WIDTH
+                max_y = len(self.map.map) - self.vMap.GRID_HEIGHT
+                self.pos_x = max(0, min(self.pos_x, max_x))
+                self.pos_y = max(0, min(self.pos_y, max_y))
 
-            #self.update_training_units()  # Mettre à jour les unités en entraînement
+                self.vMap.draw_map(self.vMap.screen, self.pos_x, self.pos_y)
+                pygame.display.flip()
 
-            for player in self.lstPlayers:
-                player.update_training()
-                player.update_building()
+                #self.update_training_units()  # Mettre à jour les unités en entraînement
 
-            clock.tick(30)
+                for player in self.lstPlayers:
+                    player.update_training()
+                    player.update_building()
+
+                clock.tick(30)
+
+    def toggle_pause(self):
+        self.paused = not self.paused
+        if self.paused:
+            print("Paused")
+            generateHtml(self.lstPlayers)
+            webbrowser.open("file:///D:/AIge-of-EmpAIres/src/web/index.html")
+        else:
+            print("Unpaused")
 
     def getMap(self):
         return self.map

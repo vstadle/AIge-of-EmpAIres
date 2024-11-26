@@ -11,7 +11,7 @@ class Buildings():
         self.y = 0
 
     def __repr__(self):
-        return "Buildings(%r, %r, %r, %r, %r, %r)" % (self.costW, self.bTime, self.hp, self.sizeMap, self.x, self.y)
+        return "Buildings(HP: %r, x: %r, y: %r)" % (self.hp, self.x, self.y)
     
     def print_Buildings(self):
         print("Buildings")

@@ -7,7 +7,7 @@ class Barracks(Buildings):
         super().__init__(175, 50, 500, 3, 'B')
 
     def __repr__(self):
-        return "Barracks(%r, %r, %r, %r, %r, %r)" % (self.costW, self.bTime, self.hp, self.sizeMap, self.x, self.y)
+        return "Barracks(HP: %r, x: %r, y: %r)" % (self.hp, self.x, self.y)
     
     def print_Barracks(self):
         print("Barracks")

@@ -7,7 +7,7 @@ class House(Buildings):
         self.population = 5
 
     def __repr__(self):
-        return "House(%r, %r, %r, %r, %r)" % (self.costW, self.bTime, self.hp, self.sizeMap, self.population)
+        return "House(HP: %r, x: %r, y: %r, Population : %r)" % (self.hp, self.x, self.y, self.population)
     
     def print_House(self):
         print("House")

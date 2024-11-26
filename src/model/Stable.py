@@ -7,7 +7,7 @@ class Stable(Buildings):
         super().__init__(175, 50, 500, 3, 'S')
 
     def __repr__(self):
-        return "Stable(%r, %r, %r, %r, %r, %r)" % (self.costW, self.bTime, self.hp, self.sizeMap, self.x, self.y)
+        return "Stable(HP: %r, x: %r, y: %r)" % (self.hp, self.x, self.y)
     
     def print_Stable(self):
         print("Stable")

@@ -6,7 +6,7 @@ class Horseman(Units):
         super().__init__(80, 20, 0, 40, 20, 4, 1, 1.2, 1, 'h')
 
     def __repr__(self):
-        return "Horseman(%r, %r, %r, %r, %r, %r, %r, %r, %r)" % (self.costF, self.costG, self.costW, self.health, self.trainingTime, self.attack, self.speedAtack, self.speed, self.range)
+        return "Horseman :(HP : %r)" % (self.health)
     
     def print_Horseman(self):
         print("Horseman")

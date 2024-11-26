@@ -7,7 +7,7 @@ class Farm(Buildings):
         self.food = 300
 
     def __repr__(self):
-        return "Farm(%r, %r, %r, %r, %r)" % (self.costW, self.bTime, self.hp, self.sizeMap, self.food)
+        return "Farm(HP: %r, x:%r, y: %r)" % (self.hp, self.x, self.y)
     
     def print_Farm(self):
         print("Farm")

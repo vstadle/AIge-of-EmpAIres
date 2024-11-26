@@ -7,7 +7,7 @@ class Camp(Buildings):
         self.competence1 = "Drop points of resources"
 
     def __repr__(self):
-        return "Camp(%r, %r, %r, %r, %r)" % (self.costW, self.bTime, self.hp, self.sizeMap, self.competence1)
+        return "Camp(HP: %r, x: %r, y: %r)" % (self.hp, self.x, self.y)
     
     def print_Camp(self):
         print("Camp")

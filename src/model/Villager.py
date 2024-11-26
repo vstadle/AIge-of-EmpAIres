@@ -8,7 +8,7 @@ class Villager(Units):
         self.carryingCapacity = 20 #min
     
     def __repr__(self):
-        return "Villager(%r, %r, %r, %r, %r, %r, %r, %r, %r, %r, %r)" % (self.costF, self.costG, self.costW, self.health, self.trainingTime, self.attack, self.speedAtack, self.speed, self.range, self.collectRessources, self.carryingCapacity)
+        return "Villager :(HP : %r)" % (self.health)
     
     def print_Villager(self):
         print("Collect Ressources: ", self.collectRessources)

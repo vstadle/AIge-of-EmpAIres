@@ -16,7 +16,7 @@ class Units():
         self.letter = letter
 
     def __repr__(self):
-        return "Units(%r, %r, %r, %r, %r, %r, %r, %r, %r)" % (self.costF, self.costG, self.costW, self.health, self.trainingTime, self.attack, self.speedAtack, self.speed, self.range)
+        return "Units(%r, %r, %r, %r, %r)" % (self.health, self.attack, self.speedAtack, self.speed, self.range)
 
     def print_Units(self):
         print("Cost Food: ", self.costF)

@@ -9,7 +9,7 @@ class Keep(Buildings):
         self.range = 8
 
     def __repr__(self):
-        return "Keep(%r, %r, %r, %r, %r, %r, %r)" % (self.costW, self.bTime, self.hp, self.sizeMap, self.costG, self.attack, self.range)
+        return "Keep(HP: %r, Damage : %r, Range: %r, x: %r, y: %r)" % (self.hp, self.attack, self.range, self.x, self.y)
     
     def print_Keep(self):
         print("Keep")
