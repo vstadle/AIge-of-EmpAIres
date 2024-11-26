@@ -17,14 +17,18 @@ from model.ArcheryRange import ArcheryRange
 
 class ControllerPlayer():
     
-    def __init__(self, name, f, w, g, cmap):
-        self.player = Player(name, f, w, g)
+    def __init__(self, player, cmap):
+        self.player = player
         self.cmap = cmap
     
     @classmethod
     def from_saved(cls,player,cmap):
-        return cls(player.name, player.food, player.wood, player.gold, cmap)
+        return cls(player, cmap)
     
+    @classmethod
+    def from_new(cls, name, f, w, g ,cmap):
+        return cls(Player(name, f, w, g), cmap)
+
     def initializeTownCenter(self, nb):
 
         for i in range(nb):

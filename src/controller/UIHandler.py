@@ -9,6 +9,7 @@ from model.TownCenter import TownCenter
 from model.Farm import Farm
 from model.Villager import Villager
 from model.Game import Game
+from model.Player import Player
 
 class UIHandler():
     def __init__(self):
@@ -72,6 +73,12 @@ class UIHandler():
         for players in self.lstPlayers:
             lsttemp.append(players.getPlayer())
         print(lsttemp)
+
+        for player in lsttemp:
+            print(f"Avant sérialisation : Joueur {player.name}")
+            print(f"  Units: {len(player.units)}")
+            print(f"  Buildings: {len(player.buildings)}")
+
         print(self.controllerMap.map)
         self.game.setLstPlayer(lsttemp)
         self.game.setMap(self.controllerMap.map)
@@ -86,10 +93,18 @@ class UIHandler():
         game = pickle.load(file)
         file.close()
         self.game = game
+
+        for player in self.game.lstPlayer:
+            print(f"Après désérialisation : Joueur {player.name}")
+            print(f"  Units: {len(player.units)}")
+            print(f"  Buildings: {len(player.buildings)}")
+
         self.controllerMap.reset(self.game.map)
-        for player in game.lstPlayer:
+        for player in self.game.lstPlayer:
             self.lstPlayers.append(ControllerPlayer.from_saved(player, self.controllerMap))
+
         self.controllerMap.setLstPlayers(self.lstPlayers)
+        print(game.lstPlayer)
         print(self.controllerMap.map)
         print("Game loaded")
         self.start()
@@ -98,7 +113,7 @@ class UIHandler():
         if(typeGame == "Lean"):
             
             for i in range(nbPlayers):
-                self.lstPlayers.append(ControllerPlayer("Player"+str(i), 50, 200, 50, self.controllerMap))
+                self.lstPlayers.append(ControllerPlayer.from_new("Player"+str(i), 50, 200, 50, self.controllerMap))
         
             self.controllerMap.placementTownCenter(len(self.lstPlayers), self.lstPlayers)
             
@@ -109,7 +124,7 @@ class UIHandler():
         elif(typeGame == "Mean"):
             
             for i in range(nbPlayers):
-                self.lstPlayers.append(ControllerPlayer(ControllerPlayer("Player"+str(i), 2000, 2000, 2000, self.controllerMap)))
+                self.lstPlayers.append(ControllerPlayer.from_new("Player"+str(i), 2000, 2000, 2000, self.controllerMap))
             
             self.controllerMap.placementTownCenter(len(self.lstPlayers), self.lstPlayers)
             
@@ -120,7 +135,7 @@ class UIHandler():
         elif(typeGame ==  "Marines"):
 
             for i in range(nbPlayers):
-                self.lstPlayers.append(ControllerPlayer("Player"+str(i), 20000, 20000, 20000, self.controllerMap))
+                self.lstPlayers.append(ControllerPlayer.from_new("Player"+str(i), 20000, 20000, 20000, self.controllerMap))
             
             self.controllerMap.placementTownCenter(len(self.lstPlayers), self.lstPlayers)
             
