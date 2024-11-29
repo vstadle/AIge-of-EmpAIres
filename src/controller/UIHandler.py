@@ -55,5 +55,4 @@ class UIHandler:
                     cplayer.trainVillager(cplayer.getPlayer().getBuildings()[2])
     
     def start(self):
-        self.controllerGame.__init__
         self.controllerGame.run()

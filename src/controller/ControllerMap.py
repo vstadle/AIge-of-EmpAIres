@@ -22,7 +22,6 @@ class ControllerMap():
         self.pos_x = 0
         self.pos_y = 0
         self.training_queue = []
-        self.display_mode = "2D"  # Mode d'affichage initial
 
 
     def placementTownCenter(self, nbPlayer, lstPlayers):

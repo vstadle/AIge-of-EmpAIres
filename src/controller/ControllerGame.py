@@ -7,6 +7,9 @@ from view.ViewTerminal import ViewTerminal
 
 
 class ControllerGame():
+
+    cpt = 0
+
     def __init__(self, ControllerMap):
         self.ControllerMap = ControllerMap
         self.mode = "terminal"
@@ -50,7 +53,6 @@ class ControllerGame():
             self.mode = "terminal"
             self.viewTerminal = ViewTerminal(self.ControllerMap.getMap())
             self.viewPygame = None
-            self.run
             self.lancer_mode_terminal()
 
 
@@ -64,6 +66,9 @@ class ControllerGame():
         running = True
         pos_x, pos_y = 0, 0
 
+        ControllerGame.cpt += 1
+        print(ControllerGame.cpt)
+
         while running and self.mode == "pygame":
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
@@ -74,9 +79,15 @@ class ControllerGame():
                     if event.key == pygame.K_v:
                         running = False
                         self.changer_mode()
+                        print("mode terminal")
+                        print("Running : ", running)
+                        print("Mode : ", self.mode)
+                        break
                     elif event.key == pygame.K_p:
                         pygame.quit()
                         sys.exit()
+            if not running:
+                break
             keys = pygame.key.get_pressed()
             if keys[pygame.K_z]:  # Avancer
                 pos_y -= 1

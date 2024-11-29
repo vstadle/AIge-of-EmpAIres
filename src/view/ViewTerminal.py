@@ -8,7 +8,7 @@ class ViewTerminal:
         self.screen = None
         self.height = 0
         self.width = 0
-        
+
     def initialiser(self, stdscr):
         curses.use_default_colors()
         curses.curs_set(0)
@@ -36,8 +36,8 @@ class ViewTerminal:
                 map_y = y + self.camera_y
 
                 if 0 <= map_y < map_height and 0 <= map_x < map_width:
-                    cellule = map_data[map_y][map_x]
-                    caractere = self.obtenir_caractere(cellule)
+                    cellule = map_data[map_x][map_y]
+                    caractere = map_data[map_x][map_y]
                 else:
                     caractere = ' '
 
@@ -46,17 +46,6 @@ class ViewTerminal:
                 except curses.error:
                     pass 
 
-    def obtenir_caractere(self, cellule):
-        mapping = {
-            ' ': '.',  
-            'W': 'W',  
-            'G': 'G',  
-            'A': 'A', 
-            'T': 'T',
-            'B': 'B', 
-            'R': 'R' 
-        }
-        return mapping.get(cellule, '?')
 
     def deplacer_camera(self, dx, dy):
         map_data = self.map.getMap()
