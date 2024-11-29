@@ -15,7 +15,6 @@ class ViewMap():
         
         self.GRID_WIDTH = 30
         self.GRID_HEIGHT = 30
-        
         display_info = pygame.display.Info()
         screen_width = int(display_info.current_w * 0.8)
         screen_height = int(display_info.current_h * 0.8)
@@ -49,9 +48,7 @@ class ViewMap():
         self.BROWN = (127, 42, 42)
         self.BLUE = (135, 206, 250)
         self.RED = (255, 0, 0)
-        
-        self.font = pygame.font.Font(None, 30)
-
+    '''    
     def draw_map(self, screen, pos_x, pos_y):
         screen.fill(self.WHITE)
         for row in range(self.GRID_HEIGHT):
@@ -66,6 +63,7 @@ class ViewMap():
                         text_surface = self.font.render(self.map.getMap()[map_row][map_col], True, self.BLACK)
                         screen.blit(text_surface, (x + self.TILE_SIZE // 4, y + self.TILE_SIZE // 4))
         pygame.display.flip()
+    '''
     def draw_minimap(self, screen, view_x, view_y):
         # Créer une surface pour la mini-map
         minimap_surface = pygame.Surface((self.MINIMAP_SIZE, self.MINIMAP_SIZE))
@@ -155,9 +153,7 @@ class ViewMap():
                     color = self.get_tile_color(cell_content)
                     
                     pygame.draw.polygon(iso_surface, color, points)
-                    '''
-                    pygame.draw.polygon(iso_surface, self.BLACK, points, 1)
-                    '''
+                
         
         max_scroll_x = map_surface_width - screen.get_width()
         max_scroll_y = map_surface_height - screen.get_height()

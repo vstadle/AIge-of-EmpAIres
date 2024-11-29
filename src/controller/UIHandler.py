@@ -1,6 +1,6 @@
 import pygame
 import sys
-
+from controller.ControllerGame import ControllerGame
 from controller.ControllerMap import ControllerMap
 from controller.ControllerPlayer import ControllerPlayer
 from model.Map import MapType
@@ -8,17 +8,14 @@ from model.TownCenter import TownCenter
 from model.Farm import Farm
 from model.Villager import Villager
 
-class UIHandler():
+class UIHandler:
     def __init__(self):
-
-        #Création de la map
         self.controllerMap = ControllerMap()
         self.lstPlayers = []
         self.controllerMap.genRessources(MapType.CENTER_RESOURCES)
-
         self.initialize("Marines", 2)
+        self.controllerGame = ControllerGame(self.controllerMap)
 
-        # Génération des ressources de la Map
 
     def initialize(self, typeGame, nbPlayers):
         if(typeGame == "Lean"):
@@ -58,4 +55,5 @@ class UIHandler():
                     cplayer.trainVillager(cplayer.getPlayer().getBuildings()[2])
     
     def start(self):
-        self.controllerMap.run()
+        self.controllerGame.__init__
+        self.controllerGame.run()

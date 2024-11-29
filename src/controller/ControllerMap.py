@@ -15,9 +15,10 @@ from model.Swordsman import Swordsman
 
 class ControllerMap():
     def __init__(self):
-        pygame.init()
         self.map = Map(MapType.GENEROUS_RESOURCES)
+        '''
         self.vMap = ViewMap(self.map, self)  # Passer la référence de la carte
+        '''
         self.pos_x = 0
         self.pos_y = 0
         self.training_queue = []
@@ -92,43 +93,6 @@ class ControllerMap():
 
                 # Retirer l'unité de la file d'attente après son placement
                 self.training_queue.remove(item)
-    
-    def run(self):
-        clock = pygame.time.Clock()
-        while True:
-            for event in pygame.event.get():
-                if event.type == pygame.KEYDOWN:
-                    if event.key == pygame.K_v:
-                        self.display_mode = "2.5D" if self.display_mode == "2D" else "2D"
-                if event.type == pygame.QUIT:
-                    pygame.quit()
-                    sys.exit()
-
-            keys = pygame.key.get_pressed()
-            if keys[pygame.K_z]: self.pos_y -= 1
-            if keys[pygame.K_s]: self.pos_y += 1
-            if keys[pygame.K_q]: self.pos_x -= 1
-            if keys[pygame.K_d]: self.pos_x += 1
-            if keys[pygame.K_p]: sys.exit()
-            
-            
-
-            max_x = len(self.map.map[0]) - self.vMap.GRID_WIDTH  # Largeur maximale
-            max_y = len(self.map.map) - self.vMap.GRID_HEIGHT  # Hauteur maximale
-
-            self.pos_x = max(0, min(self.pos_x, max_x))
-            self.pos_y = max(0, min(self.pos_y, max_y))
-
-            if self.display_mode == "2D":
-                self.vMap.draw_map(self.vMap.screen, self.pos_x, self.pos_y)
-            else:
-                self.vMap.draw_map_2_5D(self.vMap.screen, self.pos_x, self.pos_y)
-
-            pygame.display.flip()
-
-            self.update_training_units()  # Mettre à jour les unités en entraînement
-
-            clock.tick(30)
 
     def getMap(self):
         return self.map
