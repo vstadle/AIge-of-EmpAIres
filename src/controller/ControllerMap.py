@@ -4,6 +4,7 @@ import random
 import math
 import time
 import webbrowser
+import os
 
 from view.ViewMap import ViewMap
 from model.Map import Map, MapType
@@ -114,7 +115,8 @@ class ControllerMap():
         if self.paused:
             print("Paused")
             generateHtml(self.lstPlayers)
-            webbrowser.open("file:///D:/AIge-of-EmpAIres/src/web/index.html")
+            current_path = "file://" + os.getcwd() + "/web/index.html"
+            webbrowser.open(current_path)
         else:
             print("Unpaused")
 

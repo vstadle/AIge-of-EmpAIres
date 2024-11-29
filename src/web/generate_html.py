@@ -10,9 +10,11 @@ from model.House import House
 from model.Keep import Keep
 from model.Stable import Stable
 from model.TownCenter import TownCenter
+import os
 
 def generateHtml(lstPlayers):
-    clear_html()
+    current_path = os.getcwd() + "/web/index.html"
+    clear_html(current_path)
     print("Generating HTML")
     content = ""
     for player in lstPlayers:
@@ -52,7 +54,7 @@ def generateHtml(lstPlayers):
         </div>
         """
     
-    insert_html(content)
+    insert_html(content, current_path)
     print("HTML generated")
 
 def calculate_unit(player):
@@ -103,9 +105,9 @@ def calculate_building(player):
     buildings = [cptTownCenter, cptFarm, cptCamp, cptArcheryRange, cptBarracks, cptHouse, cptKeep, cptStable]
     return buildings
 
-def insert_html(content):
+def insert_html(content, current_path):
     # Assure-toi que tu as bien le chemin complet vers ton fichier HTML
-    with open("D:/AIge-of-EmpAIres/src/web/index.html", "r", encoding="utf-8") as f:
+    with open(current_path, "r", encoding="utf-8") as f:
         lines = f.readlines()
 
     updated_lines = []
@@ -115,11 +117,11 @@ def insert_html(content):
             updated_lines.append(content + "\n")
 
     # Toujours fermer après avoir écrit
-    with open("D:/AIge-of-EmpAIres/src/web/index.html", "w", encoding="utf-8") as f:
+    with open(current_path, "w", encoding="utf-8") as f:
         f.writelines(updated_lines)
 
-def clear_html():
-    with open("D:/AIge-of-EmpAIres/src/web/index.html", "r", encoding="utf-8") as f:
+def clear_html(current_path):
+    with open(current_path, "r", encoding="utf-8") as f:
         lines = f.readlines()
 
     updated_lines = []
@@ -133,5 +135,5 @@ def clear_html():
             erase = False
             updated_lines.append(line)
     
-    with open("D:/AIge-of-EmpAIres/src/web/index.html", "w", encoding="utf-8") as f:
+    with open(current_path, "w", encoding="utf-8") as f:
         f.writelines(updated_lines)
