@@ -1,15 +1,16 @@
 import curses
 import pygame
 import sys
+from controller.ControllerMap import ControllerMap 
 from view.ViewMap import ViewMap
 from view.ViewTerminal import ViewTerminal
 
 
 class ControllerGame():
-    def __init__(self, controllerMap):
-        self.controllerMap = controllerMap
+    def __init__(self, ControllerMap):
+        self.ControllerMap = ControllerMap
         self.mode = "terminal"
-        self.viewTerminal = ViewTerminal(controllerMap.getMap())
+        self.viewTerminal = ViewTerminal(ControllerMap.getMap())
         self.viewPygame = None
 
     def lancer_mode_terminal(self):
@@ -32,20 +33,25 @@ class ControllerGame():
             elif touche == ord('d'):
                 self.viewTerminal.deplacer_camera(1, 0)
             elif touche == ord('v'):
-                self.changer_mode_pygame()
+                self.changer_mode()
                 break
             elif touche == ord('p'):
                 break
 
-    def changer_mode_pygame(self):
+    def changer_mode(self):
         if self.mode == "terminal":
             pygame.init()
             self.mode = "pygame"
-            self.viewPygame = ViewMap(self.controllerMap.getMap(), self.controllerMap)
+            self.viewTerminal = None
+            self.viewPygame = ViewMap(self.ControllerMap.getMap(), self.ControllerMap)
+            self.run_pyGame()
         elif self.mode == "pygame":
             pygame.quit()
             self.mode = "terminal"
-            self.viewTerminal = ViewTerminal(controllerMap.getMap())
+            self.viewTerminal = ViewTerminal(self.ControllerMap.getMap())
+            self.viewPygame = None
+            self.run
+            self.lancer_mode_terminal()
 
 
     def run(self):
@@ -64,22 +70,23 @@ class ControllerGame():
                     running = False
                     self.mode = "terminal"  # Revenir au mode terminal si la fenêtre Pygame est fermée
                     break
-
-                # Gestion des touches
-                elif event.type == pygame.KEYDOWN:
-                    if event.key == pygame.K_UP:
-                        pos_y = max(0, pos_y - 1)
-                    elif event.key == pygame.K_DOWN:
-                        pos_y = min(self.controllerMap.map.map_height - 1, pos_y + 1)
-                    elif event.key == pygame.K_LEFT:
-                        pos_x = max(0, pos_x - 1)
-                    elif event.key == pygame.K_RIGHT:
-                        pos_x = min(self.controllerMap.map.map_width - 1, pos_x + 1)
-                    elif event.key == pygame.K_v:
+                if event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_v:
                         running = False
-                        changer_mode_pygame()
+                        self.changer_mode()
+                    elif event.key == pygame.K_p:
+                        pygame.quit()
+                        sys.exit()
+            keys = pygame.key.get_pressed()
+            if keys[pygame.K_z]:  # Avancer
+                pos_y -= 1
+            if keys[pygame.K_s]:  # Reculer
+                pos_y += 1
+            if keys[pygame.K_q]:  # Gauche
+                pos_x -= 1
+            if keys[pygame.K_d]:  # Droite
+                pos_x += 1
 
-            # Dessiner la carte avec Pygame
             if self.viewPygame:
                 self.viewPygame.draw_map_2_5D(self.viewPygame.screen, pos_x, pos_y)
 
