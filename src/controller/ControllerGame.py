@@ -16,7 +16,7 @@ class ControllerGame():
         self.viewTerminal = ViewTerminal(ControllerMap.getMap())
         self.viewPygame = None
 
-    def lancer_mode_terminal(self):
+    def run_terminal(self):
         curses.wrapper(self.boucle_terminal)
 
     def boucle_terminal(self, stdscr):
@@ -53,22 +53,18 @@ class ControllerGame():
             self.mode = "terminal"
             self.viewTerminal = ViewTerminal(self.ControllerMap.getMap())
             self.viewPygame = None
-            self.lancer_mode_terminal()
+            self.run_terminal()
 
 
     def run(self):
         if self.mode == "terminal":
-            self.lancer_mode_terminal()
+            self.run_terminal()
         else:
             self.run_pyGame()
 
     def run_pyGame(self):
         running = True
         pos_x, pos_y = 0, 0
-
-        ControllerGame.cpt += 1
-        print(ControllerGame.cpt)
-
         while running and self.mode == "pygame":
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
@@ -79,9 +75,6 @@ class ControllerGame():
                     if event.key == pygame.K_v:
                         running = False
                         self.changer_mode()
-                        print("mode terminal")
-                        print("Running : ", running)
-                        print("Mode : ", self.mode)
                         break
                     elif event.key == pygame.K_p:
                         pygame.quit()
