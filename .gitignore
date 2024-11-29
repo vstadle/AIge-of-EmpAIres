@@ -1,6 +1,6 @@
+save/*
 src/model/__pycache__/*
 src/controller/__pycache__/*
 src/view/__pycache__/*
 src/web/__pycache__/*
 src/web/index.html
-sav/*

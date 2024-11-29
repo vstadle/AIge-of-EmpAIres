@@ -71,8 +71,8 @@ class UIHandler():
         self.start()
 
     def saveGame(self):
-        if not os.path.exists("../sauv"):
-            os.makedirs("../sauv")
+        if not os.path.exists("../save"):
+            os.makedirs("../save")
         screen = pygame.display.set_mode((400, 300))
         pygame.display.set_caption("Save Game")
         screen.fill((0, 0, 0))  
@@ -85,14 +85,14 @@ class UIHandler():
         self.game.setLstPlayer(lsttemp)
         self.game.setMap(self.controllerMap.map)
         current_time = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-        file_name = f"../sauv/Save_{current_time}.dat"
+        file_name = f"../save/save_{current_time}.dat"
         file = open(file_name, 'wb')
         pickle.dump(self.game, file)
         file.close()
         print("Game saved")
         
     def loadGame(self,path_file):
-        path_file = "../sauv/" + path_file
+        path_file = "../save/" + path_file
         file = open(path_file, "rb")
         game = pickle.load(file)
         file.close()
@@ -157,7 +157,7 @@ class UIHandler():
 
     def show_load_game_menu(self, screen, font):
         clock = pygame.time.Clock()
-        files = os.listdir('../sauv/')
+        files = os.listdir('../save/')
         load_game_active = True
         while load_game_active:
             screen.fill((0, 0, 0))
