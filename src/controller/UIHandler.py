@@ -1,6 +1,8 @@
 import pygame
 import sys
 import pickle
+import os
+import datetime
 
 from controller.ControllerMap import ControllerMap
 from controller.ControllerPlayer import ControllerPlayer
@@ -54,7 +56,8 @@ class UIHandler():
                             self.start_new_game()
                         if y > 250 and y < 280:
                             menu_active = False
-                            self.loadGame()
+                            self.show_load_game_menu(screen, font)
+                            #self.loadGame()
                         if y > 300 and y < 330:
                             menu_active = False
                             pygame.quit()
@@ -68,32 +71,32 @@ class UIHandler():
         self.start()
 
     def saveGame(self):
-        # Charger une partie sauvegardée
+        if not os.path.exists("../sauv"):
+            os.makedirs("../sauv")
+        screen = pygame.display.set_mode((400, 300))
+        pygame.display.set_caption("Save Game")
+        screen.fill((0, 0, 0))  
+        pygame.display.update()
         lsttemp = []
         for players in self.lstPlayers:
             lsttemp.append(players.getPlayer())
         print(lsttemp)
-
-        for player in lsttemp:
-            print(f"Avant sérialisation : Joueur {player.name}")
-            print(f"  Units: {len(player.units)}")
-            print(f"  Buildings: {len(player.buildings)}")
-
         print(self.controllerMap.map)
         self.game.setLstPlayer(lsttemp)
         self.game.setMap(self.controllerMap.map)
-        file = open("save.txt", "wb")
+        current_time = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+        file_name = f"../sauv/Save_{current_time}.dat"
+        file = open(file_name, 'wb')
         pickle.dump(self.game, file)
         file.close()
         print("Game saved")
         
-    def loadGame(self):
-        # Charger une partie sauvegardée
-        file = open("save.txt", "rb")
+    def loadGame(self,path_file):
+        path_file = "../sauv/" + path_file
+        file = open(path_file, "rb")
         game = pickle.load(file)
         file.close()
         self.game = game
-
         for player in self.game.lstPlayer:
             print(f"Après désérialisation : Joueur {player.name}")
             print(f"  Units: {len(player.units)}")
@@ -151,6 +154,36 @@ class UIHandler():
             self.lstPlayers[0].trainHorseman(self.lstPlayers[0].getPlayer().getBuildings()[6])
             self.lstPlayers[0].trainVillager(self.lstPlayers[0].getPlayer().getBuildings()[0])
             self.lstPlayers[0].trainSwordsman(self.lstPlayers[0].getPlayer().getBuildings()[4])
+
+    def show_load_game_menu(self, screen, font):
+        clock = pygame.time.Clock()
+        files = os.listdir('../sauv/')
+        load_game_active = True
+        while load_game_active:
+            screen.fill((0, 0, 0))
+
+            y = 100
+            file_positions = []
+            for file in files:
+                file_text = font.render(file, True, (255, 255, 255))
+                screen.blit(file_text, (100, y))
+                file_positions.append((file, 100, y, 100 + file_text.get_width(), y + file_text.get_height()))
+                y += 40
+
+            pygame.display.flip()
+
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    load_game_active = False
+                elif event.type == pygame.MOUSEBUTTONDOWN:
+                    mouse_x, mouse_y = event.pos
+                    for file, x1, y1, x2, y2 in file_positions:
+                        if x1 <= mouse_x <= x2 and y1 <= mouse_y <= y2:
+                            self.loadGame(file)
+                            load_game_active = False
+                            
+
+            clock.tick(60)
 
     def start(self):
         self.controllerMap.run()
