@@ -20,6 +20,7 @@ class ControllerMap():
         self.vMap = ViewMap(self.map, self)  # Passer la référence de la carte
         self.pos_x = 0
         self.pos_y = 0
+        self.zoom_level = 1.0
         self.training_queue = []
         self.display_mode = "2D"  # Mode d'affichage initial
 
@@ -103,6 +104,13 @@ class ControllerMap():
                 if event.type == pygame.QUIT:
                     pygame.quit()
                     sys.exit()
+                elif event.type == pygame.MOUSEBUTTONDOWN:
+                    if event.button == 4:  # Scroll up
+                        self.zoom_level += 0.1
+                    elif event.button == 5:  # Scroll down
+                        self.zoom_level -= 0.1
+                        if self.zoom_level < 0.1:
+                            self.zoom_level = 0.1
 
             keys = pygame.key.get_pressed()
             if keys[pygame.K_z]: self.pos_y -= 1
@@ -122,7 +130,7 @@ class ControllerMap():
             if self.display_mode == "2D":
                 self.vMap.draw_map(self.vMap.screen, self.pos_x, self.pos_y)
             else:
-                self.vMap.draw_map_2_5D(self.vMap.screen, self.pos_x, self.pos_y)
+                self.vMap.draw_map_2_5D(self.vMap.screen, self.pos_x, self.pos_y,self.zoom_level)
 
             pygame.display.flip()
 
