@@ -12,6 +12,7 @@ from model.Farm import Farm
 from model.Villager import Villager
 from model.Game import Game
 from model.Player import Player
+from controller.ControllerGame import ControllerGame
 
 class UIHandler():
     def __init__(self):
@@ -20,6 +21,7 @@ class UIHandler():
         self.game = Game()
         self.controllerMap = ControllerMap(self)
         self.lstPlayers = []
+        self.controllerGame = None
 
     def show_menu(self):
         pygame.init()
@@ -57,7 +59,6 @@ class UIHandler():
                         if y > 250 and y < 280:
                             menu_active = False
                             self.show_load_game_menu(screen, font)
-                            #self.loadGame()
                         if y > 300 and y < 330:
                             menu_active = False
                             pygame.quit()
@@ -68,6 +69,10 @@ class UIHandler():
         self.controllerMap.genRessources(MapType.CENTER_RESOURCES)
         self.initialize("Marines", 6)  # Exemple : type "Marines", 6 joueurs
         self.controllerMap.setLstPlayers(self.lstPlayers)
+        self.game.setMap(self.controllerMap.map)
+        for player in self.lstPlayers:
+            self.game.lstPlayer.append(player.getPlayer())
+        self.controllerGame = ControllerGame.load_game(self.game, self)
         self.start()
 
     def saveGame(self):
@@ -107,6 +112,7 @@ class UIHandler():
             self.lstPlayers.append(ControllerPlayer.from_saved(player, self.controllerMap))
 
         self.controllerMap.setLstPlayers(self.lstPlayers)
+        self.controllerGame = ControllerGame.load_game(self.game, self)
         print(game.lstPlayer)
         print(self.controllerMap.map)
         print("Game loaded")
@@ -186,4 +192,4 @@ class UIHandler():
             clock.tick(60)
 
     def start(self):
-        self.controllerMap.run()
+        self.controllerGame.run()

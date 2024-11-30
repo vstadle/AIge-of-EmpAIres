@@ -1,3 +1,5 @@
+import curses
+
 class Color():
     WHITE = (255, 255, 255)
     BLACK = (0, 0, 0)
@@ -17,7 +19,7 @@ class Player():
 
     cptPlayer = 0
 
-    lstColor = [Color.GREEN, Color.BLUE, Color.RED, Color.YELLOW, Color.PURPLE, Color.ORANGE, Color.CYAN, Color.PINK, Color.BROWN, Color.GREY]
+    lstColor = [curses.COLOR_RED, curses.COLOR_GREEN, curses.COLOR_BLUE, curses.COLOR_YELLOW, curses.COLOR_MAGENTA, curses.COLOR_CYAN, curses.COLOR_WHITE, curses.COLOR_BLACK]
 
     def __init__(self, name, f, w, g):
         self.name = name

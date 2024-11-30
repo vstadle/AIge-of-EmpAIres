@@ -117,6 +117,7 @@ class Map():
         self.mapUnits[x][y] = units
         self.map[x][y] = units.letter
         self.lstColor[x][y] = player.getColor()
+        print(self.lstColor[x][y])
 
     def generateForest(self):
         max_percentage_wood = 0.1 

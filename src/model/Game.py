@@ -4,7 +4,7 @@ from model.Map import MapType
 
 class Game():
     def __init__(self):
-        self.map = Map(MapType.GENEROUS_RESOURCES)
+        self.map = None
         self.lstPlayer = []
     
     
