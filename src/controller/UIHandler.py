@@ -73,6 +73,7 @@ class UIHandler():
         for player in self.lstPlayers:
             self.game.lstPlayer.append(player.getPlayer())
         self.controllerGame = ControllerGame(self.controllerMap, self.lstPlayers, self.game, self)
+        pygame.quit()
         self.start()
 
     def saveGame(self):
@@ -112,10 +113,11 @@ class UIHandler():
             self.lstPlayers.append(ControllerPlayer.from_saved(player, self.controllerMap))
 
         self.controllerMap.setLstPlayers(self.lstPlayers)
-        self.controllerGame = ControllerGame.load_game(self.game, self)
+        self.controllerGame = ControllerGame(self.controllerMap, self.lstPlayers, self.game, self)
         print(game.lstPlayer)
         print(self.controllerMap.map)
         print("Game loaded")
+        pygame.quit()
         self.start()
 
     def initialize(self, typeGame, nbPlayers):
