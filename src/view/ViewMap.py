@@ -120,24 +120,23 @@ class ViewMap():
 
         # Dessiner la mini-carte sur l'écran
         screen.blit(minimap_surface, (minimap_x, minimap_y))
-
-    def draw_map_2_5D(self, screen, pos_x, pos_y):
+    def draw_map_2_5D(self, screen, pos_x, pos_y,zoom_level):
         screen.fill(self.BLACK)
-        map_surface_width = (self.map_width + self.map_height) * self.iso_tile_width // 2
-        map_surface_height = (self.map_width + self.map_height) * self.iso_tile_height // 2
+        map_surface_width = (self.map_width + self.map_height) * self.iso_tile_width // 2 * zoom_level
+        map_surface_height = (self.map_width + self.map_height) * self.iso_tile_height // 2* zoom_level
         iso_surface = pygame.Surface((map_surface_width, map_surface_height))
         iso_surface.fill(self.BLACK)
-        diamond_left = self.map_height * self.iso_tile_width // 2
+        diamond_left = self.map_height * self.iso_tile_width // 2 * zoom_level
         diamond_top = 0
-        diamond_width = self.map_width * self.iso_tile_width // 2
-        diamond_height = (self.map_width + self.map_height) * self.iso_tile_height // 2
+        diamond_width = self.map_width * self.iso_tile_width // 2 * zoom_level
+        diamond_height = (self.map_width + self.map_height) * self.iso_tile_height // 2 * zoom_level
         start_x = diamond_left
         start_y = 0
         
         for row in range(self.map_height):
             for col in range(self.map_width):
-                iso_x = start_x + (col - row) * self.iso_tile_width // 2
-                iso_y = start_y + (col + row) * self.iso_tile_height // 2
+                iso_x = start_x + (col - row) * self.iso_tile_width // 2 * zoom_level
+                iso_y = start_y + (col + row) * self.iso_tile_height // 2 * zoom_level
                 
                 if (iso_x >= diamond_left - diamond_width and 
                     iso_x <= diamond_left + diamond_width and
@@ -146,9 +145,9 @@ class ViewMap():
                     
                     points = [
                         (iso_x, iso_y),  
-                        (iso_x + self.iso_tile_width // 2, iso_y + self.iso_tile_height // 2),  
-                        (iso_x, iso_y + self.iso_tile_height),  
-                        (iso_x - self.iso_tile_width // 2, iso_y + self.iso_tile_height // 2)
+                        (iso_x + self.iso_tile_width // 2 * zoom_level , iso_y + self.iso_tile_height // 2 * zoom_level),  
+                        (iso_x, iso_y + self.iso_tile_height * zoom_level),  
+                        (iso_x - self.iso_tile_width // 2 * zoom_level, iso_y + self.iso_tile_height // 2 * zoom_level) 
                     ]
                     
                     cell_content = self.map.getMap()[row][col]
@@ -162,8 +161,8 @@ class ViewMap():
         max_scroll_x = map_surface_width - screen.get_width()
         max_scroll_y = map_surface_height - screen.get_height()
         
-        view_x = max(0, min(pos_x * self.iso_tile_width, max_scroll_x))
-        view_y = max(0, min(pos_y * self.iso_tile_height, max_scroll_y))
+        view_x = max(0, min(pos_x * self.iso_tile_width * zoom_level , max_scroll_x))
+        view_y = max(0, min(pos_y * self.iso_tile_height * zoom_level, max_scroll_y))
         
         screen.blit(iso_surface, (0, 0), 
                    (view_x, view_y, 
