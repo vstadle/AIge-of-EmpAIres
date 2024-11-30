@@ -4,64 +4,63 @@ class ViewTerminal:
 
     lstColor = [curses.COLOR_RED, curses.COLOR_GREEN, curses.COLOR_BLUE, curses.COLOR_YELLOW, curses.COLOR_MAGENTA, curses.COLOR_CYAN]
 
-    def __init__(self, map_obj):
-        self.map = map_obj
-        self.camera_x = 0
-        self.camera_y = 0
-        self.screen = None
-        self.height = 0
-        self.width = 0
+    def __init__(self, map):
+        
+        self.GRID_HEIGHT = len(map.map)
+        self.GRID_WIDTH = len(map.map[0])
 
-    def initialiser(self, stdscr):
-        curses.use_default_colors()
-        curses.curs_set(0)
-        stdscr.keypad(True)
-        self.screen = stdscr
+        self.map = map
 
-        self.height, self.width = stdscr.getmaxyx()
+    def draw_map(self, stdscr, start_row, start_col):
+        stdscr.clear()
+        
+        # Vérification que les couleurs sont initialisées (uniquement une fois)
+        if not hasattr(self, 'colors_initialized'):
+            self._initialize_colors(stdscr)
+            self.colors_initialized = True
+        
+        # Dimensions de l'écran
+        max_y, max_x = stdscr.getmaxyx()
 
-        map_data = self.map.getMap()
-        map_height = len(map_data)
-        map_width = len(map_data[0]) if map_height > 0 else 0
-        self.height = min(self.height, map_height)
-        self.width = min(self.width, map_width)
+        # Limiter les dimensions visibles aux dimensions de la carte
+        visible_rows = min(max_y, self.GRID_HEIGHT)
+        visible_cols = min(max_x, self.GRID_WIDTH)
 
-        self.lstColor = []
-        for color in ViewTerminal.lstColor:
-            curses.init_pair(color, color, curses.COLOR_BLACK)
+        # Parcourir uniquement la zone visible
+        for row in range(visible_rows):
+            for col in range(visible_cols):
+                map_row = start_row + row
+                map_col = start_col + col
 
-    def draw_map(self):
-        self.screen.clear()
-
-        map_data = self.map.getMap()
-        map_height = len(map_data)
-        map_color = self.map.lstColor
-        map_width = len(map_data[0]) if map_height > 0 else 0
-
-        for y in range(self.height):
-            for x in range(self.width):
-                map_x = x + self.camera_x
-                map_y = y + self.camera_y
-
-                if 0 <= map_y < map_height and 0 <= map_x < map_width:
-                    cellule = map_data[map_x][map_y]
-                    caractere = map_data[map_x][map_y]
-                    if map_color[map_x][map_y] is not None:
-                        try:
-                            self.screen.addch(x, y, caractere, curses.color_pair(map_color[map_x][map_y]))
-                        except curses.error:
-                            print("Erreur")
-                    else:
-                        try:
-                            self.screen.addch(x, y, caractere)
-                        except curses.error:
-                            print("Erreur")
+                # Vérifier si les indices sont valides pour la carte
+                if 0 <= map_row < len(self.map.map) and 0 <= map_col < len(self.map.map[0]):
+                    char = self.map.map[map_row][map_col]
+                    if char is None or not isinstance(char, str) or len(char) != 1:
+                        char = ' '
+                    
+                    # Appliquer la couleur si définie
+                    color_index = self.map.lstColor[map_row][map_col]
+                    color_pair = curses.color_pair(color_index if color_index is not None else 7)
                 else:
-                    caractere = ' '
-                    try:
-                        self.screen.addch(y, x, caractere)
-                    except curses.error:
-                        pass
+                    char = ' '
+                    color_pair = curses.color_pair(7)
+
+                # Ajouter le caractère à la position (row, col)
+                try:
+                    stdscr.addch(row, col, char, color_pair)
+                except curses.error as e:
+                    print(f"Error at (row={row}, col={col}) with char='{char}' and color_pair={color_pair}: {e}")
+
+        # Rafraîchir l'écran une seule fois après avoir dessiné la carte visible
+        stdscr.refresh()
+
+    def _initialize_colors(self, stdscr):
+        # Initialiser les paires de couleurs une seule fois
+        curses.start_color()
+        curses.init_pair(7, curses.COLOR_WHITE, curses.COLOR_BLACK)  # Couleur par défaut
+
+        for color in ViewTerminal.lstColor:
+            curses.init_pair(color, color, curses.COLOR_BLACK)  # Initialise chaque couleur définie dans lstColor
 
 
     def deplacer_camera(self, dx, dy):

@@ -18,3 +18,5 @@ class Game():
     def setMap(self,map):
         self.map = map
     
+    def addPlayer(self,player):
+        self.lstPlayer.append(player)
