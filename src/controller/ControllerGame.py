@@ -74,6 +74,7 @@ class ControllerGame():
                     pos_y += 1
                 elif key == ord('p'):
                     self.uiHandler.saveGame()
+                    stdscr.clear()
                     sys.exit()
                 elif key == ord('v'):
                     self.change_mode()
@@ -124,6 +125,7 @@ class ControllerGame():
                         pos_x -= 1
                     if key[pygame.K_d]:
                         pos_x += 1
+                    if key[pygame.K_ESCAPE]: webbrowser.open("https://www.youtube.com/watch?v=dQw4w9WgXcQ")
                     
                     self.viewPygame.draw_map_2_5D(pos_x, pos_y)
                     pygame.display.flip()
