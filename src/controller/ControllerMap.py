@@ -13,6 +13,8 @@ from model.Archer import Archer
 from model.Horseman import Horseman
 from model.Swordsman import Swordsman
 
+
+
 class ControllerMap():
     def __init__(self):
         pygame.init()
@@ -88,10 +90,10 @@ class ControllerMap():
                         if placed:
                             break
                     if not placed:
-                        # Étendre la recherche à la couche suivante
+                        
                         layer += 1
 
-                # Retirer l'unité de la file d'attente après son placement
+                
                 self.training_queue.remove(item)
     
     def run(self):
@@ -105,10 +107,10 @@ class ControllerMap():
                     pygame.quit()
                     sys.exit()
                 elif event.type == pygame.MOUSEBUTTONDOWN:
-                    if event.button == 4:  # Scroll up
-                        self.zoom_level += 0.1
-                    elif event.button == 5:  # Scroll down
-                        self.zoom_level -= 0.1
+                    if event.button == 4:  
+                        self.zoom_level = round(min(1.4, self.zoom_level + 0.1), 1)
+                    elif event.button == 5:  
+                        self.zoom_level = round(max(0.5, self.zoom_level - 0.1), 1)
                         if self.zoom_level < 0.1:
                             self.zoom_level = 0.1
 
@@ -119,10 +121,8 @@ class ControllerMap():
             if keys[pygame.K_d]: self.pos_x += 1
             if keys[pygame.K_p]: sys.exit()
             
-            
-
-            max_x = len(self.map.map[0]) - self.vMap.GRID_WIDTH  # Largeur maximale
-            max_y = len(self.map.map) - self.vMap.GRID_HEIGHT  # Hauteur maximale
+            max_x = max(0, len(self.map.map[0]) - (self.vMap.GRID_WIDTH / self.zoom_level))
+            max_y = max(0, len(self.map.map) - (self.vMap.GRID_HEIGHT / self.zoom_level))
 
             self.pos_x = max(0, min(self.pos_x, max_x))
             self.pos_y = max(0, min(self.pos_y, max_y))
@@ -130,11 +130,11 @@ class ControllerMap():
             if self.display_mode == "2D":
                 self.vMap.draw_map(self.vMap.screen, self.pos_x, self.pos_y)
             else:
-                self.vMap.draw_map_2_5D(self.vMap.screen, self.pos_x, self.pos_y,self.zoom_level)
+                self.vMap.draw_map_2_5D(self.vMap.screen, self.pos_x, self.pos_y, self.zoom_level)
 
             pygame.display.flip()
 
-            self.update_training_units()  # Mettre à jour les unités en entraînement
+            self.update_training_units()  
 
             clock.tick(30)
 

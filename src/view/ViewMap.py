@@ -117,10 +117,11 @@ class ViewMap():
         minimap_x = screen.get_width() - self.MINIMAP_SIZE - self.MINIMAP_PADDING
         minimap_y = screen.get_height() - self.MINIMAP_SIZE2 - self.MINIMAP_PADDING
         screen.blit(minimap_surface, (minimap_x, minimap_y))
-    def draw_map_2_5D(self, screen, pos_x, pos_y,zoom_level):
+    def draw_map_2_5D(self, screen, pos_x, pos_y, zoom_level):
+        print(zoom_level)
         screen.fill(self.BLACK)
         map_surface_width = (self.map_width + self.map_height) * self.iso_tile_width // 2 * zoom_level
-        map_surface_height = (self.map_width + self.map_height) * self.iso_tile_height // 2* zoom_level
+        map_surface_height = (self.map_width + self.map_height) * self.iso_tile_height // 2 * zoom_level
         iso_surface = pygame.Surface((map_surface_width, map_surface_height))
         iso_surface.fill(self.BLACK)
         diamond_left = self.map_height * self.iso_tile_width // 2 * zoom_level
@@ -155,10 +156,10 @@ class ViewMap():
                     pygame.draw.polygon(iso_surface, self.BLACK, points, 1)
                     '''
         
-        max_scroll_x = map_surface_width - screen.get_width()
-        max_scroll_y = map_surface_height - screen.get_height()
-        
-        view_x = max(0, min(pos_x * self.iso_tile_width * zoom_level , max_scroll_x))
+        max_scroll_x = map_surface_width - screen.get_width() + (self.iso_tile_width * zoom_level)
+        max_scroll_y = map_surface_height - screen.get_height() + (self.iso_tile_height * zoom_level)
+    
+        view_x = max(0, min(pos_x * self.iso_tile_width * zoom_level, max_scroll_x))
         view_y = max(0, min(pos_y * self.iso_tile_height * zoom_level, max_scroll_y))
         
         screen.blit(iso_surface, (0, 0), 
@@ -166,7 +167,7 @@ class ViewMap():
                     screen.get_width(), 
                     screen.get_height()))
         
-        self.draw_minimap(screen, view_x, view_y,zoom_level)    
+        self.draw_minimap(screen, view_x, view_y, zoom_level)    
         pygame.display.flip()
 
     def get_tile_color(self, content):
