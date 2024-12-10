@@ -33,6 +33,7 @@ class ControllerGame():
 
         self.mode = "terminal"
         self.paused = False
+        self.zoom_level = 1.0
 
     def run(self):
 
@@ -126,8 +127,16 @@ class ControllerGame():
                     if key[pygame.K_d]:
                         pos_x += 1
                     if key[pygame.K_ESCAPE]: webbrowser.open("https://www.youtube.com/watch?v=dQw4w9WgXcQ")
-                    
-                    self.viewPygame.draw_map_2_5D(pos_x, pos_y)
+                    if event.type == pygame.MOUSEBUTTONDOWN:
+                        if event.button == 4:  
+                            self.zoom_level = round(min(1.4, self.zoom_level + 0.1), 1)
+                        elif event.button == 5:  
+                            self.zoom_level = round(max(0.5, self.zoom_level - 0.1), 1)
+                            if self.zoom_level < 0.1:
+                                self.zoom_level = 0.1
+
+
+                    self.viewPygame.draw_map_2_5D(self.viewPygame.screen, pos_x, pos_y, self.zoom_level)
                     pygame.display.flip()
                     
                     for cplayer in self.lstcPlayers:

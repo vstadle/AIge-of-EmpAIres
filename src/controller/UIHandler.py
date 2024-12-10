@@ -19,7 +19,7 @@ class UIHandler():
 
         #Création de la map
         self.game = Game()
-        self.controllerMap = ControllerMap(self)
+        self.controllerMap = ControllerMap()
         self.lstPlayers = []
         self.controllerGame = None
 
