@@ -97,9 +97,10 @@ class Map():
         pygame.display.flip()  # Met à jour l'affichage
         #win.getch()
 
-    def addRessources(self, Ressources, x,y):
-        self.mapRessources[x][y] = Ressources
-        self.map[x][y] = Ressources.letter
+
+    def removeRessources(self, x, y):
+        self.mapRessources[x][y] = None
+        self.map[x][y] = " "
 
     def addBuilding(self, building, x, y, player):
         building.setX(x)
