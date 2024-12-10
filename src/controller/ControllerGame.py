@@ -96,6 +96,7 @@ class ControllerGame():
         pos_x, pos_y = 0, 0
         clock = pygame.time.Clock()
         while True:
+            keys = pygame.key.get_pressed()
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     pygame.quit()
@@ -110,40 +111,37 @@ class ControllerGame():
                     if event.key == pygame.K_TAB and not tab_pressed:
                         tab_pressed = True
                         self.toggle_pause()
-        
                 if event.type == pygame.KEYUP:
                     if event.key == pygame.K_TAB:
                         tab_pressed = False
-                    
-                if not self.paused:
+                if event.type == pygame.MOUSEBUTTONDOWN:
+                    if event.button == 4:  
+                        self.zoom_level = round(min(1.4, self.zoom_level + 0.1), 1)
+                    elif event.button == 5:  
+                        self.zoom_level = round(max(0.5, self.zoom_level - 0.1), 1)
+                        if self.zoom_level < 0.1:
+                            self.zoom_level = 0.1
 
-                    key = pygame.key.get_pressed()
-                    if key[pygame.K_z]:
-                        pos_y -= 1
-                    if key[pygame.K_s]:
-                        pos_y += 1
-                    if key[pygame.K_q]:
-                        pos_x -= 1
-                    if key[pygame.K_d]:
-                        pos_x += 1
-                    if key[pygame.K_ESCAPE]: webbrowser.open("https://www.youtube.com/watch?v=dQw4w9WgXcQ")
-                    if event.type == pygame.MOUSEBUTTONDOWN:
-                        if event.button == 4:  
-                            self.zoom_level = round(min(1.4, self.zoom_level + 0.1), 1)
-                        elif event.button == 5:  
-                            self.zoom_level = round(max(0.5, self.zoom_level - 0.1), 1)
-                            if self.zoom_level < 0.1:
-                                self.zoom_level = 0.1
+            if not self.paused:
+                if keys[pygame.K_z]:
+                    pos_y -= 1
+                if keys[pygame.K_s]:
+                    pos_y += 1
+                if keys[pygame.K_q]:
+                    pos_x -= 1
+                if keys[pygame.K_d]:
+                    pos_x += 1
+                if keys[pygame.K_ESCAPE]:
+                    webbrowser.open("https://www.youtube.com/watch?v=dQw4w9WgXcQ")
 
+                self.viewPygame.draw_map_2_5D(self.viewPygame.screen, pos_x, pos_y, self.zoom_level)
+                pygame.display.flip()
 
-                    self.viewPygame.draw_map_2_5D(self.viewPygame.screen, pos_x, pos_y, self.zoom_level)
-                    pygame.display.flip()
-                    
-                    for cplayer in self.lstcPlayers:
-                        cplayer.update_training()
-                        cplayer.update_building()
-                    
-                    clock.tick(30)
+                for cplayer in self.lstcPlayers:
+                    cplayer.update_training()
+                    cplayer.update_building()
+
+            clock.tick(60)
 
     def toggle_pause(self):
         self.paused = not self.paused

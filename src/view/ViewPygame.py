@@ -49,6 +49,9 @@ class ViewPygame():
         self.BLUE = (135, 206, 250)
         self.RED = (255, 0, 0)
 
+        self.clock = pygame.time.Clock()
+        self.font = pygame.font.SysFont(None, 24)
+
     '''    
     def draw_map(self, screen, pos_x, pos_y):
         screen.fill(self.WHITE)
@@ -78,6 +81,7 @@ class ViewPygame():
                     if self.map.getMap()[map_row][map_col] != ' ':
                         text_surface = self.font.render(self.map.getMap()[map_row][map_col], True, self.BLACK)
                         screen.blit(text_surface, (x + self.TILE_SIZE // 4, y + self.TILE_SIZE // 4))
+        self.display_fps(screen)
         pygame.display.flip()
     
     
@@ -184,6 +188,7 @@ class ViewPygame():
                     screen.get_height()))
         
         self.draw_minimap(screen, view_x, view_y, zoom_level)    
+        self.display_fps(screen)
         pygame.display.flip()
 
     def get_tile_color(self, content):
@@ -201,3 +206,9 @@ class ViewPygame():
             return self.BROWN
         else:
             return self.GRAY
+
+    def display_fps(self, screen):
+        fps = str(int(self.clock.get_fps()))
+        fps_text = self.font.render(fps, True, self.WHITE)
+        screen.blit(fps_text, (10, 10))
+        self.clock.tick(60)
