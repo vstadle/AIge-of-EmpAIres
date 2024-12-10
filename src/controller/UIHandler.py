@@ -86,8 +86,6 @@ class UIHandler():
         lsttemp = []
         for players in self.lstPlayers:
             lsttemp.append(players.getPlayer())
-        print(lsttemp)
-        print(self.controllerMap.map)
         self.game.setLstPlayer(lsttemp)
         self.game.setMap(self.controllerMap.map)
         current_time = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
