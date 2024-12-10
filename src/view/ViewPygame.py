@@ -52,6 +52,12 @@ class ViewPygame():
         self.clock = pygame.time.Clock()
         self.font = pygame.font.SysFont(None, 24)
 
+        # Chargement des sprites
+        self.ground_sprite = pygame.image.load("C:/Users/scavo/aidemoi/AIge-of-EmpAIres/Sprite_aoe/miscellaneous/herbe.png").convert_alpha()
+        self.ground_sprite = pygame.transform.scale(self.ground_sprite, 
+                                                  (int(self.iso_tile_width), 
+                                                   int(self.iso_tile_height)))
+
     '''    
     def draw_map(self, screen, pos_x, pos_y):
         screen.fill(self.WHITE)
@@ -171,7 +177,17 @@ class ViewPygame():
                     cell_content = self.map.getMap()[row][col]
                     color = self.get_tile_color(cell_content)
                     
-                    pygame.draw.polygon(iso_surface, color, points)
+                    if cell_content == ' ':  # Pour la terre
+                        # Redimensionner le sprite selon le zoom
+                        scaled_sprite = pygame.transform.scale(
+                            self.ground_sprite,
+                            (int(self.iso_tile_width * zoom_level),
+                             int(self.iso_tile_height * zoom_level))
+                        )
+                        iso_surface.blit(scaled_sprite, (iso_x - self.iso_tile_width//2 * zoom_level, 
+                                                       iso_y))
+                    else:
+                        pygame.draw.polygon(iso_surface, color, points)
                     '''
                     pygame.draw.polygon(iso_surface, self.BLACK, points, 1)
                     '''
