@@ -118,7 +118,7 @@ class ViewMap():
         minimap_y = screen.get_height() - self.MINIMAP_SIZE2 - self.MINIMAP_PADDING
         screen.blit(minimap_surface, (minimap_x, minimap_y))
     def draw_map_2_5D(self, screen, pos_x, pos_y, zoom_level):
-        print(zoom_level)
+        
         screen.fill(self.BLACK)
         map_surface_width = (self.map_width + self.map_height) * self.iso_tile_width // 2 * zoom_level
         map_surface_height = (self.map_width + self.map_height) * self.iso_tile_height // 2 * zoom_level
