@@ -19,7 +19,7 @@ class UIHandler():
 
         #Création de la map
         self.game = Game()
-        self.controllerMap = ControllerMap(self)
+        self.controllerMap = ControllerMap()
         self.lstPlayers = []
         self.controllerGame = None
 
@@ -29,7 +29,6 @@ class UIHandler():
         pygame.display.set_caption("Menu Principal")
 
         font = pygame.font.Font(None, 36)
-        clock = pygame.time.Clock()
 
         menu_active = True
         while menu_active:
