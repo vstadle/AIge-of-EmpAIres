@@ -3,7 +3,9 @@ import pygame
 import sys
 import webbrowser
 import os
+import logging  
 
+from logs.logger import logs
 from web.generate_html import generateHtml
 
 from controller.ControllerMap import ControllerMap
@@ -13,8 +15,11 @@ from view.ViewTerminal import ViewTerminal
 from view.ViewPygame import ViewPygame
 
 from model.Game import Game
+from model.Gold import Gold
 
 class ControllerGame():
+
+    log_win = None
 
     def __init__(self, cmap, lstcPlayers, game , uiHandler):
         
@@ -46,6 +51,12 @@ class ControllerGame():
         tab_pressed = False
 
         pos_x, pos_y = 0, 0
+
+        self.cmap.map.mapRessources[0][0] = Gold()
+        self.cmap.map.mapRessources[0][0].setXY(0, 0)
+        self.cmap.map.map[0][0] = "G"
+        self.cmap.map.map[0][1] = "v"
+        self.lstcPlayers[0].collectResources(self.lstcPlayers[0].player.units[0], self.cmap.map.mapRessources[0][0], 0, 1)
 
         while True:
             #stdscr.refresh()
@@ -82,6 +93,7 @@ class ControllerGame():
                 for cplayer in self.lstcPlayers:
                     cplayer.update_training()
                     cplayer.update_building()
+                    cplayer.updating_collect()
 
                 self.viewTerminal.draw_map(stdscr, pos_x, pos_y)
         
@@ -133,15 +145,16 @@ class ControllerGame():
                     for cplayer in self.lstcPlayers:
                         cplayer.update_training()
                         cplayer.update_building()
+                        cplayer.updating_collect()
                     
                     clock.tick(30)
 
     def toggle_pause(self):
         self.paused = not self.paused
         if self.paused:
-            print("Paused")
+            logs("Paused", level=logging.INFO)
             generateHtml(self.lstcPlayers)
             current_path = "file://" + os.getcwd() + "/web/index.html"
             webbrowser.open(current_path)
         else:
-            print("Unpaused")
+            logs("Unpaused", level=logging.INFO)

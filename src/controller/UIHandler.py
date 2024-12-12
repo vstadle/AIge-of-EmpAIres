@@ -3,6 +3,7 @@ import sys
 import pickle
 import os
 import datetime
+import logging
 
 from controller.ControllerMap import ControllerMap
 from controller.ControllerPlayer import ControllerPlayer
@@ -13,6 +14,7 @@ from model.Villager import Villager
 from model.Game import Game
 from model.Player import Player
 from controller.ControllerGame import ControllerGame
+from logs.logger import logs
 
 class UIHandler():
     def __init__(self):
@@ -92,18 +94,19 @@ class UIHandler():
         file = open(file_name, 'wb')
         pickle.dump(self.game, file)
         file.close()
-        print("Game saved")
+        logs("Gave Saved", level=logging.INFO)
         
     def loadGame(self,path_file):
+        logs("Loading Game", level=logging.INFO)
         path_file = "../save/" + path_file
         file = open(path_file, "rb")
         game = pickle.load(file)
         file.close()
         self.game = game
         for player in self.game.lstPlayer:
-            print(f"Après désérialisation : Joueur {player.name}")
-            print(f"  Units: {len(player.units)}")
-            print(f"  Buildings: {len(player.buildings)}")
+            logs(f"Après désérialisation : Joueur {player.name}", level=logging.INFO)
+            logs(f"  Units: {len(player.units)}", level=logging.INFO)
+            logs(f"  Buildings: {len(player.buildings)}", level=logging.INFO)
 
         self.controllerMap.reset(self.game.map)
         for player in self.game.lstPlayer:
@@ -111,9 +114,9 @@ class UIHandler():
 
         self.controllerMap.setLstPlayers(self.lstPlayers)
         self.controllerGame = ControllerGame(self.controllerMap, self.lstPlayers, self.game, self)
-        print(game.lstPlayer)
-        print(self.controllerMap.map)
-        print("Game loaded")
+        logs(game.lstPlayer.__str__())
+        logs(self.controllerMap.map.__str__())
+        logs("Game loaded")
         pygame.quit()
         self.start()
 

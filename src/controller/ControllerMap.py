@@ -28,7 +28,6 @@ class ControllerMap():
 
     def reset(self, map):
         self.map = map
-        self.vMap = ViewMap(self.map, self)
         self.pos_x = 0
         self.pos_y = 0
         self.training_queue = []

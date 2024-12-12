@@ -100,6 +100,7 @@ class Map():
     def addRessources(self, Ressources, x,y):
         self.mapRessources[x][y] = Ressources
         self.map[x][y] = Ressources.letter
+        Ressources.setXY(x, y)
 
     def addBuilding(self, building, x, y, player):
         building.setX(x)
@@ -117,7 +118,6 @@ class Map():
         self.mapUnits[x][y] = units
         self.map[x][y] = units.letter
         self.lstColor[x][y] = player.getColor()
-        print(self.lstColor[x][y])
 
     def generateForest(self):
         max_percentage_wood = 0.1 

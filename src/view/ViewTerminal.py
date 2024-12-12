@@ -1,4 +1,7 @@
 import curses
+import logging
+
+from logs.logger import logs
 
 class ViewTerminal:
 

@@ -2,6 +2,7 @@ import pygame
 import sys
 import random
 import time
+import logging
 
 from model.Player import Player
 from model.TownCenter import TownCenter
@@ -14,12 +15,16 @@ from model.Swordsman import Swordsman
 from model.Barracks import Barracks
 from model.Stable import Stable
 from model.ArcheryRange import ArcheryRange
+from model.Gold import Gold
+from model.Wood import Wood
+from logs.logger import logs
 
 class ControllerPlayer():
     
     def __init__(self, player, cmap):
         self.player = player
         self.cmap = cmap
+        self.queueCollect = []
     
     @classmethod
     def from_saved(cls,player,cmap):
@@ -205,9 +210,9 @@ class ControllerPlayer():
                     self.addBuildingInitialize(archeryrange, posx, posy)
                     check = True
 
-        print(self.player.name)
+        logs(self.player.name, level=logging.INFO)
         for building in self.player.getBuildings():
-            print(building)
+            logs(building.__str__(), level=logging.INFO)
 
     def addBuildingInitialize(self, building, x, y):
         self.player.addBuilding(building)
@@ -228,7 +233,7 @@ class ControllerPlayer():
                     if not is_free:
                         break
                 if is_free:
-                    print(building, " add to building queue")
+                    logs(building.__str__() + " add to building queue", level=logging.INFO)
                     self.player.removeResourcesForBuilding(building)
                     self.player.getBuildingQueue().append({"building": building, "player": self.player, "start_time": time.time(), "x": x, "y": y})
 
@@ -249,8 +254,9 @@ class ControllerPlayer():
                 for i in range(building.getSizeMap()):
                     for j in range(building.getSizeMap()):
                         if(not self.cmap.is_free(x+i, y+j)):
-                            print(x+i, y+j)
-                            print("Error  with building placement : ", building)
+                            s = f"{x+i} {y+j}"
+                            logs(s, level=logging.ERROR)
+                            logs("Error  with building placement : "+ building.__str__(), level=logging.ERROR)
                             is_free = False
                             break
                     if(not is_free):
@@ -262,7 +268,7 @@ class ControllerPlayer():
                     building.setX(x)
                     building.setY(y)
                     self.player.getBuildingQueue().remove(item)
-                    print(building, " is placed")
+                    logs(building.__str__() + " is placed", level=logging.INFO)
                 else:
                     print()
                     #print("Erreur de placement du batiment" , building, player)
@@ -292,7 +298,7 @@ class ControllerPlayer():
 
     def addUnit(self,unit, building):
         start_time = time.time()
-        print(unit, " add to training queue")
+        logs(unit.__str__() + " add to training queue", level=logging.INFO)
         self.player.getTrainingQueue().append({"unit": unit, "player": self.player, "start_time": start_time, "building": building})
 
     def update_training(self):
@@ -322,7 +328,7 @@ class ControllerPlayer():
                                     self.cmap.map.addUnits(unit, nx, ny, player)
                                     self.player.addUnit(unit)
                                     placed = True
-                                    print(unit , " is placed")
+                                    logs(unit.__str__() + " is placed", level=logging.INFO)
                                     break
                         if placed:
                             break
@@ -365,6 +371,62 @@ class ControllerPlayer():
             return 0
         else:
             return -1
+
+    def collectResources(self, villager, ressource, unit_x, unit_y):
+        can_collect = False
+
+        distance_x = ressource.getX() - unit_x
+        distance_y = ressource.getY() - unit_y
+
+        start_time = time.time()
+        self.queueCollect.append({"villager": villager, "start_time": start_time, "ressource": ressource})
+        logs("Villager is collecting resources", level=logging.INFO)
+
+        if abs(distance_x) < 120 or abs(distance_y) < 120:
+            if villager.carryingType == None:
+                if isinstance(ressource, Gold):
+                    villager.carryingType = "Gold"
+                    can_collect = True
+                elif isinstance(ressource, Wood):
+                    villager.carryingType = "Wood"
+                    can_collect = True
+            elif isinstance(ressource, Gold) and villager.carryingType == "Gold":
+                can_collect = True
+            elif isinstance(ressource, Wood) and villager.carryingType == "Wood":
+                can_collect = True
+            
+            if can_collect:
+                #Le villageois est à la bonne distance pour collecter des ressources
+              logs("Villager is collecting resources", level=logging.INFO) 
+        else:
+            logs("Villager is too far to collect resources", level=logging.INFO)
+    
+    def updating_collect(self):
+        current_time = time.time()
+        #print(current_time)
+        for item in self.queueCollect[:]:
+            villager = item["villager"]
+            start_time = item["start_time"]
+            ressource = item["ressource"]
+            if current_time - start_time >= villager.collectPerSecond:
+                logs("Le villageois peut collecter des ressources", level=logging.INFO)
+                if(villager.canCollectRessources() and ressource.capacity > 0):
+                    villager.collect(ressource)
+                    logs("Villageois collecte des ressources", level=logging.INFO)
+                    logs(villager.carrying.__str__(), level=logging.INFO)
+                    self.queueCollect.remove(item)
+                    start_time = time.time()
+                    if(ressource.capacity <= 0):
+                        logs("Ressource is empty", level=logging.INFO)
+                        self.cmap.map.mapRessources[ressource.getX()][ressource.getY()] = None
+                        self.cmap.map.map[ressource.getX()][ressource.getY()] = " "
+                    else:
+                        self.queueCollect.append({"villager": villager, "start_time": start_time, "ressource": ressource})
+                else:
+                    logs("Villageois ne peut pas collecter de ressources", level=logging.INFO)
+                    self.queueCollect.remove(item)
+
+            
 
     def getPlayer(self):
         return self.player
