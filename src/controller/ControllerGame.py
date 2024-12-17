@@ -52,6 +52,14 @@ class ControllerGame():
 
         pos_x, pos_y = 0, 0
 
+        #Test Collecte des ressources avec un villageois
+        '''
+        self.cmap.map.mapRessources[0][0] = Gold()
+        self.cmap.map.mapRessources[0][0].setXY(0, 0)
+        self.cmap.map.map[0][0] = "G"
+        self.cmap.map.map[0][1] = "v"
+        self.lstcPlayers[0].collectResources(self.lstcPlayers[0].player.units[0], self.cmap.map.mapRessources[0][0], 2, 2)
+        '''
         while True:
             #stdscr.refresh()
 

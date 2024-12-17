@@ -375,14 +375,11 @@ class ControllerPlayer():
     def collectResources(self, villager, ressource, unit_x, unit_y):
         can_collect = False
 
-        distance_x = ressource.getX() - unit_x
-        distance_y = ressource.getY() - unit_y
+        # Calcul des distances en X et Y
+        distance_x = abs(ressource.getX() - unit_x)
+        distance_y = abs(ressource.getY() - unit_y)
 
-        start_time = time.time()
-        self.queueCollect.append({"villager": villager, "start_time": start_time, "ressource": ressource})
-        logs("Villager is collecting resources", level=logging.INFO)
-
-        if abs(distance_x) < 120 or abs(distance_y) < 120:
+        if distance_x <= 1 and distance_y <= 1:
             if villager.carryingType == None:
                 if isinstance(ressource, Gold):
                     villager.carryingType = "Gold"
@@ -397,7 +394,10 @@ class ControllerPlayer():
             
             if can_collect:
                 #Le villageois est à la bonne distance pour collecter des ressources
-              logs("Villager is collecting resources", level=logging.INFO) 
+                logs("Villager is collecting resources", level=logging.INFO)
+                start_time = time.time()
+                self.queueCollect.append({"villager": villager, "start_time": start_time, "ressource": ressource})
+                logs("Villager is collecting resources", level=logging.INFO)
         else:
             logs("Villager is too far to collect resources", level=logging.INFO)
     
