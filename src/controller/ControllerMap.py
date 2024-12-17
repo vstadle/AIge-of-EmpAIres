@@ -16,9 +16,9 @@ from model.Swordsman import Swordsman
 from web.generate_html import generateHtml
 
 class ControllerMap():
-    def __init__(self):
+    def __init__(self, size_map_x, size_map_y):
         pygame.init()
-        self.map = Map(MapType.GENEROUS_RESOURCES)
+        self.map = Map(size_map_x, size_map_y)
         self.pos_x = 0
         self.pos_y = 0
         self.training_queue = []
@@ -38,7 +38,7 @@ class ControllerMap():
 
     def placementTownCenter(self, nbPlayer, lstPlayers):
         position = []
-        center_x, center_y = 60, 60
+        center_x, center_y = self.map.size_map_x//2, self.map.size_map_y//2
         
         radius = 40
         k = random.uniform(0, 1) * 2 * math.pi 

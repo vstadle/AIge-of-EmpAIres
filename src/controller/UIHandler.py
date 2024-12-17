@@ -21,7 +21,7 @@ class UIHandler():
 
         #Création de la map
         self.game = Game()
-        self.controllerMap = ControllerMap()
+        self.controllerMap = ControllerMap(120,120)
         self.lstPlayers = []
         self.controllerGame = None
 
@@ -66,15 +66,65 @@ class UIHandler():
                             sys.exit()
 
     def start_new_game(self):
+
+        pygame.quit()
+
+        '''Demande des paramètres pour une nouvelle partie'''
+        while(True):
+            typeGame = input("Type de partie (Lean, Mean, Marines) : ")
+            if typeGame in ["Lean", "Mean", "Marines"]:
+                break
+            else:
+                print("Type de partie invalide")
+        
+        while(True):
+            nbPlayers = input("Nombre de joueurs : ")
+            if nbPlayers.isdigit():
+                nbPlayers = int(nbPlayers)
+                break
+            else:
+                print("Nombre de joueurs invalide")
+
+        while(True):
+            typeMap = input("Type de carte (Generous, Center) : ")
+            if typeMap in ["Generous", "Center"]:
+                if typeMap == "Generous":
+                    typeRessource = MapType.GENEROUS_RESOURCES
+                    break
+                elif typeMap == "Center":
+                    typeRessource = MapType.CENTER_RESOURCES
+                    break
+            else:
+                print("Type de carte invalide")
+
+        while(True):
+            size_x = input("Taille de la carte (x) : ")
+            if size_x.isdigit():
+                size_x = int(size_x)
+                if size_x > 0:
+                    break
+            print("Taille invalide")
+            
+        while(True):
+            size_y = input("Taille de la carte (y) : ")
+            if size_y.isdigit():
+                size_y = int(size_y)
+                if size_y > 0:
+                    break
+            print("Taille invalide")
+        '''Initialisation de la partie'''
+
+        print("Création de la partie...")
+
         # Lancer une nouvelle partie
-        self.controllerMap.genRessources(MapType.CENTER_RESOURCES)
-        self.initialize("Marines", 2)  # Exemple : type "Marines", 6 joueurs
+        self.controllerMap = ControllerMap(size_x, size_y)
+        self.controllerMap.genRessources(typeRessource)
+        self.initialize(typeGame, nbPlayers)  # Exemple : type "Marines", 6 joueurs
         self.controllerMap.setLstPlayers(self.lstPlayers)
         self.game.setMap(self.controllerMap.map)
         for player in self.lstPlayers:
             self.game.lstPlayer.append(player.getPlayer())
         self.controllerGame = ControllerGame(self.controllerMap, self.lstPlayers, self.game, self)
-        pygame.quit()
         self.start()
 
     def saveGame(self):

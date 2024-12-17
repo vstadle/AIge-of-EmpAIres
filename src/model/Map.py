@@ -19,42 +19,45 @@ class MapType():
     GENEROUS_RESOURCES = 1
     CENTER_RESOURCES = 2
 class Map():
-    def __init__(self,map_type):
+    def __init__(self, size_map_x, size_map_y):
 
         #Matrice de 120x120 qui va contenir les batiments
-        self.mapBuildings = [[None for x in range(120)] for y in range(120)]
+        self.mapBuildings = [[None for x in range(size_map_x)] for y in range(size_map_y)]
 
         #Matrice de 120x120 qui va contenir les ressources
-        self.mapRessources = [[None for x in range(120)] for y in range(120)]
+        self.mapRessources = [[None for x in range(size_map_x)] for y in range(size_map_y)]
 
         #Matrice de 120x120 qui va contenir les unités
-        self.mapUnits = [[None for x in range(120)] for y in range(120)]
+        self.mapUnits = [[None for x in range(size_map_x)] for y in range(size_map_y)]
 
         #Listes des couleurs
-        self.lstColor= [[None for x in range(120)] for y in range(120)]
+        self.lstColor= [[None for x in range(size_map_x)] for y in range(size_map_y)]
 
-        self.map = [[" " for x in range(120)] for y in range(120)]
+        self.map = [[" " for x in range(size_map_x)] for y in range(size_map_y)]
         self.map[0][0] = 'R'
-        self.map[119][119] = 'R'
+        self.map[size_map_x-1][size_map_y-1] = 'R'
+
+        self.size_map_x = size_map_x
+        self.size_map_y = size_map_y
         
     
     def generateGenerousResources(self):
         max_percentage_gold = 0.01
         max_percentage_food = 0.01
-        total_cells = 120*120
+        total_cells = self.size_map_x*self.size_map_y
         max_gold = max_percentage_gold * total_cells
         max_food = max_percentage_food * total_cells
         food_planted = 0
         gold_planted = 0
         while (gold_planted < max_gold):
-            x = random.randint(0,119)
-            y = random.randint(0,119)
+            x = random.randint(0,self.size_map_x-1)
+            y = random.randint(0,self.size_map_y-1)
             if(self.map[x][y]== " "):
                 self.addRessources(Gold(), x, y)
                 gold_planted+=1
         while (food_planted < max_food):
-            x = random.randint(0,119)
-            y = random.randint(0,119)
+            x = random.randint(0,self.size_map_x-1)
+            y = random.randint(0,self.size_map_y-1)
             if(self.map[x][y]== " "):
                 self.addRessources(Food(), x, y)
                 food_planted+=1
@@ -63,7 +66,7 @@ class Map():
 
 
     def generateCenterResources(self):
-        center_x, center_y = 60, 60 
+        center_x, center_y = self.size_map_x//2, self.size_map_y//2 
         width = random.randint(3, 7)  
         height = random.randint(3, 7)  
 
@@ -73,7 +76,7 @@ class Map():
             for dy in range(height):
                 x = start_x + dx
                 y = start_y + dy
-                if 0 <= x < 120 and 0 <= y < 120:
+                if 0 <= x < self.size_map_x and 0 <= y < self.size_map_y:
                     self.addRessources(Gold(), x, y)
 
 
@@ -121,7 +124,7 @@ class Map():
 
     def generateForest(self):
         max_percentage_wood = 0.1 
-        total_cells = 120 * 120
+        total_cells = self.size_map_x * self.size_map_y
         max_trees = int(total_cells * max_percentage_wood) 
 
         num_forests = random.randint(3, 8) 
@@ -137,8 +140,8 @@ class Map():
                 remaining_trees = max_trees - total_trees_planted
                 width = min(width, remaining_trees // height)
 
-            x = random.randint(0, 120 - height)
-            y = random.randint(0, 120 - width)
+            x = random.randint(0, self.size_map_x - height)
+            y = random.randint(0, self.size_map_y - width)
 
             trees_planted_in_this_forest = 0
             for i in range(height):
@@ -156,7 +159,7 @@ class Map():
                 break
 
     def addTownCenter(self, towncenter): 
-        center_x, center_y = 60, 60
+        center_x, center_y = self.size_map_x//2, self.size_map_y//2
         distance_from_center = random.randint(40,55)
         angle = random.uniform(0, 2 * 3.14159)
         pos1_x = int(center_x + distance_from_center * random.uniform(-1, 1))

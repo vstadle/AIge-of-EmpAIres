@@ -32,7 +32,11 @@ class Player():
         self.buildings_queue = []
         self.id = Player.cptPlayer
         Player.cptPlayer += 1
-        self.color = Player.lstColor[self.id]
+        self.color = None
+        try:
+            self.color = Player.lstColor[self.id]
+        except IndexError:
+            self.color = Player.lstColor[0]
 
     def addUnit(self, unit):
         self.units.append(unit)
