@@ -66,3 +66,12 @@ class ControllerMap():
     
     def is_free(self, x, y):
         return self.map.is_free(x, y)
+    
+    def rmUnit(self, unit):
+        self.map.rmUnit(unit)
+    
+    def rmBuilding(self, building):
+        self.map.rmBuilding(building)
+    
+    def rmRessource(self, ressource):
+        self.map.rmRessource(ressource)

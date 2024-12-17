@@ -180,3 +180,17 @@ class Map():
     
     def getColor(self, x, y):
         return self.lstColor[x][y]
+
+    def rmUnit(self, unit):
+        self.mapUnits[unit.getX()][unit.getY()] = None
+        self.map[unit.getX()][unit.getY()] = " "
+    
+    def rmBuilding(self, building):
+        for i in range(building.sizeMap):
+            for j in range(building.sizeMap):
+                self.mapBuildings[building.getX() + i][building.getY() + j] = None
+                self.map[building.getX() + i][building.getY() + j] = " "
+    
+    def rmRessource(self, ressource):
+        self.mapRessources[ressource.getX()][ressource.getY()] = None
+        self.map[ressource.getX()][ressource.getY()] = " "
