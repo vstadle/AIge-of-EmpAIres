@@ -8,10 +8,18 @@ from model.Stable import Stable
 from model.House import House
 from model.Camp import Camp
 from model.TownCenter import TownCenter
+
+
+
 class ViewPygame():
     def __init__(self, map):
+        self.FPS = 60
+        self.clock = pygame.time.Clock()
         self.map = map
-        
+        self.update_window_size()
+        pygame.event.set_allowed([pygame.QUIT,pygame.VIDEORESIZE ,pygame.KEYDOWN, pygame.KEYUP,pygame.MOUSEBUTTONDOWN])
+        self.screen = pygame.display.set_mode((self.screen_width, self.screen_height), pygame.RESIZABLE)
+
         self.GRID_WIDTH = 30
         self.GRID_HEIGHT = 30
         display_info = pygame.display.Info()
@@ -35,9 +43,6 @@ class ViewPygame():
         self.MINIMAP_PADDING = 20
         self.MINIMAP_TILE_SIZE = self.MINIMAP_SIZE // max(self.map_width, self.map_height) *1.5
         
-        window_width = self.GRID_WIDTH * self.TILE_SIZE
-        window_height = self.GRID_HEIGHT * self.TILE_SIZE
-        self.screen = pygame.display.set_mode((window_width, window_height))
         
         self.WHITE = (255, 255, 255)
         self.BLACK = (0, 0, 0)
@@ -74,6 +79,30 @@ class ViewPygame():
                         screen.blit(text_surface, (x + self.TILE_SIZE // 4, y + self.TILE_SIZE // 4))
         pygame.display.flip()
     '''
+
+    def update_window_size(self):
+        display_info = pygame.display.Info()
+        self.screen_width = int(display_info.current_w * 0.8)
+        self.screen_height = int(display_info.current_h * 0.8)
+        self.GRID_WIDTH = 30
+        self.GRID_HEIGHT = 30
+        self.TILE_SIZE = min(self.screen_width // self.GRID_WIDTH, self.screen_height // self.GRID_HEIGHT)
+        
+        self.ISO_ANGLE = 30
+        self.map_width = 120 
+        self.map_height = 120
+        
+        # Mettre à jour les dimensions isométriques
+        iso_factor = 0.5
+        self.iso_tile_width = self.TILE_SIZE
+        self.iso_tile_height = self.TILE_SIZE * iso_factor
+        
+        # Recalculer les dimensions de la minimap
+        self.MINIMAP_SIZE = int(self.screen_width * 0.15)  # 15% de la largeur
+        self.MINIMAP_SIZE2 = int(self.screen_height * 0.15) # 15% de la hauteur
+        self.MINIMAP_PADDING = 20
+        self.MINIMAP_TILE_SIZE = self.MINIMAP_SIZE // max(self.map_width, self.map_height) * 1.5
+
     def draw_map(self, screen, pos_x, pos_y):
         screen.fill(self.WHITE)
         for row in range(self.GRID_HEIGHT):
@@ -144,7 +173,13 @@ class ViewPygame():
 
 
     def draw_map_2_5D(self, screen, pos_x, pos_y, zoom_level):
-        
+        self.clock.tick(self.FPS)
+        for event in pygame.event.get(pygame.VIDEORESIZE):
+            self.screen_width = event.w
+            self.screen_height = event.h
+            self.screen = pygame.display.set_mode((self.screen_width, self.screen_height), pygame.RESIZABLE)
+            self.update_window_size()
+
         screen.fill(self.BLACK)
         map_surface_width = (self.map_width + self.map_height) * self.iso_tile_width // 2 * zoom_level
         map_surface_height = (self.map_width + self.map_height) * self.iso_tile_height // 2 * zoom_level
@@ -228,3 +263,21 @@ class ViewPygame():
         fps_text = self.font.render(fps, True, self.WHITE)
         screen.blit(fps_text, (10, 10))
         self.clock.tick(60)
+
+    def scale_sprite(self, sprite):
+        """Scale a sprite based on current window size"""
+        current_size = sprite.get_size()
+        new_width = int(current_size[0] * self.scale_factor)
+        new_height = int(current_size[1] * self.scale_factor)
+        return pygame.transform.scale(sprite, (new_width, new_height))
+
+
+    def load_building_sprite(self, building_type):
+        # When loading sprites
+        sprite = pygame.image.load(f"assets/buildings/{building_type}.png")
+        return self.scale_sprite(sprite)
+    
+    def draw_building(self, screen, building, x, y):
+        sprite = self.load_building_sprite(building.type)
+        sprite = self.scale_sprite(sprite)
+        screen.blit(sprite, (x, y))
