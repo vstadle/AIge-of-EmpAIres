@@ -60,6 +60,11 @@ class ControllerGame():
         self.cmap.map.map[0][1] = "v"
         self.lstcPlayers[0].collectResources(self.lstcPlayers[0].player.units[0], self.cmap.map.mapRessources[0][0], 2, 2)
         '''
+        logs(self.lstcPlayers[0].__str__(), level=logging.INFO)
+        for unit in self.lstcPlayers[0].player.units:
+            logs(unit.__str__(), level=logging.INFO)
+
+        self.lstcPlayers[0].move(self.lstcPlayers[0].player.units[0], 119, 1)
         while True:
             #stdscr.refresh()
 
@@ -96,6 +101,7 @@ class ControllerGame():
                     cplayer.update_training()
                     cplayer.update_building()
                     cplayer.updating_collect()
+                    cplayer.updating_moving()
 
                 self.viewTerminal.draw_map(stdscr, pos_x, pos_y)
         
@@ -105,6 +111,7 @@ class ControllerGame():
         self.run_pygame()
 
     def run_pygame(self):
+        frame_counter = 0
         tab_pressed = False
         pos_x, pos_y = 0, 0
         clock = pygame.time.Clock()
@@ -148,8 +155,9 @@ class ControllerGame():
                         cplayer.update_training()
                         cplayer.update_building()
                         cplayer.updating_collect()
+                        cplayer.updating_moving()
                     
-                    clock.tick(30)
+                    clock.tick(60)
 
     def toggle_pause(self):
         self.paused = not self.paused

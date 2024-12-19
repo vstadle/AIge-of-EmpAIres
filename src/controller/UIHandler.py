@@ -180,7 +180,7 @@ class UIHandler():
             
             for cplayer in self.lstPlayers:
                 for j in range(3):
-                    cplayer.trainVillager(cplayer.getPlayer().getBuildings()[0])
+                    cplayer.addUnitInitialize(Villager(), cplayer.getPlayer().getBuildings()[0])
                     
         elif(typeGame == "Mean"):
             
@@ -191,7 +191,7 @@ class UIHandler():
             
             for cplayer in self.lstPlayers:
                 for j in range(3):
-                    cplayer.trainVillager(cplayer.getPlayer().getBuildings()[0])
+                    cplayer.addUnitInitialize(Villager(), cplayer.getPlayer().getBuildings()[0])
 
         elif(typeGame ==  "Marines"):
 

@@ -4,6 +4,7 @@ import random
 import time
 import logging
 
+from controller import A_Star
 from model.Player import Player
 from model.TownCenter import TownCenter
 from model.Farm import Farm
@@ -25,6 +26,7 @@ class ControllerPlayer():
         self.player = player
         self.cmap = cmap
         self.queueCollect = []
+        self.queueMoving = []
     
     @classmethod
     def from_saved(cls,player,cmap):
@@ -396,6 +398,7 @@ class ControllerPlayer():
                 #Le villageois est à la bonne distance pour collecter des ressources
                 logs("Villager is collecting resources", level=logging.INFO)
                 start_time = time.time()
+                villager.action = "collect"
                 self.queueCollect.append({"villager": villager, "start_time": start_time, "ressource": ressource})
                 logs("Villager is collecting resources", level=logging.INFO)
         else:
@@ -426,7 +429,47 @@ class ControllerPlayer():
                     logs("Villageois ne peut pas collecter de ressources", level=logging.INFO)
                     self.queueCollect.remove(item)
 
-            
+    def move(self, unit, x, y):
+        start = unit.getPosition()
+        end = (x,y)
+        logs("Unit is moving", level=logging.INFO)
+        chemin = A_Star.a_star(self.cmap.map, start, end)
+        chemin.pop(0)
+        logs("Chemin : " + chemin.__str__(), level=logging.INFO)
+        start_time = time.time()
+        self.queueMoving.append({"unit": unit, "start_time": start_time, "chemin": chemin})
+
+    def updating_moving(self):
+        current_time = time.time()
+        for item in self.queueMoving[:]:
+            unit = item["unit"]
+            start_time = item["start_time"]
+            chemin = item["chemin"]
+            if current_time - start_time >= unit.speed:
+                #logs("Unit is moving", level=logging.INFO)
+                case = chemin[0]
+                x = case[0]
+                y = case[1]
+                pos = unit.getPosition()
+                #logs("Position : " + pos.__str__(), level=logging.INFO)
+                #logs("Next_position : " + case.__str__(), level=logging.INFO)
+                #logs("Next_position : " + self.cmap.map.map[x][y], level=logging.INFO)
+                #logs("Current Position : " + self.cmap.map.map[pos[0]][pos[1]], level=logging.INFO)
+                if self.cmap.map.is_free(x,y):
+                    self.queueMoving.remove(item)
+                    self.cmap.map.moveUnit(unit, x, y, self.player)
+                    chemin.pop(0)
+                    start_time = time.time()
+                    if len(chemin) > 0:
+                        self.queueMoving.append({"unit": unit, "start_time": start_time, "chemin": chemin})
+                else:
+                    #logs("Unit can't move", level=logging.INFO)
+                    self.queueMoving.remove(item)
+                    chemin = A_Star.a_star(self.cmap.map, (unit.getPosition()), chemin[len(chemin)-1])
+                    start_time = time.time()
+                    self.queueMoving.append({"unit": unit, "start_time": start_time, "chemin": chemin})
+
+
 
     def getPlayer(self):
         return self.player

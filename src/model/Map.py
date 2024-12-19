@@ -121,6 +121,7 @@ class Map():
         self.mapUnits[x][y] = units
         self.map[x][y] = units.letter
         self.lstColor[x][y] = player.getColor()
+        units.setPosition(x, y)
 
     def generateForest(self):
         max_percentage_wood = 0.1 
@@ -197,3 +198,14 @@ class Map():
     def rmRessource(self, ressource):
         self.mapRessources[ressource.getX()][ressource.getY()] = None
         self.map[ressource.getX()][ressource.getY()] = " "
+
+    def moveUnit(self, unit, x, y, player):
+        pos = unit.getPosition()
+        self.mapUnits[pos[0]][pos[1]] = None
+        self.map[pos[0]][pos[1]] = " "
+        self.mapUnits[x][y] = unit
+        unit.setPosition(x, y)
+        self.map[x][y] = "v"
+        self.lstColor[x][y] = player.getColor()
+
+    
