@@ -434,10 +434,13 @@ class ControllerPlayer():
         end = (x,y)
         logs("Unit is moving", level=logging.INFO)
         chemin = A_Star.a_star(self.cmap.map, start, end)
-        chemin.pop(0)
-        logs("Chemin : " + chemin.__str__(), level=logging.INFO)
-        start_time = time.time()
-        self.queueMoving.append({"unit": unit, "start_time": start_time, "chemin": chemin})
+        if chemin is None:
+            logs("No path found", level=logging.INFO)
+        else:
+            chemin.pop(0)
+            logs("Chemin : " + chemin.__str__(), level=logging.INFO)
+            start_time = time.time()
+            self.queueMoving.append({"unit": unit, "start_time": start_time, "chemin": chemin})
 
     def updating_moving(self):
         current_time = time.time()
