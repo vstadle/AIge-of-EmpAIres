@@ -58,7 +58,7 @@ class ViewPygame():
         self.font = pygame.font.SysFont(None, 24)
 
         # Chargement des sprites
-        self.ground_sprite = pygame.image.load("C:/Users/scavo/aidemoi/AIge-of-EmpAIres/Sprite_aoe/miscellaneous/herbe.png").convert_alpha()
+        self.ground_sprite = pygame.image.load("C:/Users/scavo/aidemoi/AIge-of-EmpAIres/Sprite_aoe/test.png").convert_alpha()
         self.ground_sprite = pygame.transform.scale(self.ground_sprite, 
                                                   (int(self.iso_tile_width), 
                                                    int(self.iso_tile_height)))
