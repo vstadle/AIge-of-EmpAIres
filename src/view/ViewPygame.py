@@ -1,6 +1,7 @@
 import pygame
 import sys
 import os
+import random
 from model.Farm import Farm
 from model.Keep import Keep
 from model.Barracks import Barracks
@@ -55,6 +56,8 @@ class ViewPygame():
         self.BLUE = (135, 206, 250)
         self.RED = (255, 0, 0)
         self.load_sprite()
+        self.load_tree_sprites()
+        self.tree_positions = {}  # Clé : (row, col), Valeur : sprite d'arbre
         self.clock = pygame.time.Clock()
         self.font = pygame.font.SysFont(None, 24)
 
@@ -71,7 +74,19 @@ class ViewPygame():
         self.tower_sprite = pygame.transform.scale(self.tower_sprite,
                                                   (int(self.iso_tile_width),
                                                    int(self.iso_tile_height)))
-
+    def load_tree_sprites(self):
+        """Charge tous les sprites d'arbres dans une liste."""
+        current_dir = os.path.dirname(os.path.abspath(__file__))
+        project_root = os.path.dirname(os.path.dirname(current_dir))
+        trees_path = os.path.join(project_root, "Sprite_aoe", "trees")
+        self.tree_sprites = []
+        
+        for filename in os.listdir(trees_path):
+            if filename.endswith(".bmp"):
+                sprite_path = os.path.join(trees_path, filename)
+                sprite = pygame.image.load(sprite_path).convert()
+                sprite.set_colorkey((255, 0, 255))
+                self.tree_sprites.append(sprite)
     '''    
     def draw_map(self, screen, pos_x, pos_y):
         screen.fill(self.WHITE)
@@ -230,6 +245,27 @@ class ViewPygame():
                         )
                         iso_surface.blit(scaled_sprite, (iso_x - self.iso_tile_width//2 * zoom_level, 
                                                        iso_y))
+                    elif cell_content == 'W':
+                        scaled_sprite = pygame.transform.scale(
+                            self.ground_sprite,
+                            (int(self.iso_tile_width * zoom_level),
+                            int(self.iso_tile_height * zoom_level))
+                        )
+                        iso_surface.blit(scaled_sprite, (iso_x - self.iso_tile_width // 2 * zoom_level, 
+                                                        iso_y))
+                        
+                        if (row, col) not in self.tree_positions:
+                            self.tree_positions[(row, col)] = random.choice(self.tree_sprites)
+                        
+                        tree_sprite = self.tree_positions[(row, col)]
+                        scaled_tree_sprite = pygame.transform.scale(
+                            tree_sprite,
+                            (int(self.iso_tile_width * zoom_level),
+                            int(self.iso_tile_height * zoom_level))
+                        )
+                        iso_surface.blit(scaled_tree_sprite, (iso_x - self.iso_tile_width // 2 * zoom_level, 
+                                                            iso_y))
+
                     else:
                         pygame.draw.polygon(iso_surface, color, points)
                     '''
