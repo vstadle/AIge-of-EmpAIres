@@ -1,5 +1,6 @@
 import pygame
 import sys
+import os
 from model.Farm import Farm
 from model.Keep import Keep
 from model.Barracks import Barracks
@@ -53,14 +54,22 @@ class ViewPygame():
         self.BROWN = (127, 42, 42)
         self.BLUE = (135, 206, 250)
         self.RED = (255, 0, 0)
-
+        self.load_sprite()
         self.clock = pygame.time.Clock()
         self.font = pygame.font.SysFont(None, 24)
 
-        # Chargement des sprites
-        self.ground_sprite = pygame.image.load("C:/Users/scavo/aidemoi/AIge-of-EmpAIres/Sprite_aoe/test.png").convert_alpha()
-        self.ground_sprite = pygame.transform.scale(self.ground_sprite, 
-                                                  (int(self.iso_tile_width), 
+    def load_sprite(self):
+        current_dir = os.path.dirname(os.path.abspath(__file__))
+        project_root = os.path.dirname(os.path.dirname(current_dir))
+        sprite_path = os.path.join(project_root, "Sprite_aoe", "miscellaneous","grass.png")
+        
+        self.ground_sprite = pygame.image.load(sprite_path).convert_alpha()
+        self.ground_sprite = pygame.transform.scale(self.ground_sprite,
+                                                  (int(self.iso_tile_width),
+                                                   int(self.iso_tile_height)))
+        self.tower_sprite = pygame.image.load(os.path.join(project_root, "Sprite_aoe", "buildings", "towers.png")).convert_alpha()
+        self.tower_sprite = pygame.transform.scale(self.tower_sprite,
+                                                  (int(self.iso_tile_width),
                                                    int(self.iso_tile_height)))
 
     '''    
