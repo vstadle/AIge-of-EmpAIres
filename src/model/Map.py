@@ -10,11 +10,14 @@ from model.Ressources import Ressources
 from model.Gold import Gold
 from model.Food import Food
 from model.Wood import Wood
+from logs.logger import logs
 
 
 import random
 import curses
 import pygame
+import logging
+
 class MapType():
     GENEROUS_RESOURCES = 1
     CENTER_RESOURCES = 2
@@ -22,19 +25,22 @@ class Map():
     def __init__(self, size_map_x, size_map_y):
 
         #Matrice de 120x120 qui va contenir les batiments
-        self.mapBuildings = [[None for x in range(size_map_x)] for y in range(size_map_y)]
+        self.mapBuildings = [[None for x in range(size_map_y)] for y in range(size_map_x)]
 
         #Matrice de 120x120 qui va contenir les ressources
-        self.mapRessources = [[None for x in range(size_map_x)] for y in range(size_map_y)]
+        self.mapRessources = [[None for x in range(size_map_y)] for y in range(size_map_x)]
 
         #Matrice de 120x120 qui va contenir les unités
-        self.mapUnits = [[None for x in range(size_map_x)] for y in range(size_map_y)]
+        self.mapUnits = [[None for x in range(size_map_y)] for y in range(size_map_x)]
 
         #Listes des couleurs
-        self.lstColor= [[None for x in range(size_map_x)] for y in range(size_map_y)]
+        self.lstColor= [[None for x in range(size_map_y)] for y in range(size_map_x)]
 
-        self.map = [[" " for x in range(size_map_x)] for y in range(size_map_y)]
+        self.map = [[" " for x in range(size_map_y)] for y in range(size_map_x)]
         self.map[0][0] = 'R'
+
+        logs("Size of the map: " + str(len(self.map)) + "x" + str(len(self.map[0])), level=logging.INFO)
+
         self.map[size_map_x-1][size_map_y-1] = 'R'
 
         self.size_map_x = size_map_x
