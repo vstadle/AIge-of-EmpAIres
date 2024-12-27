@@ -25,6 +25,9 @@ class UIHandler():
         self.lstPlayers = []
         self.controllerGame = None
 
+        self.isSaved = False
+        self.nameFile = ""
+
     def show_menu(self):
         pygame.init()
         
@@ -174,6 +177,11 @@ class UIHandler():
         self.game.setLstPlayer(lsttemp)
         self.game.setMap(self.controllerMap.map)
         current_time = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+
+        if self.isSaved:
+            file_name_temp = f"../save/{self.nameFile}"
+            os.remove(file_name_temp)
+
         file_name = f"../save/save_{current_time}.dat"
         file = open(file_name, 'wb')
         pickle.dump(self.game, file)
@@ -181,6 +189,8 @@ class UIHandler():
         logs("Gave Saved", level=logging.INFO)
         
     def loadGame(self,path_file):
+        self.isSaved = True
+        self.nameFile = path_file
         logs("Loading Game", level=logging.INFO)
         path_file = "../save/" + path_file
         file = open(path_file, "rb")
