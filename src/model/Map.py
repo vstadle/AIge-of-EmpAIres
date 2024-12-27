@@ -39,8 +39,6 @@ class Map():
         self.map = [[" " for x in range(size_map_y)] for y in range(size_map_x)]
         self.map[0][0] = 'R'
 
-        logs("Size of the map: " + str(len(self.map)) + "x" + str(len(self.map[0])), level=logging.INFO)
-
         self.map[size_map_x-1][size_map_y-1] = 'R'
 
         self.size_map_x = size_map_x
