@@ -180,3 +180,6 @@ class Map():
     
     def getColor(self, x, y):
         return self.lstColor[x][y]
+
+    def get_map_buildings(self):
+        return self.mapBuildings

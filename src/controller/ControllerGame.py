@@ -116,7 +116,7 @@ class ControllerGame():
                         tab_pressed = False
                 if event.type == pygame.MOUSEBUTTONDOWN:
                     if event.button == 4:  
-                        self.zoom_level = round(min(1.4, self.zoom_level + 0.1), 1)
+                        self.zoom_level = round(min(3, self.zoom_level + 0.1), 1)
                     elif event.button == 5:  
                         self.zoom_level = round(max(0.5, self.zoom_level - 0.1), 1)
                         if self.zoom_level < 0.1:

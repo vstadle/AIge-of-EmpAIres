@@ -21,7 +21,8 @@ class ViewPygame():
         self.update_window_size()
         pygame.event.set_allowed([pygame.QUIT,pygame.VIDEORESIZE ,pygame.KEYDOWN, pygame.KEYUP,pygame.MOUSEBUTTONDOWN])
         self.screen = pygame.display.set_mode((self.screen_width, self.screen_height), pygame.RESIZABLE)
-
+        self.mapBuildings = self.map.get_map_buildings()
+        self.scale_factor = min(self.screen_width / 1920, self.screen_height / 1080)
         self.GRID_WIDTH = 30
         self.GRID_HEIGHT = 30
         display_info = pygame.display.Info()
@@ -57,14 +58,15 @@ class ViewPygame():
         self.RED = (255, 0, 0)
         self.load_sprite()
         self.load_tree_sprites()
-        self.tree_positions = {}  # Clé : (row, col), Valeur : sprite d'arbre
+        self.barracks_sprite = self.load_barracks_sprite()
+        self.tree_positions = {}
         self.clock = pygame.time.Clock()
         self.font = pygame.font.SysFont(None, 24)
 
     def load_sprite(self):
         current_dir = os.path.dirname(os.path.abspath(__file__))
         project_root = os.path.dirname(os.path.dirname(current_dir))
-        sprite_path = os.path.join(project_root, "Sprite_aoe", "miscellaneous","grass.png")
+        sprite_path = os.path.join(project_root, "Sprite_aoe", "miscellaneous","grass2.png")
         
         self.ground_sprite = pygame.image.load(sprite_path).convert_alpha()
         self.ground_sprite = pygame.transform.scale(self.ground_sprite,
@@ -74,6 +76,7 @@ class ViewPygame():
         self.tower_sprite = pygame.transform.scale(self.tower_sprite,
                                                   (int(self.iso_tile_width),
                                                    int(self.iso_tile_height)))
+
     def load_tree_sprites(self):
         """Charge tous les sprites d'arbres dans une liste."""
         current_dir = os.path.dirname(os.path.abspath(__file__))
@@ -198,29 +201,32 @@ class ViewPygame():
 
     def draw_map_2_5D(self, screen, pos_x, pos_y, zoom_level):
         self.clock.tick(self.FPS)
+        
         for event in pygame.event.get(pygame.VIDEORESIZE):
             self.screen_width = event.w
             self.screen_height = event.h
             self.screen = pygame.display.set_mode((self.screen_width, self.screen_height), pygame.RESIZABLE)
             self.update_window_size()
-
+        
         screen.fill(self.BLACK)
+        
         map_surface_width = (self.map_width + self.map_height) * self.iso_tile_width // 2 * zoom_level
         map_surface_height = (self.map_width + self.map_height) * self.iso_tile_height // 2 * zoom_level
         iso_surface = pygame.Surface((map_surface_width, map_surface_height))
         iso_surface.fill(self.BLACK)
+        
         diamond_left = self.map_height * self.iso_tile_width // 2 * zoom_level
         diamond_top = 0
         diamond_width = self.map_width * self.iso_tile_width // 2 * zoom_level
         diamond_height = (self.map_width + self.map_height) * self.iso_tile_height // 2 * zoom_level
         start_x = diamond_left
         start_y = 0
-        
+
         for row in range(self.map_height):
             for col in range(self.map_width):
                 iso_x = start_x + (col - row) * self.iso_tile_width // 2 * zoom_level
                 iso_y = start_y + (col + row) * self.iso_tile_height // 2 * zoom_level
-                
+
                 if (iso_x >= diamond_left - diamond_width and 
                     iso_x <= diamond_left + diamond_width and
                     iso_y >= diamond_top and 
@@ -228,64 +234,85 @@ class ViewPygame():
                     
                     points = [
                         (iso_x, iso_y),  
-                        (iso_x + self.iso_tile_width // 2 * zoom_level , iso_y + self.iso_tile_height // 2 * zoom_level),  
+                        (iso_x + self.iso_tile_width // 2 * zoom_level, iso_y + self.iso_tile_height // 2 * zoom_level),  
                         (iso_x, iso_y + self.iso_tile_height * zoom_level),  
-                        (iso_x - self.iso_tile_width // 2 * zoom_level, iso_y + self.iso_tile_height // 2 * zoom_level) 
+                        (iso_x - self.iso_tile_width // 2 * zoom_level, iso_y + self.iso_tile_height // 2 * zoom_level)
                     ]
-                    
+
                     cell_content = self.map.getMap()[row][col]
                     color = self.get_tile_color(cell_content)
-                    
-                    if cell_content == ' ':  # Pour la terre
-                        # Redimensionner le sprite selon le zoom
+
+                    if cell_content == ' ':
                         scaled_sprite = pygame.transform.scale(
                             self.ground_sprite,
                             (int(self.iso_tile_width * zoom_level),
-                             int(self.iso_tile_height * zoom_level))
+                            int(self.iso_tile_height * zoom_level))
                         )
-                        iso_surface.blit(scaled_sprite, (iso_x - self.iso_tile_width//2 * zoom_level, 
-                                                       iso_y))
+                        iso_surface.blit(scaled_sprite, (iso_x - self.iso_tile_width // 2 * zoom_level, iso_y))
                     elif cell_content == 'W':
                         scaled_sprite = pygame.transform.scale(
                             self.ground_sprite,
                             (int(self.iso_tile_width * zoom_level),
                             int(self.iso_tile_height * zoom_level))
                         )
-                        iso_surface.blit(scaled_sprite, (iso_x - self.iso_tile_width // 2 * zoom_level, 
-                                                        iso_y))
+                        iso_surface.blit(scaled_sprite, (iso_x - self.iso_tile_width // 2 * zoom_level, iso_y))
                         
                         if (row, col) not in self.tree_positions:
                             self.tree_positions[(row, col)] = random.choice(self.tree_sprites)
-                        
+
                         tree_sprite = self.tree_positions[(row, col)]
                         scaled_tree_sprite = pygame.transform.scale(
                             tree_sprite,
                             (int(self.iso_tile_width * zoom_level),
                             int(self.iso_tile_height * zoom_level))
                         )
-                        iso_surface.blit(scaled_tree_sprite, (iso_x - self.iso_tile_width // 2 * zoom_level, 
-                                                            iso_y))
-
+                        iso_surface.blit(scaled_tree_sprite, (iso_x - self.iso_tile_width // 2 * zoom_level, iso_y))
                     else:
                         pygame.draw.polygon(iso_surface, color, points)
-                    '''
-                    pygame.draw.polygon(iso_surface, self.BLACK, points, 1)
-                    '''
-        
+
+                    building = self.mapBuildings[row][col]
+                    if building is not None:
+                        if isinstance(building, Barracks):
+                            building_x, building_y = self.get_building_top_left(building)
+
+                            if self.is_main_tile(building_x, building_y, row, col):
+                                scaled_grass = pygame.transform.scale(self.ground_sprite,(int(self.iso_tile_width * zoom_level),int(self.iso_tile_height * zoom_level)))
+                                iso_surface.blit(scaled_grass, (iso_x - self.iso_tile_width // 2 * zoom_level, iso_y))
+                                sprite = self.barracks_sprite
+
+                                scaled_sprite = pygame.transform.scale(
+                                    sprite,
+                                    (int(self.iso_tile_width * 3 * zoom_level),
+                                    int(self.iso_tile_height * 3 * zoom_level))
+                                )
+                                
+                                iso_surface.blit(
+                                    scaled_sprite,
+                                    (iso_x - (self.iso_tile_width * zoom_level), 
+                                    iso_y - (self.iso_tile_height * 2 * zoom_level))
+                                )
+                            else:
+                                scaled_grass = pygame.transform.scale(
+                                self.ground_sprite,
+                                (int(self.iso_tile_width * zoom_level),
+                                int(self.iso_tile_height * zoom_level))
+                            )
+
         max_scroll_x = map_surface_width - screen.get_width() + (self.iso_tile_width * zoom_level)
         max_scroll_y = map_surface_height - screen.get_height() + (self.iso_tile_height * zoom_level)
-    
+
         view_x = max(0, min(pos_x * self.iso_tile_width * zoom_level, max_scroll_x))
         view_y = max(0, min(pos_y * self.iso_tile_height * zoom_level, max_scroll_y))
-        
+
         screen.blit(iso_surface, (0, 0), 
-                   (view_x, view_y, 
+                    (view_x, view_y, 
                     screen.get_width(), 
                     screen.get_height()))
         
         self.draw_minimap(screen, view_x, view_y, zoom_level)    
         self.display_fps(screen)
         pygame.display.flip()
+
 
     def get_tile_color(self, content):
         if content == ' ':
@@ -317,12 +344,28 @@ class ViewPygame():
         return pygame.transform.scale(sprite, (new_width, new_height))
 
 
-    def load_building_sprite(self, building_type):
-        # When loading sprites
-        sprite = pygame.image.load(f"assets/buildings/{building_type}.png")
+    def load_barracks_sprite(self):
+        current_dir = os.path.dirname(os.path.abspath(__file__))
+        project_root = os.path.dirname(os.path.dirname(current_dir))
+        barracks_path = os.path.join(project_root, "Sprite_aoe", "buildings","barracks.bmp")
+        sprite = pygame.image.load(barracks_path).convert()
+        sprite.set_colorkey((255, 0, 255))
         return self.scale_sprite(sprite)
-    
-    def draw_building(self, screen, building, x, y):
-        sprite = self.load_building_sprite(building.type)
-        sprite = self.scale_sprite(sprite)
-        screen.blit(sprite, (x, y))
+
+
+        
+
+    def is_main_tile(self, building_x, building_y, row, col):
+        # Vérifiez si cette position (row, col) correspond à la tuile centrale d'un bâtiment
+        if building_x +1 == col and building_y +2 == row:
+            return True
+        return False
+
+    def get_building_top_left(self, building):
+        # Trouver les coordonnées (x, y) du coin supérieur gauche du bâtiment
+        for row in range(len(self.mapBuildings)):
+            for col in range(len(self.mapBuildings[row])):
+                if self.mapBuildings[row][col] == building:
+                    return col, row
+        return None, None  # Si non trouvé
+
