@@ -267,6 +267,13 @@ class ViewPygame():
                             int(self.iso_tile_height * zoom_level))
                         )
                         iso_surface.blit(scaled_tree_sprite, (iso_x - self.iso_tile_width // 2 * zoom_level, iso_y))
+                    elif cell_content == 'B':
+                        scaled_sprite = pygame.transform.scale(
+                            self.ground_sprite,
+                            (int(self.iso_tile_width * zoom_level),
+                            int(self.iso_tile_height * zoom_level))
+                        )
+                        iso_surface.blit(scaled_sprite, (iso_x - self.iso_tile_width // 2 * zoom_level, iso_y))
                     else:
                         pygame.draw.polygon(iso_surface, color, points)
 
@@ -326,7 +333,7 @@ class ViewPygame():
         elif content == 'T':
             return self.WHITE
         elif content == 'B':
-            return self.BROWN
+            return 0
         else:
             return self.GRAY
 
