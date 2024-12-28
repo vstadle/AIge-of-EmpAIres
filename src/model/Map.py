@@ -20,7 +20,8 @@ class MapType():
     CENTER_RESOURCES = 2
 class Map():
     def __init__(self,map_type):
-
+        self.map_height = 120
+        self.map_width = 120
         #Matrice de 120x120 qui va contenir les batiments
         self.mapBuildings = [[None for x in range(120)] for y in range(120)]
 

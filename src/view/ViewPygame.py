@@ -58,8 +58,10 @@ class ViewPygame():
         self.RED = (255, 0, 0)
         self.load_sprite()
         self.load_tree_sprites()
+        self.load_gold_sprites()
         self.barracks_sprite = self.load_barracks_sprite()
         self.tree_positions = {}
+        self.gold_positions = {}
         self.clock = pygame.time.Clock()
         self.font = pygame.font.SysFont(None, 24)
 
@@ -76,9 +78,20 @@ class ViewPygame():
         self.tower_sprite = pygame.transform.scale(self.tower_sprite,
                                                   (int(self.iso_tile_width),
                                                    int(self.iso_tile_height)))
+    def load_gold_sprites(self):
+        current_dir = os.path.dirname(os.path.abspath(__file__))
+        project_root = os.path.dirname(os.path.dirname(current_dir))
+        gold_path = os.path.join(project_root, "Sprite_aoe", "gold")
+        self.gold_sprites = []
+        
+        for filename in os.listdir(gold_path):
+            if filename.endswith(".bmp"):
+                sprite_path = os.path.join(gold_path, filename)
+                sprite = pygame.image.load(sprite_path).convert()
+                sprite.set_colorkey((255, 0, 255))
+                self.gold_sprites.append(sprite)
 
     def load_tree_sprites(self):
-        """Charge tous les sprites d'arbres dans une liste."""
         current_dir = os.path.dirname(os.path.abspath(__file__))
         project_root = os.path.dirname(os.path.dirname(current_dir))
         trees_path = os.path.join(project_root, "Sprite_aoe", "trees")
@@ -145,8 +158,6 @@ class ViewPygame():
                         screen.blit(text_surface, (x + self.TILE_SIZE // 4, y + self.TILE_SIZE // 4))
         self.display_fps(screen)
         pygame.display.flip()
-    
-    
     def draw_minimap(self, screen, view_x, view_y, zoom_level):
         minimap_surface = pygame.Surface((self.MINIMAP_SIZE, self.MINIMAP_SIZE2))
         minimap_surface.fill(self.BLACK) 
@@ -267,6 +278,24 @@ class ViewPygame():
                             int(self.iso_tile_height * zoom_level))
                         )
                         iso_surface.blit(scaled_tree_sprite, (iso_x - self.iso_tile_width // 2 * zoom_level, iso_y))
+                    elif cell_content == 'G':
+                        scaled_sprite = pygame.transform.scale(
+                            self.ground_sprite,
+                            (int(self.iso_tile_width * zoom_level),
+                            int(self.iso_tile_height * zoom_level))
+                        )
+                        iso_surface.blit(scaled_sprite, (iso_x - self.iso_tile_width // 2 * zoom_level, iso_y))
+                        
+                        if (row, col) not in self.gold_positions:
+                            self.gold_positions[(row, col)] = random.choice(self.gold_sprites)
+
+                        gold_sprite = self.gold_positions[(row, col)]
+                        scaled_gold_sprite = pygame.transform.scale(
+                            gold_sprite,
+                            (int(self.iso_tile_width * zoom_level),
+                            int(self.iso_tile_height * zoom_level))
+                        )
+                        iso_surface.blit(scaled_gold_sprite, (iso_x - self.iso_tile_width // 2 * zoom_level, iso_y))
                     elif cell_content == 'B':
                         scaled_sprite = pygame.transform.scale(
                             self.ground_sprite,
@@ -376,3 +405,4 @@ class ViewPygame():
                     return col, row
         return None, None  # Si non trouvé
 
+    
