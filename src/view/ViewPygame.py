@@ -60,6 +60,9 @@ class ViewPygame():
         self.load_tree_sprites()
         self.load_gold_sprites()
         self.barracks_sprite = self.load_barracks_sprite()
+        self.towncenterleft_sprite = self.load_towncenterleft_sprite()
+        self.towncenterright_sprite = self.load_towncenterright_sprite()
+        self.towncentermiddle_sprite = self.load_towncentermiddle_sprite()
         self.tree_positions = {}
         self.gold_positions = {}
         self.clock = pygame.time.Clock()
@@ -90,7 +93,31 @@ class ViewPygame():
                 sprite = pygame.image.load(sprite_path).convert()
                 sprite.set_colorkey((255, 0, 255))
                 self.gold_sprites.append(sprite)
+    def load_towncenterleft_sprite(self):
+        current_dir = os.path.dirname(os.path.abspath(__file__))
+        project_root = os.path.dirname(os.path.dirname(current_dir))
+        towncenterleft_path = os.path.join(project_root, "Sprite_aoe", "towncenter","Towncenterleft14.bmp")
+        towncenterleft = pygame.image.load(towncenterleft_path).convert()
+        towncenterleft.set_colorkey((255,0,255))
+        return self.scale_sprite(towncenterleft)
 
+    def load_towncenterright_sprite(self):
+        current_dir = os.path.dirname(os.path.abspath(__file__))
+        project_root = os.path.dirname(os.path.dirname(current_dir))
+        towncenterright_path = os.path.join(project_root, "Sprite_aoe", "towncenter","Towncenterright14.bmp")
+        towncenterright = pygame.image.load(towncenterright_path).convert()
+        towncenterright.set_colorkey((255,0,255))
+        return self.scale_sprite(towncenterright)
+    def load_towncentermiddle_sprite(self):
+        current_dir = os.path.dirname(os.path.abspath(__file__))
+        project_root = os.path.dirname(os.path.dirname(current_dir))
+        towncentermiddle_path = os.path.join(project_root, "Sprite_aoe", "towncenter","Towncentermiddle14.bmp")
+        towncentermiddle = pygame.image.load(towncentermiddle_path).convert()
+        towncentermiddle.set_colorkey((255,0,255))
+        return self.scale_sprite(towncentermiddle)
+    
+
+        
     def load_tree_sprites(self):
         current_dir = os.path.dirname(os.path.abspath(__file__))
         project_root = os.path.dirname(os.path.dirname(current_dir))
@@ -278,6 +305,13 @@ class ViewPygame():
                             int(self.iso_tile_height * zoom_level))
                         )
                         iso_surface.blit(scaled_tree_sprite, (iso_x - self.iso_tile_width // 2 * zoom_level, iso_y))
+                    elif cell_content == 'T':
+                        scaled_sprite = pygame.transform.scale(
+                            self.ground_sprite,
+                            (int(self.iso_tile_width * zoom_level),
+                            int(self.iso_tile_height * zoom_level))
+                        )
+                        iso_surface.blit(scaled_sprite, (iso_x - self.iso_tile_width // 2 * zoom_level, iso_y))
                     elif cell_content == 'G':
                         scaled_sprite = pygame.transform.scale(
                             self.ground_sprite,
@@ -333,6 +367,54 @@ class ViewPygame():
                                 (int(self.iso_tile_width * zoom_level),
                                 int(self.iso_tile_height * zoom_level))
                             )
+                        if isinstance(building, TownCenter):
+                            building_x, building_y = self.get_building_top_left(building)
+
+                            if self.is_main_tile(building_x, building_y, row, col):
+                                scaled_grass = pygame.transform.scale(self.ground_sprite,(int(self.iso_tile_width * zoom_level),int(self.iso_tile_height * zoom_level)))
+                                iso_surface.blit(scaled_grass, (iso_x - self.iso_tile_width // 2 * zoom_level, iso_y))
+                                sprite1 = self.towncenterleft_sprite
+                                scaled_sprite1 = pygame.transform.scale(
+                                    sprite1,
+                                    (int(self.iso_tile_width *3* zoom_level),
+                                    int(self.iso_tile_height *3* zoom_level))
+                                )
+                                
+                                iso_surface.blit(
+                                    scaled_sprite1,
+                                    (iso_x - (self.iso_tile_width * zoom_level)+1, 
+                                    iso_y - (self.iso_tile_height * 2 * zoom_level)-1)
+                                )
+                                '''sprite2 = self.towncentermiddle_sprite
+                                scaled_sprite2 = pygame.transform.scale(
+                                    sprite2,
+                                    (int(self.iso_tile_width * 3 * zoom_level),
+                                    int(self.iso_tile_height * 3 * zoom_level))
+                                )
+                                
+                                iso_surface.blit(
+                                    scaled_sprite2,
+                                    (iso_x - (self.iso_tile_width * zoom_level), 
+                                    iso_y - (self.iso_tile_height * 2 * zoom_level))
+                                )
+                                sprite3 = self.towncenterright_sprite
+                                scaled_sprite3 = pygame.transform.scale(
+                                    sprite3,
+                                    (int(self.iso_tile_width * 3 * zoom_level),
+                                    int(self.iso_tile_height * 3 * zoom_level))
+                                )
+                                
+                                iso_surface.blit(
+                                    scaled_sprite3,
+                                    (iso_x - (self.iso_tile_width * zoom_level)+1, 
+                                    iso_y - (self.iso_tile_height * 2 * zoom_level)-1)
+                                )'''
+                            else:
+                                scaled_grass = pygame.transform.scale(
+                                self.ground_sprite,
+                                (int(self.iso_tile_width * zoom_level),
+                                int(self.iso_tile_height * zoom_level))
+                            )
 
         max_scroll_x = map_surface_width - screen.get_width() + (self.iso_tile_width * zoom_level)
         max_scroll_y = map_surface_height - screen.get_height() + (self.iso_tile_height * zoom_level)
@@ -360,7 +442,7 @@ class ViewPygame():
         elif content == 'A':
             return self.BLUE
         elif content == 'T':
-            return self.WHITE
+            return 0
         elif content == 'B':
             return 0
         else:

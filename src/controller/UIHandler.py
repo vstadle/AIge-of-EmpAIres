@@ -67,7 +67,7 @@ class UIHandler():
     def start_new_game(self):
         # Lancer une nouvelle partie
         self.controllerMap.genRessources(MapType.CENTER_RESOURCES)
-        self.initialize("Marines", 2)  # Exemple : type "Marines", 6 joueurs
+        self.initialize("Mean", 2)  # Exemple : type "Marines", 6 joueurs
         self.controllerMap.setLstPlayers(self.lstPlayers)
         self.game.setMap(self.controllerMap.map)
         for player in self.lstPlayers:
