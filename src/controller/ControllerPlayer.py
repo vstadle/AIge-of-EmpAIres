@@ -469,8 +469,11 @@ class ControllerPlayer():
                     #logs("Unit can't move", level=logging.INFO)
                     self.queueMoving.remove(item)
                     chemin = A_Star.a_star(self.cmap.map, (unit.getPosition()), chemin[len(chemin)-1])
-                    start_time = time.time()
-                    self.queueMoving.append({"unit": unit, "start_time": start_time, "chemin": chemin})
+                    if chemin is None:
+                        logs("No path found", level=logging.INFO)
+                    else:
+                        start_time = time.time()
+                        self.queueMoving.append({"unit": unit, "start_time": start_time, "chemin": chemin})
 
 
 
