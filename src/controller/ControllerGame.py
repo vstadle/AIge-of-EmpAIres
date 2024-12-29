@@ -60,14 +60,22 @@ class ControllerGame():
         self.cmap.map.map[0][1] = "v"
         self.lstcPlayers[0].collectResources(self.lstcPlayers[0].player.units[0], self.cmap.map.mapRessources[0][0], 2, 2)
         '''
+
+        '''
         logs(self.lstcPlayers[0].__str__(), level=logging.INFO)
         for unit in self.lstcPlayers[0].player.units:
             logs(unit.__str__(), level=logging.INFO)
+        '''
+
+        logs("List player in the game :")
+        for cplayer in self.lstcPlayers:
+            logs(cplayer.player.__repr__(), level=logging.INFO)
 
         logs("Size of the map: " + str(len(self.cmap.map.map)) + "x" + str(len(self.cmap.map.map[0])), level=logging.INFO)
-        logs(self.lstcPlayers[0].player.__repr__(), level=logging.INFO)
 
-        self.lstcPlayers[0].move(self.lstcPlayers[0].player.units[0], 119, 1)
+        logs("Game started", level=logging.INFO)
+
+        #self.lstcPlayers[0].move(self.lstcPlayers[0].player.units[0], 119, 1)
         while True:
             #stdscr.refresh()
 
@@ -165,9 +173,9 @@ class ControllerGame():
     def toggle_pause(self):
         self.paused = not self.paused
         if self.paused:
-            logs("Paused", level=logging.INFO)
+            logs("GAME PAUSED", level=logging.INFO)
             generateHtml(self.lstcPlayers)
             current_path = "file://" + os.getcwd() + "/web/index.html"
             webbrowser.open(current_path)
         else:
-            logs("Unpaused", level=logging.INFO)
+            logs("GAME UNPAUSED", level=logging.INFO)

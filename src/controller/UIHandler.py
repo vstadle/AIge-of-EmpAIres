@@ -199,19 +199,22 @@ class UIHandler():
         game = pickle.load(file)
         file.close()
         self.game = game
+
+        '''
         for player in self.game.lstPlayer:
             logs(f"Après désérialisation : Joueur {player.name}", level=logging.INFO)
             logs(f"  Units: {len(player.units)}", level=logging.INFO)
             logs(f"  Buildings: {len(player.buildings)}", level=logging.INFO)
-
+        '''
+            
         self.controllerMap.reset(self.game.map)
         for player in self.game.lstPlayer:
             self.lstPlayers.append(ControllerPlayer.from_saved(player, self.controllerMap))
 
         self.controllerMap.setLstPlayers(self.lstPlayers)
         self.controllerGame = ControllerGame(self.controllerMap, self.lstPlayers, self.game, self)
-        logs(game.lstPlayer.__str__())
-        logs(self.controllerMap.map.__str__())
+        #logs(game.lstPlayer.__str__())
+        #logs(self.controllerMap.map.__str__())
         logs("Game loaded")
         pygame.quit()
         self.start()
@@ -253,6 +256,7 @@ class UIHandler():
                     cplayer.addUnitInitialize(Villager(), cplayer.getPlayer().getBuildings()[1])
                     cplayer.addUnitInitialize(Villager(), cplayer.getPlayer().getBuildings()[2])
     
+            '''
             self.lstPlayers[0].addBuilding(Farm(), 10, 10)
             self.lstPlayers[0].trainArcher(self.lstPlayers[0].getPlayer().getBuildings()[7])
             self.lstPlayers[0].trainHorseman(self.lstPlayers[0].getPlayer().getBuildings()[6])
@@ -260,7 +264,8 @@ class UIHandler():
             self.lstPlayers[0].trainSwordsman(self.lstPlayers[0].getPlayer().getBuildings()[4])
             self.lstPlayers[0].trainVillager(self.lstPlayers[0].getPlayer().getBuildings()[0])
             self.lstPlayers[0].trainVillager(self.lstPlayers[0].getPlayer().getBuildings()[0])
-
+            '''
+            
     def show_load_game_menu(self, screen, font):
         clock = pygame.time.Clock()
         files = os.listdir('../save/')
