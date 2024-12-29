@@ -9,6 +9,7 @@ class Villager(Units):
         self.carrying = 0
         self.carryingType = None
         self.attackNotUnit = 2
+        self.action = None
     
     def __repr__(self):
         return "Villager :(HP : %r)" % (self.health)

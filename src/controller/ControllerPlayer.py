@@ -27,6 +27,7 @@ class ControllerPlayer():
         self.cmap = cmap
         self.queueCollect = []
         self.queueMoving = []
+        self.queueConstruct = []
     
     @classmethod
     def from_saved(cls,player,cmap):
@@ -237,20 +238,28 @@ class ControllerPlayer():
                 if is_free:
                     logs(building.__str__() + " add to building queue", level=logging.INFO)
                     self.player.removeResourcesForBuilding(building)
-                    self.player.getBuildingQueue().append({"building": building, "player": self.player, "start_time": time.time(), "x": x, "y": y})
+                    self.player.getBuildingQueue().append({"nbVillager": 0, "building": building, "player": self.player, "start_time": time.time(), "x": x, "y": y})
 
     def update_building(self):
         current_time = time.time()
         
         for item in self.player.getBuildingQueue()[:]:
+
             building = item["building"]
+            nbVillager = item["nbVillager"]
             player = item["player"]
             start_time = item["start_time"]
             building = item["building"]
             x = item["x"]
             y = item["y"]
 
-            if current_time - start_time >= building.getBuildingTime():
+            qConstruct = self.queueConstruct[:]
+            bTime = building.getBuildingTime()
+            
+            #calcul du building time par rapport au nombre de villageois
+            bTime = (3*bTime)/(nbVillager + 2)
+
+            if current_time - start_time >= bTime:
 
                 is_free = True
                 for i in range(building.getSizeMap()):
@@ -270,6 +279,13 @@ class ControllerPlayer():
                     building.setX(x)
                     building.setY(y)
                     self.player.getBuildingQueue().remove(item)
+
+                    #enleve chaque element de queueConstruct qui a construit le batment
+                    for element in qConstruct:
+                        if element["building"] == building:
+                            element["Villager"].action = None
+                            self.queueConstruct.remove(element)
+
                     logs(building.__str__() + " is placed", level=logging.INFO)
                 else:
                     print()
@@ -428,6 +444,47 @@ class ControllerPlayer():
                 else:
                     logs("Villageois ne peut pas collecter de ressources", level=logging.INFO)
                     self.queueCollect.remove(item)
+
+    def villagerConstructBuilding(self, villager, building, unit_x, unit_y):
+
+        building_queue = self.player.getBuildingQueue()
+        #trouver le batiment dans la buildingQueue
+        item = next((item for item in building_queue if item["Building"] == building), None)
+
+        #si le batiment choisi est dans buildingQueue
+        if item is not None:
+
+            building_x = building.getX()
+            building_y = building.getY()
+            building_size = building.getSizeMap()
+
+            #verification de la distance entre le villageois et le batiment
+            is_near_building = False
+            for i in range(building_size):
+                for j in range(building_size):
+                    distance_x = abs((building_x + i) - unit_x)
+                    distance_y = abs((building_y + j) - unit_y)
+                    if (distance_x == 1 and distance_y == 0) or (distance_x == 0 and distance_y == 1):
+                        is_near_building = True
+                        break
+                if is_near_building:
+                    break
+            
+            #ajout du villageois dans queueConstruct
+            #et +1 dans "nbVillager" dans l'item qui contient le batiment dans buildingQueue 
+            if is_near_building:
+                villager.action = "build"
+                self.queueConstruct.append({"villager": villager,  "building": building})
+                item["nbVillager"] += 1 
+                logs("Villager is building", level=logging.INFO)
+            else:
+                logs("Villager is too far to build", level=logging.INFO)
+        else:
+            logs("Building is not in the Building queue", level=logging.INFO)
+            
+
+
+
 
     def move(self, unit, x, y):
         start = unit.getPosition()
