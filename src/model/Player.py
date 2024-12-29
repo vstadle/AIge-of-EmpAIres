@@ -28,6 +28,7 @@ class Player():
         self.food = f
         self.wood = w
         self.gold = g
+        self.population = 0
         self.training_queue = []
         self.buildings_queue = []
         self.id = Player.cptPlayer
@@ -37,6 +38,9 @@ class Player():
             self.color = Player.lstColor[self.id]
         except IndexError:
             self.color = Player.lstColor[0]
+
+    def __repr__(self):
+        return "Player: %r, Gold: %r, Wood: %r, Food: %r Population: %r" % (self.name, self.gold, self.wood, self.food, self.population)
 
     def addUnit(self, unit):
         self.units.append(unit)

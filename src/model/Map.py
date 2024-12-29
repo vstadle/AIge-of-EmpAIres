@@ -119,6 +119,8 @@ class Map():
                 self.mapBuildings[x + i][y + j] = building
                 self.map[x + i][y + j] = building.letter
                 self.lstColor[x + i][y + j] = player.getColor()
+        if isinstance(building, TownCenter) or isinstance(building, House):
+            player.population += building.population
 
 
     def addUnits(self, units, x, y, player):

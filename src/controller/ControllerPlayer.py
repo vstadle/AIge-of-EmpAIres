@@ -345,37 +345,47 @@ class ControllerPlayer():
 
     def trainVillager(self, building):
         villager = Villager()
-        if self.player.canAffordUnit(villager):
-            self.player.removeResourcesForUnit(villager)
-            self.addUnit(villager, building)
-            return 0
+        if self.player.population < 200 and (len(self.player.units)+len(self.player.training_queue)) < self.player.population:
+            if self.player.canAffordUnit(villager):
+                self.player.removeResourcesForUnit(villager)
+                self.addUnit(villager, building)
+                return 0
+        else:
+            logs(self.player.name + " : Population is full", level=logging.INFO)
         return -1
     
     def trainArcher(self, building):
         archer = Archer()
-        if self.player.canAffordUnit(archer):
-            self.addUnit(archer, building)
-            self.player.removeResourcesForUnit(archer)
-            return 0
+        if self.player.population < 200:
+            if self.player.canAffordUnit(archer) and (len(self.player.units)+len(self.player.training_queue)) < self.player.population:
+                self.addUnit(archer, building)
+                self.player.removeResourcesForUnit(archer)
+                return 0
+        else:
+            logs(self.player.name + " : Population is full", level=logging.INFO)
         return -1
 
     def trainHorseman(self, building):
         horseman = Horseman()
-        if self.player.canAffordUnit(horseman):
-            self.addUnit(horseman, building)
-            self.player.removeResourcesForUnit(horseman)
-            return 0
+        if self.player.population < 200 and (len(self.player.units)+len(self.player.training_queue)) < self.player.population:
+            if self.player.canAffordUnit(horseman):
+                self.addUnit(horseman, building)
+                self.player.removeResourcesForUnit(horseman)
+                return 0
         else:
-            return -1
+            logs(self.player.name + " : Population is full", level=logging.INFO)
+        return -1
     
     def trainSwordsman(self, building):
         swordsman = Swordsman()
-        if self.player.canAffordUnit(swordsman):
-            self.addUnit(swordsman, building)
-            self.player.removeResourcesForUnit(swordsman)
-            return 0
+        if self.player.population < 200 and (len(self.player.units)+len(self.player.training_queue)) < self.player.population:
+            if self.player.canAffordUnit(swordsman):
+                self.addUnit(swordsman, building)
+                self.player.removeResourcesForUnit(swordsman)
+                return 0
         else:
-            return -1
+            logs(self.player.name + " : Population is full", level=logging.INFO)
+        return -1
 
     def collectResources(self, villager, ressource, unit_x, unit_y):
         can_collect = False
@@ -444,7 +454,7 @@ class ControllerPlayer():
             logs("No path found", level=logging.INFO)
         else:
             chemin.pop(0)
-            logs("Chemin : " + chemin.__str__(), level=logging.INFO)
+            #logs("Chemin : " + chemin.__str__(), level=logging.INFO)
             start_time = time.time()
             self.queueMoving.append({"unit": unit, "start_time": start_time, "chemin": chemin})
 

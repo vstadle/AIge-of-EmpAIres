@@ -258,6 +258,8 @@ class UIHandler():
             self.lstPlayers[0].trainHorseman(self.lstPlayers[0].getPlayer().getBuildings()[6])
             self.lstPlayers[0].trainVillager(self.lstPlayers[0].getPlayer().getBuildings()[0])
             self.lstPlayers[0].trainSwordsman(self.lstPlayers[0].getPlayer().getBuildings()[4])
+            self.lstPlayers[0].trainVillager(self.lstPlayers[0].getPlayer().getBuildings()[0])
+            self.lstPlayers[0].trainVillager(self.lstPlayers[0].getPlayer().getBuildings()[0])
 
     def show_load_game_menu(self, screen, font):
         clock = pygame.time.Clock()

@@ -65,6 +65,7 @@ class ControllerGame():
             logs(unit.__str__(), level=logging.INFO)
 
         logs("Size of the map: " + str(len(self.cmap.map.map)) + "x" + str(len(self.cmap.map.map[0])), level=logging.INFO)
+        logs(self.lstcPlayers[0].player.__repr__(), level=logging.INFO)
 
         self.lstcPlayers[0].move(self.lstcPlayers[0].player.units[0], 119, 1)
         while True:
