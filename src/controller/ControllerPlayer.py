@@ -237,9 +237,29 @@ class ControllerPlayer():
                     if not is_free:
                         break
                 if is_free:
-                    logs(self.player.name + " : " + building.__str__() + " add to building queue", level=logging.INFO)
+
+                    cpt = 0
+                    lstVillager = []
+                    for villager in self.player.units:
+                        if isinstance(villager, Villager) and villager.action == None:
+                            cpt += 1
+                            lstVillager.append(villager)
+                    if cpt == 0:
+                        logs(self.player.name + " : No villager available", level=logging.INFO)
+                        return -1
+                    elif cpt == 1:
+                        buildingTime = building.getBuildingTime()
+                    elif cpt > 1:
+                        buildingTime = (3*building.getBuildingTime()) / (cpt + 2)
+                        for villager in lstVillager:
+                            villager.action = "build"
+                    logs(self.player.name + " : " + building.__str__() + " add to building queue buildingTime = " + str(buildingTime), level=logging.INFO)
                     self.player.removeResourcesForBuilding(building)
-                    self.player.getBuildingQueue().append({"building": building, "player": self.player, "start_time": time.time(), "x": x, "y": y})
+                    self.player.getBuildingQueue().append({"building": building, "player": self.player, "start_time": time.time(), "buildingTime": buildingTime, 'lstVillagers': lstVillager, "x": x, "y": y})
+                    return 0
+            else:
+                logs(self.player.name + " : Building is too big", level=logging.INFO)
+                return -1    
 
     def update_building(self):
         current_time = time.time()
@@ -248,11 +268,13 @@ class ControllerPlayer():
             building = item["building"]
             player = item["player"]
             start_time = item["start_time"]
+            buildingTime = item["buildingTime"]
+            lstVillagers = item["lstVillagers"]
             building = item["building"]
             x = item["x"]
             y = item["y"]
 
-            if current_time - start_time >= building.getBuildingTime():
+            if current_time - start_time >= buildingTime:
 
                 is_free = True
                 for i in range(building.getSizeMap()):
@@ -276,6 +298,8 @@ class ControllerPlayer():
                     building.setY(y)
                     self.player.getBuildingQueue().remove(item)
                     logs(self.player.name + " : " + building.__str__() + " is placed", level=logging.INFO)
+                    for villager in lstVillagers:
+                        villager.action = None
                 else:
                     print()
                     #print("Erreur de placement du batiment" , building, player)

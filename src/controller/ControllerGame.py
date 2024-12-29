@@ -16,6 +16,7 @@ from view.ViewPygame import ViewPygame
 
 from model.Game import Game
 from model.Gold import Gold
+from model.TownCenter import TownCenter
 
 class ControllerGame():
 
@@ -74,6 +75,9 @@ class ControllerGame():
         logs("Size of the map: " + str(len(self.cmap.map.map)) + "x" + str(len(self.cmap.map.map[0])), level=logging.INFO)
 
         logs("Game started", level=logging.INFO)
+    
+        self.lstcPlayers[0].addBuilding(TownCenter(), 10, 10)
+        
 
         #self.lstcPlayers[0].move(self.lstcPlayers[0].player.units[0], 119, 1)
         while True:
