@@ -109,7 +109,8 @@ class UIHandler():
         '''Demande des paramètres pour une nouvelle partie'''
         while(True):
             typeGame = input("Type de partie (Lean, Mean, Marines) : ")
-            if typeGame in ["Lean", "Mean", "Marines"]:
+            typeGame = typeGame.upper()
+            if typeGame in ["LEAN", "MEAN", "MARINES"]:
                 break
             else:
                 print("Type de partie invalide")
@@ -124,11 +125,12 @@ class UIHandler():
 
         while(True):
             typeMap = input("Type de carte (Generous, Center) : ")
-            if typeMap in ["Generous", "Center"]:
-                if typeMap == "Generous":
+            typeMap = typeMap.upper()
+            if typeMap in ["GENEROUS", "CENTER"]:
+                if typeMap == "GENEROUS":
                     typeRessource = MapType.GENEROUS_RESOURCES
                     break
-                elif typeMap == "Center":
+                elif typeMap == "CENTER":
                     typeRessource = MapType.CENTER_RESOURCES
                     break
             else:
@@ -215,7 +217,7 @@ class UIHandler():
         self.start()
 
     def initialize(self, typeGame, nbPlayers):
-        if(typeGame == "Lean"):
+        if(typeGame == "LEAN"):
             
             for i in range(nbPlayers):
                 self.lstPlayers.append(ControllerPlayer.from_new("Player "+str(i), 50, 200, 50, self.controllerMap))
@@ -226,7 +228,7 @@ class UIHandler():
                 for j in range(3):
                     cplayer.addUnitInitialize(Villager(), cplayer.getPlayer().getBuildings()[0])
                     
-        elif(typeGame == "Mean"):
+        elif(typeGame == "MEAN"):
             
             for i in range(nbPlayers):
                 self.lstPlayers.append(ControllerPlayer.from_new("Player "+str(i), 2000, 2000, 2000, self.controllerMap))
@@ -237,7 +239,7 @@ class UIHandler():
                 for j in range(3):
                     cplayer.addUnitInitialize(Villager(), cplayer.getPlayer().getBuildings()[0])
 
-        elif(typeGame ==  "Marines"):
+        elif(typeGame ==  "MARINES"):
 
             for i in range(nbPlayers):
                 self.lstPlayers.append(ControllerPlayer.from_new("Player "+str(i), 20000, 20000, 20000, self.controllerMap))
