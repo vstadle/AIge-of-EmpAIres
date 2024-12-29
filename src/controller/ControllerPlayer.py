@@ -491,16 +491,24 @@ class ControllerPlayer():
         distance_x = abs(building.getX() - villager_position[0])
         distance_y = abs(building.getY() - villager_position[1])
 
-        if distance_x <= 1 and distance_y <= 1:
-            if villager.carryingType == 'Gold':
-                self.player.addGold(villager.carrying)
-                villager.carrying = 0
-                villager.carryingType = None
-            elif villager.carryingType == 'Wood':
-                self.player.addWood(villager.carrying)
-                villager.carrying = 0
-                villager.carryingType = None
-            villager.action = None
+        if isinstance(building, TownCenter) or isinstance(building, Camp):
+
+            if distance_x <= 1 and distance_y <= 1:
+                if villager.carryingType == 'Gold':
+                    self.player.addGold(villager.carrying)
+                    villager.carrying = 0
+                    villager.carryingType = None
+                elif villager.carryingType == 'Wood':
+                    self.player.addWood(villager.carrying)
+                    villager.carrying = 0
+                    villager.carryingType = None
+                villager.action = None
+            
+            else :
+                logs("Villager is too far to deposit resources", level=logging.INFO)
+        
+        else:
+            logs(self.player.name + " : Buildings is not dropping point (unit : " + str(villager) + " buildings : " + str(building) + ")", level=logging.INFO)
 
 
     def getPlayer(self):
