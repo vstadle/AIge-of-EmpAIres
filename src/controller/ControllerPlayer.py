@@ -265,6 +265,9 @@ class ControllerPlayer():
                         break
 
                 if(is_free):
+                    if isinstance(building, Farm):
+                        player.food += building.food
+                        logs("Farm build, add " + str(building.food) + " to food player", level=logging.INFO)
                     player.addBuilding(building)
                     self.cmap.map.addBuilding(building, x, y, player)
                     building.setX(x)
@@ -423,10 +426,12 @@ class ControllerPlayer():
                         logs("Ressource is empty", level=logging.INFO)
                         self.cmap.map.mapRessources[ressource.getX()][ressource.getY()] = None
                         self.cmap.map.map[ressource.getX()][ressource.getY()] = " "
+                        villager.action = None
                     else:
                         self.queueCollect.append({"villager": villager, "start_time": start_time, "ressource": ressource})
                 else:
                     logs("Villageois ne peut pas collecter de ressources", level=logging.INFO)
+                    villager.action = None
                     self.queueCollect.remove(item)
 
     def move(self, unit, x, y):
@@ -434,6 +439,7 @@ class ControllerPlayer():
         end = (x,y)
         logs("Unit is moving", level=logging.INFO)
         chemin = A_Star.a_star(self.cmap.map, start, end)
+        unit.action = "move"
         if chemin is None:
             logs("No path found", level=logging.INFO)
         else:
@@ -465,16 +471,36 @@ class ControllerPlayer():
                     start_time = time.time()
                     if len(chemin) > 0:
                         self.queueMoving.append({"unit": unit, "start_time": start_time, "chemin": chemin})
+                    else:
+                        unit.action = None
                 else:
                     #logs("Unit can't move", level=logging.INFO)
                     self.queueMoving.remove(item)
                     chemin = A_Star.a_star(self.cmap.map, (unit.getPosition()), chemin[len(chemin)-1])
                     if chemin is None:
                         logs("No path found", level=logging.INFO)
+                        unit.action = None
                     else:
                         start_time = time.time()
                         self.queueMoving.append({"unit": unit, "start_time": start_time, "chemin": chemin})
 
+    def depositResources(self, villager, building):
+
+        villager_position = villager.getPosition()
+
+        distance_x = abs(building.getX() - villager_position[0])
+        distance_y = abs(building.getY() - villager_position[1])
+
+        if distance_x <= 1 and distance_y <= 1:
+            if villager.carryingType == 'Gold':
+                self.player.addGold(villager.carrying)
+                villager.carrying = 0
+                villager.carryingType = None
+            elif villager.carryingType == 'Wood':
+                self.player.addWood(villager.carrying)
+                villager.carrying = 0
+                villager.carryingType = None
+            villager.action = None
 
 
     def getPlayer(self):
