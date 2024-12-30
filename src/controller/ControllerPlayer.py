@@ -413,7 +413,9 @@ class ControllerPlayer():
             logs(self.player.name + " : Population is full", level=logging.INFO)
         return -1
 
-    def collectResources(self, villager, ressource, unit_x, unit_y):
+    def collectResources(self, villager, ressource):
+        unit_x = villager.x
+        unit_y = villager.y
         can_collect = False
 
         # Calcul des distances en X et Y
