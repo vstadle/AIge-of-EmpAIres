@@ -43,6 +43,8 @@ class Map():
 
         self.size_map_x = size_map_x
         self.size_map_y = size_map_y
+
+        self.mapType = None
         
     
     def generateGenerousResources(self):
@@ -214,4 +216,6 @@ class Map():
         self.map[x][y] = "v"
         self.lstColor[x][y] = player.getColor()
 
+    def setMapType(self, type):
+        self.mapType = type
     

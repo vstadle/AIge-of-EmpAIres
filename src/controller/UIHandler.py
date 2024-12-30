@@ -157,6 +157,7 @@ class UIHandler():
 
         # Lancer une nouvelle partie
         self.controllerMap = ControllerMap(size_x, size_y)
+        self.controllerMap.map.mapType = typeRessource
         self.controllerMap.genRessources(typeRessource)
         self.initialize(typeGame, nbPlayers)  # Exemple : type "Marines", 6 joueurs
         self.controllerMap.setLstPlayers(self.lstPlayers)
