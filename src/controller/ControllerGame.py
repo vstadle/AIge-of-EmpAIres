@@ -18,6 +18,8 @@ from model.Game import Game
 from model.Gold import Gold
 from model.TownCenter import TownCenter
 
+from ai.ai import AI
+
 class ControllerGame():
 
     log_win = None
@@ -39,6 +41,10 @@ class ControllerGame():
 
         self.mode = "terminal"
         self.paused = False
+
+        self.lstAI = []
+        for cplayer in lstcPlayers:
+            self.lstAI.append(AI(self.game, cplayer))
 
     def run(self):
 
@@ -78,6 +84,13 @@ class ControllerGame():
     
         self.lstcPlayers[0].addBuilding(TownCenter(), 10, 10)
         
+        self.lstcPlayers[0].player.gold = 50
+
+        logs("Nb d'IA : " + str(len(self.lstAI)), level=logging.INFO)
+
+        for ai in self.lstAI:
+            ai.choose_strategie()
+
 
         #self.lstcPlayers[0].move(self.lstcPlayers[0].player.units[0], 119, 1)
         while True:
@@ -111,6 +124,9 @@ class ControllerGame():
                     sys.exit()
                 elif key == ord('v'):
                     self.change_mode()
+
+                for ai in self.lstAI:
+                    ai.choose_strategie()
 
                 for cplayer in self.lstcPlayers:
                     cplayer.update_training()
