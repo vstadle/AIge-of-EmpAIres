@@ -63,6 +63,8 @@ class ViewPygame():
         self.towncenterleft_sprite = self.load_towncenterleft_sprite()
         self.towncenterright_sprite = self.load_towncenterright_sprite()
         self.towncentermiddle_sprite = self.load_towncentermiddle_sprite()
+        self.archeryrange_sprite = self.load_archeryrange_sprite()
+        self.stable_sprite = self.load_stable_sprite()
         self.tree_positions = {}
         self.gold_positions = {}
         self.clock = pygame.time.Clock()
@@ -369,52 +371,117 @@ class ViewPygame():
                             )
                         if isinstance(building, TownCenter):
                             building_x, building_y = self.get_building_top_left(building)
-
                             if self.is_main_tile(building_x, building_y, row, col):
-                                scaled_grass = pygame.transform.scale(self.ground_sprite,(int(self.iso_tile_width * zoom_level),int(self.iso_tile_height * zoom_level)))
+                                scaled_grass = pygame.transform.scale(
+                                    self.ground_sprite,
+                                    (int(self.iso_tile_width * zoom_level),
+                                    int(self.iso_tile_height * zoom_level))
+                                )
                                 iso_surface.blit(scaled_grass, (iso_x - self.iso_tile_width // 2 * zoom_level, iso_y))
-                                sprite1 = self.towncenterleft_sprite
-                                scaled_sprite1 = pygame.transform.scale(
-                                    sprite1,
-                                    (int(self.iso_tile_width *3* zoom_level),
-                                    int(self.iso_tile_height *3* zoom_level))
+                                
+                                # Partie gauche
+                                original_width, original_height = self.towncenterleft_sprite.get_size()
+                                aspect_ratio = original_width / original_height
+                                sprite_height = int(self.iso_tile_height * 3 * zoom_level)
+                                sprite_width = int(sprite_height * aspect_ratio)
+                                
+                                scaled_sprite_left = pygame.transform.scale(
+                                    self.towncenterleft_sprite,
+                                    (sprite_width, sprite_height)
                                 )
                                 
-                                iso_surface.blit(
-                                    scaled_sprite1,
-                                    (iso_x - (self.iso_tile_width * zoom_level)+1, 
-                                    iso_y - (self.iso_tile_height * 2 * zoom_level)-1)
-                                )
-                                '''sprite2 = self.towncentermiddle_sprite
-                                scaled_sprite2 = pygame.transform.scale(
-                                    sprite2,
-                                    (int(self.iso_tile_width * 3 * zoom_level),
-                                    int(self.iso_tile_height * 3 * zoom_level))
+                                # Partie centrale
+                                original_width_middle, original_height_middle = self.towncentermiddle_sprite.get_size()
+                                aspect_ratio_middle = original_width_middle / original_height_middle
+                                sprite_height_middle = sprite_height  # Même hauteur que la partie gauche
+                                sprite_width_middle = int(sprite_height_middle * aspect_ratio_middle)
+                                
+                                scaled_sprite_middle = pygame.transform.scale(
+                                    self.towncentermiddle_sprite,
+                                    (sprite_width_middle, sprite_height_middle)
                                 )
                                 
-                                iso_surface.blit(
-                                    scaled_sprite2,
-                                    (iso_x - (self.iso_tile_width * zoom_level), 
-                                    iso_y - (self.iso_tile_height * 2 * zoom_level))
-                                )
-                                sprite3 = self.towncenterright_sprite
-                                scaled_sprite3 = pygame.transform.scale(
-                                    sprite3,
-                                    (int(self.iso_tile_width * 3 * zoom_level),
-                                    int(self.iso_tile_height * 3 * zoom_level))
+                                # Partie droite
+                                original_width_right, original_height_right = self.towncenterright_sprite.get_size()
+                                aspect_ratio_right = original_width_right / original_height_right
+                                sprite_height_right = sprite_height  # Même hauteur que les autres parties
+                                sprite_width_right = int(sprite_height_right * aspect_ratio_right)
+                                
+                                scaled_sprite_right = pygame.transform.scale(
+                                    self.towncenterright_sprite,
+                                    (sprite_width_right, sprite_height_right)
                                 )
                                 
-                                iso_surface.blit(
-                                    scaled_sprite3,
-                                    (iso_x - (self.iso_tile_width * zoom_level)+1, 
-                                    iso_y - (self.iso_tile_height * 2 * zoom_level)-1)
-                                )'''
+                                # Positionnement des sprites
+                                base_y = iso_y - (sprite_height * 0.75)
+                                
+                                # Position partie gauche
+                                left_x = iso_x - sprite_width
+                                iso_surface.blit(scaled_sprite_left, (left_x, base_y))
+                                
+                                # Position partie centrale
+                                middle_x = left_x + sprite_width
+                                iso_surface.blit(scaled_sprite_middle, (middle_x, base_y))
+                                
+                                # Position partie droite
+                                right_x = middle_x + sprite_width_middle
+                                iso_surface.blit(scaled_sprite_right, (right_x, base_y))
                             else:
                                 scaled_grass = pygame.transform.scale(
                                 self.ground_sprite,
                                 (int(self.iso_tile_width * zoom_level),
                                 int(self.iso_tile_height * zoom_level))
                             )
+                        if isinstance(building, ArcheryRange):
+                            building_x, building_y = self.get_building_top_left(building)
+
+                            if self.is_main_tile(building_x, building_y, row, col):
+                                scaled_grass = pygame.transform.scale(self.ground_sprite,(int(self.iso_tile_width * zoom_level),int(self.iso_tile_height * zoom_level)))
+                                iso_surface.blit(scaled_grass, (iso_x - self.iso_tile_width // 2 * zoom_level, iso_y))
+                                sprite = self.archeryrange_sprite
+
+                                scaled_sprite = pygame.transform.scale(
+                                    sprite,
+                                    (int(self.iso_tile_width * 3 * zoom_level),
+                                    int(self.iso_tile_height * 3 * zoom_level))
+                                )
+                                
+                                iso_surface.blit(
+                                    scaled_sprite,
+                                    (iso_x - (self.iso_tile_width * zoom_level), 
+                                    iso_y - (self.iso_tile_height * 2 * zoom_level))
+                                )
+                            else:
+                                scaled_grass = pygame.transform.scale(
+                                self.ground_sprite,
+                                (int(self.iso_tile_width * zoom_level),
+                                int(self.iso_tile_height * zoom_level)))
+                                iso_surface.blit(scaled_grass, (iso_x - self.iso_tile_width // 2 * zoom_level, iso_y))
+                        if isinstance(building,Stable):
+                            building_x, building_y = self.get_building_top_left(building)
+
+                            if self.is_main_tile(building_x, building_y, row, col):
+                                scaled_grass = pygame.transform.scale(self.ground_sprite,(int(self.iso_tile_width * zoom_level),int(self.iso_tile_height * zoom_level)))
+                                iso_surface.blit(scaled_grass, (iso_x - self.iso_tile_width // 2 * zoom_level, iso_y))
+                                sprite = self.stable_sprite
+
+                                scaled_sprite = pygame.transform.scale(
+                                    sprite,
+                                    (int(self.iso_tile_width * 3 * zoom_level),
+                                    int(self.iso_tile_height * 3 * zoom_level))
+                                )
+                                
+                                iso_surface.blit(
+                                    scaled_sprite,
+                                    (iso_x - (self.iso_tile_width * zoom_level), 
+                                    iso_y - (self.iso_tile_height * 2 * zoom_level))
+                                )
+                            else:
+                                scaled_grass = pygame.transform.scale(
+                                self.ground_sprite,
+                                (int(self.iso_tile_width * zoom_level),
+                                int(self.iso_tile_height * zoom_level)))
+                                iso_surface.blit(scaled_grass, (iso_x - self.iso_tile_width // 2 * zoom_level, iso_y))
 
         max_scroll_x = map_surface_width - screen.get_width() + (self.iso_tile_width * zoom_level)
         max_scroll_y = map_surface_height - screen.get_height() + (self.iso_tile_height * zoom_level)
@@ -440,7 +507,7 @@ class ViewPygame():
         elif content == 'G':
             return self.YELLOW
         elif content == 'A':
-            return self.BLUE
+            return 0
         elif content == 'T':
             return 0
         elif content == 'B':
@@ -455,12 +522,15 @@ class ViewPygame():
         self.clock.tick(60)
 
     def scale_sprite(self, sprite):
-        """Scale a sprite based on current window size"""
-        current_size = sprite.get_size()
-        new_width = int(current_size[0] * self.scale_factor)
-        new_height = int(current_size[1] * self.scale_factor)
-        return pygame.transform.scale(sprite, (new_width, new_height))
-
+        """Scale a sprite while maintaining aspect ratio"""
+        original_width, original_height = sprite.get_size()
+        aspect_ratio = original_width / original_height
+        
+        # Base size on tile dimensions
+        target_height = int(self.iso_tile_height * 3)  # Pour un bâtiment de 3x3 tiles
+        target_width = int(target_height * aspect_ratio)
+        
+        return pygame.transform.scale(sprite, (target_width, target_height))
 
     def load_barracks_sprite(self):
         current_dir = os.path.dirname(os.path.abspath(__file__))
@@ -468,6 +538,20 @@ class ViewPygame():
         barracks_path = os.path.join(project_root, "Sprite_aoe", "buildings","barracks.bmp")
         sprite = pygame.image.load(barracks_path).convert()
         sprite.set_colorkey((255, 0, 255))
+        return self.scale_sprite(sprite)
+    
+    def load_archeryrange_sprite(self):
+        current_dir = os.path.dirname(os.path.abspath(__file__))
+        project_root = os.path.dirname(os.path.dirname(current_dir))
+        barracks_path = os.path.join(project_root, "Sprite_aoe", "buildings","archery_range.png")
+        sprite = pygame.image.load(barracks_path).convert_alpha()
+        return self.scale_sprite(sprite)
+    
+    def load_stable_sprite(self):
+        current_dir = os.path.dirname(os.path.abspath(__file__))
+        project_root = os.path.dirname(os.path.dirname(current_dir))
+        barracks_path = os.path.join(project_root, "Sprite_aoe", "buildings","stable.png")
+        sprite = pygame.image.load(barracks_path).convert_alpha()
         return self.scale_sprite(sprite)
 
 
