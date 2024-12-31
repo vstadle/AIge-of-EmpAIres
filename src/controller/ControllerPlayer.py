@@ -510,6 +510,7 @@ class ControllerPlayer():
                     if len(chemin) > 0:
                         self.queueMoving.append({"unit": unit, "start_time": start_time, "chemin": chemin})
                     else:
+                        logs(self.player.name + " : " + str(unit) + " is arrived", level=logging.INFO)
                         unit.action = None
                 else:
                     #logs("Unit can't move", level=logging.INFO)
@@ -522,32 +523,27 @@ class ControllerPlayer():
                         start_time = time.time()
                         self.queueMoving.append({"unit": unit, "start_time": start_time, "chemin": chemin})
 
-    def depositResources(self, villager, building):
+    def depositResources(self, villager, target_deposit):
 
         villager_position = villager.getPosition()
 
-        distance_x = abs(building.getX() - villager_position[0])
-        distance_y = abs(building.getY() - villager_position[1])
-
-        if isinstance(building, TownCenter) or isinstance(building, Camp):
-
-            if distance_x <= 1 and distance_y <= 1:
-                if villager.carryingType == 'Gold':
-                    self.player.addGold(villager.carrying)
-                    villager.carrying = 0
-                    villager.carryingType = None
-                elif villager.carryingType == 'Wood':
-                    self.player.addWood(villager.carrying)
-                    villager.carrying = 0
-                    villager.carryingType = None
-                villager.action = None
-            
-            else :
-                logs(self.player.name + " : Villager is too far to deposit resources", level=logging.INFO)
+        distance_x = abs(target_deposit[0] - villager.x)
+        distance_y = abs(target_deposit[1] - villager.y)
+        if distance_x <= 1 and distance_y <= 1:
+            if villager.carryingType == 'Gold':
+                self.player.addGold(villager.carrying)
+                villager.carrying = 0
+                villager.carryingType = None
+                logs(self.player.name + " : Villager deposit gold : " + str(self.player), level=logging.INFO)
+            elif villager.carryingType == 'Wood':
+                self.player.addWood(villager.carrying)
+                villager.carrying = 0
+                villager.carryingType = None
+                logs(self.player.name + " : Villager deposit wood : " + str(self.player), level=logging.INFO)
+            villager.action = None
         
-        else:
-            logs(self.player.name + " : Buildings is not dropping point (unit : " + str(villager) + " buildings : " + str(building) + ")", level=logging.INFO)
-
+        else :
+            logs(self.player.name + " : Villager is too far to deposit resources", level=logging.INFO)
 
     def getPlayer(self):
         return self.player
