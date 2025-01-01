@@ -246,6 +246,7 @@ class ControllerPlayer():
                         if isinstance(villager, Villager) and villager.action == None:
                             cpt += 1
                             lstVillager.append(villager)
+                            villager.action = "build"
                     if cpt == 0:
                         #logs(self.player.name + " : No villager available", level=logging.INFO)
                         return -1
@@ -253,8 +254,6 @@ class ControllerPlayer():
                         buildingTime = building.getBuildingTime()
                     elif cpt > 1:
                         buildingTime = (3*building.getBuildingTime()) / (cpt + 2)
-                        for villager in lstVillager:
-                            villager.action = "build"
                     logs(self.player.name + " : " + building.__str__() + " add to building queue buildingTime = " + str(buildingTime), level=logging.INFO)
                     self.player.removeResourcesForBuilding(building)
                     self.cmap.map.addBuildingTemp(building, x, y)

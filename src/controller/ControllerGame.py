@@ -98,6 +98,10 @@ class ControllerGame():
         #self.lstcPlayers[0].addBuilding(Farm(), 10, 10)
 
         #self.lstcPlayers[0].move(self.lstcPlayers[0].player.units[0], 119, 1)
+
+        for ai in self.lstAI:
+            ai.start_strategie()
+
         while True:
             #stdscr.refresh()
             current_time = time.time()
@@ -130,11 +134,12 @@ class ControllerGame():
                 elif key == ord('v'):
                     self.change_mode()
 
+                
                 if current_time - start_time > time_to_update:
                     start_time = current_time
                     for ai in self.lstAI:
                         ai.choose_strategie()
-
+                
                 for cplayer in self.lstcPlayers:
                     cplayer.update_training()
                     cplayer.update_building()
