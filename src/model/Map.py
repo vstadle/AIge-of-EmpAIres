@@ -124,6 +124,13 @@ class Map():
         if isinstance(building, TownCenter) or isinstance(building, House):
             player.population += building.population
 
+    def addBuildingTemp(self, building, x, y):
+        building.setX(x)
+        building.setY(y)
+        for i in range(building.sizeMap):
+            for j in range(building.sizeMap):
+                self.map[x + i][y + j] = building.letter
+                self.lstColor[x + i][y + j] = curses.COLOR_WHITE
 
     def addUnits(self, units, x, y, player):
         self.mapUnits[x][y] = units
@@ -188,7 +195,7 @@ class Map():
         return self.mapRessources
     
     def is_free(self, x, y):
-        return self.map[x][y] == " "
+        return self.mapBuildings[x][y] is None and self.mapUnits[x][y] is None and self.mapRessources[x][y] is None
     
     def getColor(self, x, y):
         return self.lstColor[x][y]
