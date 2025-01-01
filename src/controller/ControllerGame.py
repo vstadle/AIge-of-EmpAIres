@@ -4,6 +4,7 @@ import sys
 import webbrowser
 import os
 import logging  
+import time
 
 from logs.logger import logs
 from web.generate_html import generateHtml
@@ -17,6 +18,7 @@ from view.ViewPygame import ViewPygame
 from model.Game import Game
 from model.Gold import Gold
 from model.TownCenter import TownCenter
+from model.Farm import Farm
 
 from ai.ai import AI
 
@@ -59,6 +61,10 @@ class ControllerGame():
 
         pos_x, pos_y = 0, 0
 
+        time_to_update = 0.5
+
+        start_time = time.time()
+
         #Test Collecte des ressources avec un villageois
         '''
         self.cmap.map.mapRessources[0][0] = Gold()
@@ -82,20 +88,19 @@ class ControllerGame():
 
         logs("Game started", level=logging.INFO)
     
-        self.lstcPlayers[0].addBuilding(TownCenter(), 10, 10)
+        #self.lstcPlayers[0].addBuilding(TownCenter(), 10, 10)
         
-        self.lstcPlayers[0].player.gold = 50
+        #self.lstcPlayers[0].player.gold = 50
 
         logs("Nb d'IA : " + str(len(self.lstAI)), level=logging.INFO)
 
-        for ai in self.lstAI:
-            ai.choose_strategie()
 
+        #self.lstcPlayers[0].addBuilding(Farm(), 10, 10)
 
         #self.lstcPlayers[0].move(self.lstcPlayers[0].player.units[0], 119, 1)
         while True:
             #stdscr.refresh()
-
+            current_time = time.time()
             key = stdscr.getch()
 
             if key == 9:  # Si la touche "Tab" est pressée
@@ -125,8 +130,10 @@ class ControllerGame():
                 elif key == ord('v'):
                     self.change_mode()
 
-                for ai in self.lstAI:
-                    ai.choose_strategie()
+                if current_time - start_time > time_to_update:
+                    start_time = current_time
+                    for ai in self.lstAI:
+                        ai.choose_strategie()
 
                 for cplayer in self.lstcPlayers:
                     cplayer.update_training()
