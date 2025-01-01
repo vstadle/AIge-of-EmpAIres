@@ -1,4 +1,5 @@
 import logging
+import random
 
 from logs.logger import logs
 from model.TownCenter import TownCenter
@@ -10,6 +11,12 @@ from model.Barracks import Barracks
 from model.Villager import Villager
 
 from model.Gold import Gold
+from model.Wood import Wood
+from model.House import House
+from model.Farm import Farm
+from model.Swordsman import Swordsman
+from model.Horseman import Horseman
+from model.Archer import Archer
 
 class AI:
 
@@ -92,7 +99,7 @@ class AI:
     def villager_is_available(self):
         for unit in self.cplayer.player.units:
             if isinstance(unit, Villager) and unit.action is None:
-                logs(self.cplayer.player.name + " : Villager found", logging.INFO)
+                #logs(self.cplayer.player.name + " : Villager found", logging.INFO)
                 return unit
         return None
 
@@ -194,7 +201,75 @@ class AI:
                             #for action in self.lstActionWaiting:
                             #    logs(self.cplayer.player.name + " :  Action waiting : " + action["action_target"], logging.INFO)
                             self.cplayer.move(villager, target_x, target_y)
+
+    def collectWood(self):
+        logs(self.cplayer.player.name + " :  Collect Wood stratégie", logging.INFO)
+        villager = self.villager_is_available()
+
+        if villager is not None:
+            wood = self.find_wood(villager)
+            if wood is not None:
+                target_position = wood[1], wood[2]
+                wood = wood[0]
                 
+                distance_x = abs(wood.x - villager.x)
+                distance_y = abs(wood.y - villager.y)
+                
+                deposit = self.find_deposit(villager, wood)
+                if deposit is None:
+                    logs(self.cplayer.player.name + " : No deposit found", logging.ERROR)
+                    return -1
+
+                temp_x = deposit[1]
+                temp_y = deposit[2]
+
+                target_deposit = temp_x, temp_y
+
+                self.lstVillagerCollect.append({"unit": villager, "ressource": wood, "target": target_position, "deposit": deposit[0], "target_deposit": target_deposit})
+                if distance_x <= 1 and distance_y <= 1:
+                    self.cplayer.collectResources(villager, wood)
+                else:
+                    self.cplayer.move(villager, target_position[0], target_position[1])
+
+        return 0
+
+    def find_wood(self, villager):
+        villager_x = villager.x
+        villager_y = villager.y
+
+        radius = 1
+
+        target = None
+
+        while radius <= max(self.game.map.size_map_x, self.game.map.size_map_y):
+            for x in range(villager_x - radius, villager_y + radius + 1):
+                for y in range(villager_y - radius, villager_y + radius + 1):
+                    if 0 <= x < self.game.map.size_map_x and 0 <= y < self.game.map.size_map_y:
+                        ressource = self.game.map.mapRessources[x][y]
+                        if ressource is not None and self.game.map.map[x][y] == "W":
+                            
+                            adjacent_positions = [
+                                (ressource.x - 1, ressource.y),
+                                (ressource.x + 1, ressource.y),
+                                (ressource.x, ressource.y - 1),
+                                (ressource.x, ressource.y + 1),
+                            ]
+
+                            for x, y in adjacent_positions:
+                                if 0 <= x < self.game.map.size_map_x and 0 <= y < self.game.map.size_map_y:
+                                    if self.game.map.map[x][y] == " ":
+                                        logs(self.cplayer.player.name + " :  Wood found", logging.INFO)
+                                        target = ressource, x, y
+                                        break
+                            if target is not None:
+                                break
+                if target is not None:
+                    break
+            if target is not None:
+                break
+            radius += 1
+        return target
+
     def verifCollectVillager(self):
         for item in self.lstVillagerCollect:
             unit = item["unit"]
@@ -217,6 +292,9 @@ class AI:
                     self.lstVillagerCollect.remove(unit)
             elif unit.action is None and unit.x == target[0] and unit.y == target[1]:
                 self.cplayer.collectResources(unit, ressource)
+            
+            elif unit.action is None and unit.x != target[0] and unit.y != target[1]:
+                self.lstVillagerCollect.remove(unit)
 
     def find_adjacent_free_tile(self, resource):
         adjacent_positions = [
@@ -246,6 +324,83 @@ class AI:
                     return True
         return False
 
+    def findPlaceForBuildings(self, building):
+        """
+        Trouve une position libre pour placer un nouveau bâtiment tout en laissant un couloir
+        de largeur 1 autour du Town Center pour le passage des troupes.
+
+        Args:
+            building (Building): Le bâtiment à placer.
+
+        Returns:
+            tuple: (x, y) coordonnées du coin supérieur gauche où placer le bâtiment,
+                ou None si aucun emplacement n'est trouvé.
+        """
+        main_building = None
+        if len(self.cplayer.player.buildings) > 0:
+            main_building = self.cplayer.player.buildings[0]  # On suppose que le premier bâtiment est le Town Center
+
+        if main_building is not None:
+            town_center_x = main_building.x
+            town_center_y = main_building.y
+            town_center_size = main_building.sizeMap
+            building_size = building.sizeMap
+            radius = 5
+
+            while radius <= max(self.game.map.size_map_x, self.game.map.size_map_y):
+                for i in range(town_center_x - radius, town_center_x + radius + 1):
+                    for j in range(town_center_y - radius, town_center_y + radius + 1):
+                        # Vérifie si les coordonnées sont dans les limites de la carte
+                        if 0 <= i < self.game.map.size_map_x and 0 <= j < self.game.map.size_map_y:
+                            # Vérifie si l'emplacement est libre pour le bâtiment
+                            is_free = True
+                            for k in range(building_size):
+                                for l in range(building_size):
+                                    if (
+                                        not (0 <= i + k < self.game.map.size_map_x and 0 <= j + l < self.game.map.size_map_y)
+                                        or self.game.map.map[i + k][j + l] != " "
+                                    ):
+                                        is_free = False
+                                        break
+                                if not is_free:
+                                    break
+                            
+                            # Vérifie que le couloir autour du Town Center est respecté
+                            if is_free:
+                                for k in range(-1, town_center_size + 1):
+                                    for l in range(-1, town_center_size + 1):
+                                        # Vérifie les cases autour du Town Center (en ajoutant le couloir)
+                                        corridor_x = town_center_x + k
+                                        corridor_y = town_center_y + l
+                                        if (
+                                            0 <= corridor_x < self.game.map.size_map_x
+                                            and 0 <= corridor_y < self.game.map.size_map_y
+                                            and abs(corridor_x - (i + building_size // 2)) <= 1
+                                            and abs(corridor_y - (j + building_size // 2)) <= 1
+                                        ):
+                                            if self.game.map.map[corridor_x][corridor_y] != " ":
+                                                is_free = False
+                                                break
+                                    if not is_free:
+                                        break
+
+                            if is_free:
+                                return i, j  # Retourne les coordonnées du coin supérieur gauche
+
+                radius += 1
+
+        return None  # Aucun emplacement trouvé
+
+    def findBuildings(self, name):
+        for building in self.cplayer.player.buildings:
+            if isinstance(building, name):
+                return building
+
+    def build_Farm(self):
+        if self.cplayer.player.canAffordBuilding(Farm()):
+            position = self.findPlaceForBuildings(Farm())
+            if position is not None:
+                self.cplayer.addBuilding(Farm(), position[0], position[1])
 
     def choose_strategie(self):
 
@@ -254,19 +409,99 @@ class AI:
         
         # --- TEST ---
         #Test pour ne pas répéter la stratégie
-        if AI.cpt < 2:
 
-            gold = self.cplayer.player.gold
-            wood = self.cplayer.player.wood
-            food = self.cplayer.player.food
-            population = self.cplayer.player.population
+        gold = self.cplayer.player.gold
+        wood = self.cplayer.player.wood
+        food = self.cplayer.player.food
+        population = self.cplayer.player.population
 
-            logs (self.cplayer.player.name + " :  Gold : " + str(gold), logging.INFO)
-            logs (self.cplayer.player.name + " :  Choose strategie", logging.INFO)
+        #logs (self.cplayer.player.name + " :  Gold : " + str(gold), logging.INFO)
+        #logs (self.cplayer.player.name + " :  Choose strategie", logging.INFO)
+        
+        cpt_villager = 0
 
-            if gold <= 100:
+        if self.cplayer.player.gold <= 100:
+            for unit in self.cplayer.player.units:
+                if isinstance(unit, Villager) and unit.action is None:
+                    cpt_villager += 1
+            #logs(self.cplayer.player.name + " :  cpt_villager : " + str(cpt_villager), logging.INFO)
+            for i in range (0, cpt_villager//2):
                 self.collectGold()
+        
+        elif self.cplayer.player.wood <= 250:
+            for unit in self.cplayer.player.units:
+                if isinstance(unit, Villager) and unit.action is None:
+                    cpt_villager += 1
+            for i in range (0, cpt_villager//2):
+                self.collectWood()
 
-        AI.cpt += 1
+        if self.cplayer.player.food < 100:
+            if self.villager_is_available() is not None:
+                #logs(self.cplayer.player.name + " :  Villager found for build", logging.INFO)
+                if self.cplayer.player.canAffordBuilding(Farm()):
+                    position = self.findPlaceForBuildings(Farm())
+                    if position is not None:
+                        self.cplayer.addBuilding(Farm(), position[0], position[1])
+                        #logs(self.cplayer.player.name + " :  Farm build", logging.INFO)
+                    
+        cpt_villager = 0
 
-        return 0
+        for unit in self.cplayer.player.units:
+            if isinstance(unit, Villager):
+                cpt_villager +=1
+
+        ratio = cpt_villager // len(self.cplayer.player.units)
+
+        if (len(self.cplayer.player.units) + len(self.cplayer.player.training_queue) )!= self.cplayer.player.population:
+
+            if ratio < 0.5:
+                for buildings in self.cplayer.player.buildings:
+                    if isinstance(buildings, TownCenter):
+                        self.cplayer.trainVillager(buildings)
+                        break
+            else:
+                random_unit = random.randint(0, 2)
+
+                if random_unit == 0:
+                    archery = self.findBuildings(ArcheryRange)
+                    if archery is not None:
+                        check = self.cplayer.trainArcher(archery)
+                        if check == 1:
+                            self.build_Farm()
+                    else:
+                        archery = ArcheryRange()
+                        position = self.findPlaceForBuildings(archery)
+                        if position is not None:
+                            self.cplayer.addBuilding(archery, position[0], position[1])
+                
+                elif random_unit == 1:
+                    barracks = self.findBuildings(Barracks)
+                    if barracks is not None:
+                        check = self.cplayer.trainSwordsman(barracks)
+                        if check == 1:
+                            self.build_Farm()
+                    else:
+                        barrack = Barracks()
+                        position = self.findPlaceForBuildings(barrack)
+                        if position is not None:
+                            self.cplayer.addBuilding(barrack, position[0], position[1])
+                
+                elif random_unit == 2:
+                    stable = self.findBuildings(Stable)
+                    if stable is not None:
+                        check = self.cplayer.trainHorseman(stable)
+                        if check == 1:
+                            self.build_Farm()
+                    else :
+                        stable = Stable()
+                        position = self.findPlaceForBuildings(stable)
+                        if position is not None:
+                            self.cplayer.addBuilding(stable, position[0], position[1])
+                        
+            ratio = len(self.cplayer.player.units) // self.cplayer.player.population
+
+        if ratio < 0.7:
+            position = self.findPlaceForBuildings(House())
+            if position is not None:
+                if self.villager_is_available() is not None:
+                    self.cplayer.addBuilding(House(), position[0], position[1])
