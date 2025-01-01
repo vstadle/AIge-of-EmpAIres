@@ -76,7 +76,8 @@ class Player():
         return (self.wood >= building.costW)
 
     def canAffordUnit(self, unit):
-        return (self.food >= unit.costF and self.wood >= unit.costW and self.gold >= unit.costG)
+        temp = len(self.units) + len(self.training_queue)
+        return (self.food >= unit.costF and self.wood >= unit.costW and self.gold >= unit.costG and temp <= self.population)
 
     def removeResourcesForBuilding(self, building):
         self.wood -= building.costW
