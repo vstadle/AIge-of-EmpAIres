@@ -19,6 +19,8 @@ from model.Horseman import Horseman
 from model.Archer import Archer
 from model.Keep import Keep
 
+from controller import A_Star
+
 class AI:
 
     cpt = 0
@@ -32,72 +34,6 @@ class AI:
         self.lstVillagerCollect = []
     
         self.lstBuildingWaiting = []
-
-    def build(self, building_name, position):
-        self.cplayer.addBuilding(building_name, position[0], position[1])
-
-    def train(self, unit_name):
-        unit_name = unit_name.lower()
-
-        if unit_name == "villager":
-            
-            towncenter = None
-            for building in self.cplayer.player.buildings:
-                if isinstance(building, TownCenter):
-                    towncenter = building
-                    break
-            if towncenter is not None:
-                self.cplayer.trainVillager(towncenter)
-                return 0
-            else:
-                logs(self.cplayer.player.name + " : No town center found, impossible to train villager", logging.ERROR)
-                return -1
-            
-        elif unit_name == "archer":
-            
-            archeryrange = None
-            for building in self.cplayer.buildings:
-                if isinstance(building, ArcheryRange):
-                    archeryrange = building
-                    break
-            if archeryrange is not None:
-                self.cplayer.trainArcher(archeryrange)
-                return 0
-            else:
-                logs(self.cplayer.player.name + " : No archery range found, impossible to train archer", logging.ERROR)
-                return -1
-        
-        elif unit_name == "horseman":
-            
-            stable = None
-            for building in self.cplayer.buildings:
-                if isinstance(building, Stable):
-                    stable = building
-                    break
-            if stable is not None:
-                self.cplayer.trainHorseman(stable)
-                return 0
-            else:
-                logs(self.cplayer.player.name + " : No stable found, impossible to train horseman", logging.ERROR)
-                return -1
-        
-        elif unit_name == "swordsman":
-            
-            barracks = None
-            for building in self.cplayer.buildings:
-                if isinstance(building, Barracks):
-                    barracks = building
-                    break
-            if barracks is not None:
-                self.cplayer.trainSwordsman(barracks)
-                return 0
-            else:
-                logs(self.cplayer.player.name + " : No barracks found, impossible to train swordsman", logging.ERROR)
-                return -1
-        
-        else:
-            logs(self.cplayer.player.name + " : Unknown unit type", logging.ERROR)
-            return -1
     
     def villager_is_available(self):
         for unit in self.cplayer.player.units:
@@ -126,6 +62,7 @@ class AI:
         return None  # Retourne None si aucun or accessible n'est trouvé
 
     def find_deposit(self, villager, ressource):
+
         """
         Trouve le bâtiment de dépôt le plus proche appartenant au joueur correspondant au villageois.
         Recherche les bâtiments dans la liste des bâtiments du joueur et vérifie les cases adjacentes libres.
@@ -165,7 +102,9 @@ class AI:
                         self.game.map.map[adj_x][adj_y] == " "  # Vérifie que la case est libre
                     ):
                         logs(f"Case libre trouvée pour dépôt à ({adj_x}, {adj_y})", logging.INFO)
-                        return (building, adj_x, adj_y)
+                        chemin = A_Star.a_star(self.game.map, (villager.x, villager.y), (adj_x, adj_y))
+                        if chemin is not None:
+                            return (building, adj_x, adj_y, chemin)
 
         # Aucun dépôt accessible trouvé
         logs("Aucun bâtiment de dépôt valide trouvé pour ce joueur.", logging.WARNING)
@@ -206,7 +145,7 @@ class AI:
                             self.cplayer.move(villager, target_x, target_y)
 
     def collectWood(self):
-        logs(self.cplayer.player.name + " :  Collect Wood stratégie", logging.INFO)
+        logs(self.cplayer.player.name + " :  Collect Wood", logging.INFO)
         villager = self.villager_is_available()
 
         if villager is not None:
@@ -333,8 +272,8 @@ class AI:
 
     def findPlaceForBuildings(self, building):
         """
-        Trouve une position libre pour placer un nouveau bâtiment tout en laissant un couloir
-        de largeur 1 autour du Town Center pour le passage des troupes.
+        Trouve une position libre pour placer un nouveau bâtiment avec une case d'écart minimum
+        de chaque côté par rapport aux autres bâtiments et en laissant un couloir autour du Town Center.
 
         Args:
             building (Building): Le bâtiment à placer.
@@ -361,13 +300,20 @@ class AI:
                         if 0 <= i < self.game.map.size_map_x and 0 <= j < self.game.map.size_map_y:
                             # Vérifie si l'emplacement est libre pour le bâtiment
                             is_free = True
-                            for k in range(building_size):
-                                for l in range(building_size):
+                            for k in range(-1, building_size + 1):  # Inclut une case autour du bâtiment
+                                for l in range(-1, building_size + 1):
+                                    check_x = i + k
+                                    check_y = j + l
                                     if (
-                                        not (0 <= i + k < self.game.map.size_map_x and 0 <= j + l < self.game.map.size_map_y)
-                                        or self.game.map.map[i + k][j + l] != " "
+                                        0 <= check_x < self.game.map.size_map_x
+                                        and 0 <= check_y < self.game.map.size_map_y
                                     ):
-                                        is_free = False
+                                        # Vérifie qu'aucune case (y compris autour du bâtiment) n'est occupée
+                                        if self.game.map.map[check_x][check_y] != " ":
+                                            is_free = False
+                                            break
+                                    else:
+                                        is_free = False  # Si hors limites, emplacement invalide
                                         break
                                 if not is_free:
                                     break
@@ -376,7 +322,7 @@ class AI:
                             if is_free:
                                 for k in range(-1, town_center_size + 1):
                                     for l in range(-1, town_center_size + 1):
-                                        # Vérifie les cases autour du Town Center (en ajoutant le couloir)
+                                        # Vérifie les cases autour du Town Center
                                         corridor_x = town_center_x + k
                                         corridor_y = town_center_y + l
                                         if (
@@ -394,9 +340,10 @@ class AI:
                             if is_free:
                                 return i, j  # Retourne les coordonnées du coin supérieur gauche
 
-                radius += 1
+                    radius += 1
 
         return None  # Aucun emplacement trouvé
+
 
     def findBuildings(self, name):
         for building in self.cplayer.player.buildings:
