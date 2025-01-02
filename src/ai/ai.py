@@ -207,7 +207,7 @@ class AI:
                 for y in range(villager_y - radius, villager_y + radius + 1):
                     if 0 <= x < self.game.map.size_map_x and 0 <= y < self.game.map.size_map_y:
                         ressource = self.game.map.mapRessources[x][y]
-                        if ressource is not None and self.game.map.map[x][y] == "W":
+                        if ressource is not None and self.game.map.map[x][y] == "W" and ressource not in self.lstVillagerCollecting:
                             
                             adjacent_positions = [
                                 (ressource.x - 1, ressource.y),
@@ -251,6 +251,10 @@ class AI:
                 self.cplayer.move(unit, target_deposit[0], target_deposit[1])
                 if ressource.capacity == 0:
                     self.lstVillagerCollect.remove(item)
+                    if isinstance(ressource, Gold):
+                        self.collectGold()
+                    elif isinstance(ressource, Wood):
+                        self.collectWood()
             elif unit.action is None and unit.x == target[0] and unit.y == target[1]:
                 self.cplayer.collectResources(unit, ressource)
             
