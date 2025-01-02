@@ -380,8 +380,8 @@ class ControllerPlayer():
             else :
                 return 1
         else:
-            logs(self.player.name + " : Population is full", level=logging.INFO)
-        return -1
+            #logs(self.player.name + " : Population is full", level=logging.INFO)
+            return -1
     
     def trainArcher(self, building):
         archer = Archer()
@@ -393,8 +393,8 @@ class ControllerPlayer():
             else:
                 return 1
         else:
-            logs(self.player.name + " : Population is full", level=logging.INFO)
-        return -1
+            #logs(self.player.name + " : Population is full", level=logging.INFO)
+            return -1
 
     def trainHorseman(self, building):
         horseman = Horseman()
@@ -406,8 +406,8 @@ class ControllerPlayer():
             else :
                 return 1
         else:
-            logs(self.player.name + " : Population is full", level=logging.INFO)
-        return -1
+            #logs(self.player.name + " : Population is full", level=logging.INFO)
+            return -1
     
     def trainSwordsman(self, building):
         swordsman = Swordsman()
@@ -419,8 +419,8 @@ class ControllerPlayer():
             else :
                 return 1
         else:
-            logs(self.player.name + " : Population is full", level=logging.INFO)
-        return -1
+            #logs(self.player.name + " : Population is full", level=logging.INFO)
+            return -1
 
     def collectResources(self, villager, ressource):
         unit_x = villager.x
