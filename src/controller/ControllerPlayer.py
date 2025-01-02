@@ -481,6 +481,21 @@ class ControllerPlayer():
                     villager.action = None
                     self.queueCollect.remove(item)
 
+    def moveWithChemin(self, unit, chemin):
+        
+        if chemin is not None:
+            start = unit.getPosition()
+            end = chemin[len(chemin)-1]
+            
+            logs(self.player.name + " : " + str(unit) + " is moving", level=logging.INFO)
+            unit.action = "move"
+            start_time = time.time()
+            self.queueMoving.append({"unit": unit, "start_time": start_time, "chemin": chemin})
+            return 0
+        else:
+            logs(self.player.name + " : " + str(unit) + " No path found", level=logging.INFO)
+            return -1
+
     def move(self, unit, x, y):
         start = unit.getPosition()
         end = (x,y)
@@ -489,11 +504,13 @@ class ControllerPlayer():
         unit.action = "move"
         if chemin is None:
             logs(self.player.name + " : " + str(unit) + " No path found", level=logging.INFO)
+            return -1
         else:
             chemin.pop(0)
             #logs("Chemin : " + chemin.__str__(), level=logging.INFO)
             start_time = time.time()
             self.queueMoving.append({"unit": unit, "start_time": start_time, "chemin": chemin})
+            return 0
 
     def updating_moving(self):
         current_time = time.time()
@@ -539,8 +556,17 @@ class ControllerPlayer():
                             logs(self.player.name + " : " + str(unit) + " is arrived", level=logging.INFO)
                             unit.action = None
                         else:
-                            self.queueMoving.append({"unit": unit, "start_time": start_time, "chemin": chemin})
-    
+                            case = chemin[0]
+                            x = case[0]
+                            y = case[1]
+                            if self.cmap.map.is_free(x,y) and self.cmap.map.map[x][y] == " ":
+                                self.cmap.map.moveUnit(unit, x, y, self.player)
+                                chemin.pop(0)
+                                if len(chemin) > 0:
+                                    self.queueMoving.append({"unit": unit, "start_time": start_time, "chemin": chemin})
+                                else:
+                                    logs(self.player.name + " : " + str(unit) + " is arrived", level=logging.INFO)
+                                
     def depositResources(self, villager, target_deposit):
 
         villager_position = villager.getPosition()
