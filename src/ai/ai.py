@@ -45,21 +45,39 @@ class AI:
     def find_gold(self, villager):
         villager_x = villager.x
         villager_y = villager.y
-        radius = 1  # Commence avec un rayon de recherche de 1
+
+        radius = 1
+
+        target = None
 
         while radius <= max(self.game.map.size_map_x, self.game.map.size_map_y):
-            for x in range(villager_x - radius, villager_x + radius + 1):
+            for x in range(villager_x - radius, villager_y + radius + 1):
                 for y in range(villager_y - radius, villager_y + radius + 1):
-                    # Vérifie si (x, y) est dans les limites de la carte
                     if 0 <= x < self.game.map.size_map_x and 0 <= y < self.game.map.size_map_y:
-                        resource = self.game.map.mapRessources[x][y]
-                        if resource is not None and isinstance(resource, Gold):
-                            # Vérifie si au moins une case adjacente est libre
-                            if self.is_gold_accessible(resource):
-                                return resource
-            radius += 1  # Augmente le rayon de recherche
+                        ressource = self.game.map.mapRessources[x][y]
+                        if ressource is not None and self.game.map.map[x][y] == "G":
+                            
+                            adjacent_positions = [
+                                (ressource.x - 1, ressource.y),
+                                (ressource.x + 1, ressource.y),
+                                (ressource.x, ressource.y - 1),
+                                (ressource.x, ressource.y + 1),
+                            ]
 
-        return None  # Retourne None si aucun or accessible n'est trouvé
+                            for x, y in adjacent_positions:
+                                if 0 <= x < self.game.map.size_map_x and 0 <= y < self.game.map.size_map_y:
+                                    if self.game.map.map[x][y] == " ":
+                                        logs(self.cplayer.player.name + " :  Gold found", logging.INFO)
+                                        target = ressource, x, y
+                                        break
+                            if target is not None:
+                                break
+                if target is not None:
+                    break
+            if target is not None:
+                break
+            radius += 1
+        return target
 
     def find_deposit(self, villager, ressource):
 
@@ -101,7 +119,7 @@ class AI:
                         0 <= adj_y < self.game.map.size_map_y and
                         self.game.map.map[adj_x][adj_y] == " "  # Vérifie que la case est libre
                     ):
-                        logs(f"Case libre trouvée pour dépôt à ({adj_x}, {adj_y})", logging.INFO)
+                        #logs(f"Case libre trouvée pour dépôt à ({adj_x}, {adj_y})", logging.INFO)
                         chemin = A_Star.a_star(self.game.map, (villager.x, villager.y), (adj_x, adj_y))
                         if chemin is not None:
                             return (building, adj_x, adj_y, chemin)
@@ -119,7 +137,8 @@ class AI:
                 gold = self.find_gold(villager)
                 if gold is not None:
                     # Cherche une case libre adjacente à la ressource
-                    target_position = self.find_adjacent_free_tile(gold)
+                    target_position = gold[1], gold[2]
+                    gold = gold[0]
                     if target_position:
                         target_x, target_y = target_position
                         distance_x = abs(gold.getX() - villager.x)
@@ -430,10 +449,10 @@ class AI:
         
         
         if ((len(self.cplayer.player.units) + len(self.cplayer.player.training_queue))) == self.cplayer.player.population:
-            logs(self.cplayer.player.name + " :  Population is full (AI Information)", logging.INFO)
+            #logs(self.cplayer.player.name + " :  Population is full (AI Information)", logging.INFO)
             house = House()
             if self.cplayer.player.canAffordBuilding(house):
-                self.lstBuildingWaiting.append(house)
+                self.lstBuildingWaiting = [house] + self.lstBuildingWaiting
         
                     
         else:
