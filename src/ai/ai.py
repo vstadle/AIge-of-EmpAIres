@@ -250,7 +250,7 @@ class AI:
                 logs(self.cplayer.player.name + " : villager return to town center", logging.INFO)
                 self.cplayer.move(unit, target_deposit[0], target_deposit[1])
                 if ressource.capacity == 0:
-                    self.lstVillagerCollect.remove(unit)
+                    self.lstVillagerCollect.remove(item)
             elif unit.action is None and unit.x == target[0] and unit.y == target[1]:
                 self.cplayer.collectResources(unit, ressource)
             
@@ -428,7 +428,7 @@ class AI:
         self.verifCollectVillager()
 
         '''Vérification constructions des batiments'''
-        for building in self.lstBuildingWaiting:
+        '''for building in self.lstBuildingWaiting:
             if self.villager_is_available() is not None:
                 cpt_villager = self.count_villager_inactivity()
                 position = self.findPlaceForBuildings(building)
@@ -436,7 +436,7 @@ class AI:
                     check = self.cplayer.addBuilding(building, position[0], position[1])
                     if check == 0:
                         self.lstBuildingWaiting.remove(building)
-                    break
+                    break'''
 
         if self.cplayer.player.food < 200:
             farm = Farm()
