@@ -260,7 +260,7 @@ class ControllerPlayer():
                     self.player.getBuildingQueue().append({"building": building, "player": self.player, "start_time": time.time(), "buildingTime": buildingTime, 'lstVillagers': lstVillager, "x": x, "y": y})
                     return 0
             else:
-                logs(self.player.name + " : Building is too big", level=logging.INFO)
+                #logs(self.player.name + " : Building is too big", level=logging.INFO)
                 return -1    
 
     def update_building(self):
