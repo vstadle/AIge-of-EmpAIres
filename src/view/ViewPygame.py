@@ -398,6 +398,57 @@ class ViewPygame():
                                 (int(self.iso_tile_width * zoom_level),
                                 int(self.iso_tile_height * zoom_level))
                             )
+                        
+                        if isinstance(building, ArcheryRange):
+                            building_x, building_y = self.get_building_top_left(building)
+
+                            if self.is_main_tile(building_x, building_y, row, col):
+                                scaled_grass = pygame.transform.scale(self.ground_sprite,(int(self.iso_tile_width * zoom_level),int(self.iso_tile_height * zoom_level)))
+                                iso_surface.blit(scaled_grass, (iso_x - self.iso_tile_width // 2 * zoom_level, iso_y))
+                                sprite = self.archeryrange_sprite
+
+                                scaled_sprite = pygame.transform.scale(
+                                    sprite,
+                                    (int(self.iso_tile_width * 3 * zoom_level),
+                                    int(self.iso_tile_height * 3 * zoom_level))
+                                )
+                                
+                                iso_surface.blit(
+                                    scaled_sprite,
+                                    (iso_x - (self.iso_tile_width * zoom_level), 
+                                    iso_y - (self.iso_tile_height * 2 * zoom_level))
+                                )
+                            else:
+                                scaled_grass = pygame.transform.scale(
+                                self.ground_sprite,
+                                (int(self.iso_tile_width * zoom_level),
+                                int(self.iso_tile_height * zoom_level)))
+                                iso_surface.blit(scaled_grass, (iso_x - self.iso_tile_width // 2 * zoom_level, iso_y))
+                        if isinstance(building,Stable):
+                            building_x, building_y = self.get_building_top_left(building)
+
+                            if self.is_main_tile(building_x, building_y, row, col):
+                                scaled_grass = pygame.transform.scale(self.ground_sprite,(int(self.iso_tile_width * zoom_level),int(self.iso_tile_height * zoom_level)))
+                                iso_surface.blit(scaled_grass, (iso_x - self.iso_tile_width // 2 * zoom_level, iso_y))
+                                sprite = self.stable_sprite
+
+                                scaled_sprite = pygame.transform.scale(
+                                    sprite,
+                                    (int(self.iso_tile_width * 2.5 * zoom_level),
+                                    int(self.iso_tile_height * 2.5 * zoom_level))
+                                )
+                                
+                                iso_surface.blit(
+                                    scaled_sprite,
+                                    (iso_x - (self.iso_tile_width * zoom_level), 
+                                    iso_y - (self.iso_tile_height * 2 * zoom_level))
+                                )
+                            else:
+                                scaled_grass = pygame.transform.scale(
+                                self.ground_sprite,
+                                (int(self.iso_tile_width * zoom_level),
+                                int(self.iso_tile_height * zoom_level)))
+                                iso_surface.blit(scaled_grass, (iso_x - self.iso_tile_width // 2 * zoom_level, iso_y))
                         if isinstance(building, TownCenter):
                             building_x, building_y = self.get_building_top_left(building)
                             if self.is_main_tile(building_x, building_y, row, col):
@@ -461,56 +512,6 @@ class ViewPygame():
                                 (int(self.iso_tile_width * zoom_level),
                                 int(self.iso_tile_height * zoom_level))
                             )
-                        if isinstance(building, ArcheryRange):
-                            building_x, building_y = self.get_building_top_left(building)
-
-                            if self.is_main_tile(building_x, building_y, row, col):
-                                scaled_grass = pygame.transform.scale(self.ground_sprite,(int(self.iso_tile_width * zoom_level),int(self.iso_tile_height * zoom_level)))
-                                iso_surface.blit(scaled_grass, (iso_x - self.iso_tile_width // 2 * zoom_level, iso_y))
-                                sprite = self.archeryrange_sprite
-
-                                scaled_sprite = pygame.transform.scale(
-                                    sprite,
-                                    (int(self.iso_tile_width * 3 * zoom_level),
-                                    int(self.iso_tile_height * 3 * zoom_level))
-                                )
-                                
-                                iso_surface.blit(
-                                    scaled_sprite,
-                                    (iso_x - (self.iso_tile_width * zoom_level), 
-                                    iso_y - (self.iso_tile_height * 2 * zoom_level))
-                                )
-                            else:
-                                scaled_grass = pygame.transform.scale(
-                                self.ground_sprite,
-                                (int(self.iso_tile_width * zoom_level),
-                                int(self.iso_tile_height * zoom_level)))
-                                iso_surface.blit(scaled_grass, (iso_x - self.iso_tile_width // 2 * zoom_level, iso_y))
-                        if isinstance(building,Stable):
-                            building_x, building_y = self.get_building_top_left(building)
-
-                            if self.is_main_tile(building_x, building_y, row, col):
-                                scaled_grass = pygame.transform.scale(self.ground_sprite,(int(self.iso_tile_width * zoom_level),int(self.iso_tile_height * zoom_level)))
-                                iso_surface.blit(scaled_grass, (iso_x - self.iso_tile_width // 2 * zoom_level, iso_y))
-                                sprite = self.stable_sprite
-
-                                scaled_sprite = pygame.transform.scale(
-                                    sprite,
-                                    (int(self.iso_tile_width * 3 * zoom_level),
-                                    int(self.iso_tile_height * 3 * zoom_level))
-                                )
-                                
-                                iso_surface.blit(
-                                    scaled_sprite,
-                                    (iso_x - (self.iso_tile_width * zoom_level), 
-                                    iso_y - (self.iso_tile_height * 2 * zoom_level))
-                                )
-                            else:
-                                scaled_grass = pygame.transform.scale(
-                                self.ground_sprite,
-                                (int(self.iso_tile_width * zoom_level),
-                                int(self.iso_tile_height * zoom_level)))
-                                iso_surface.blit(scaled_grass, (iso_x - self.iso_tile_width // 2 * zoom_level, iso_y))
 
         max_scroll_x = map_surface_width - screen.get_width() + (self.iso_tile_width * zoom_level)
         max_scroll_y = map_surface_height - screen.get_height() + (self.iso_tile_height * zoom_level)
