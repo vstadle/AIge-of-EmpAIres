@@ -8,4 +8,4 @@ src/logs/*.log
 src/ai/__pycache__/*
 
 #On ignore les fichiers html
-*.html
+src/web/*.html
