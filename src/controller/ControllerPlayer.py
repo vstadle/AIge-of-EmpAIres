@@ -484,9 +484,6 @@ class ControllerPlayer():
     def moveWithChemin(self, unit, chemin):
         
         if chemin is not None:
-            start = unit.getPosition()
-            end = chemin[len(chemin)-1]
-            
             logs(self.player.name + " : " + str(unit) + " is moving", level=logging.INFO)
             unit.action = "move"
             start_time = time.time()

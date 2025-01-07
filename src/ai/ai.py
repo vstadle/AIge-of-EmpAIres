@@ -50,7 +50,7 @@ class AI:
 
         target = None
 
-        while radius <= max(self.game.map.size_map_x, self.game.map.size_map_y):
+        while (villager.x+radius) <= self.game.map.size_map_x and (villager_y+radius) <= self.game.map.size_map_y:
             for x in range(villager_x - radius, villager_y + radius + 1):
                 for y in range(villager_y - radius, villager_y + radius + 1):
                     if 0 <= x < self.game.map.size_map_x and 0 <= y < self.game.map.size_map_y:
@@ -170,6 +170,7 @@ class AI:
         if villager is not None:
             wood = self.find_wood(villager)
             if wood is not None:
+                chemin = wood[3]
                 target_position = wood[1], wood[2]
                 wood = wood[0]
                 
@@ -190,7 +191,7 @@ class AI:
                 if distance_x <= 1 and distance_y <= 1:
                     self.cplayer.collectResources(villager, wood)
                 else:
-                    self.cplayer.move(villager, target_position[0], target_position[1])
+                    self.cplayer.moveWithChemin(villager, chemin)
 
         return 0
 
@@ -200,9 +201,7 @@ class AI:
 
         radius = 1
 
-        target = None
-
-        while radius <= max(self.game.map.size_map_x, self.game.map.size_map_y):
+        while (villager.x+radius) <= self.game.map.size_map_x and (villager_y+radius) <= self.game.map.size_map_y:
             for x in range(villager_x - radius, villager_y + radius + 1):
                 for y in range(villager_y - radius, villager_y + radius + 1):
                     if 0 <= x < self.game.map.size_map_x and 0 <= y < self.game.map.size_map_y:
@@ -214,22 +213,21 @@ class AI:
                                 (ressource.x + 1, ressource.y),
                                 (ressource.x, ressource.y - 1),
                                 (ressource.x, ressource.y + 1),
+                                (ressource.x - 1, ressource.y - 1),
+                                (ressource.x + 1, ressource.y + 1),
+                                (ressource.x - 1, ressource.y + 1),
+                                (ressource.x + 1, ressource.y - 1),
                             ]
 
                             for x, y in adjacent_positions:
                                 if 0 <= x < self.game.map.size_map_x and 0 <= y < self.game.map.size_map_y:
                                     if self.game.map.map[x][y] == " ":
-                                        logs(self.cplayer.player.name + " :  Wood found", logging.INFO)
-                                        target = ressource, x, y
-                                        break
-                            if target is not None:
-                                break
-                if target is not None:
-                    break
-            if target is not None:
-                break
+                                        chemin = A_Star.a_star(self.game.map, (villager.x, villager.y), (x, y))
+                                        if chemin is not None:
+                                            logs(self.cplayer.player.name + " :  Wood found", logging.INFO)
+                                            return (ressource, x , y, chemin)
             radius += 1
-        return target
+        return None
 
     def verifCollectVillager(self):
         for item in self.lstVillagerCollect:
