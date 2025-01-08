@@ -10,7 +10,7 @@ class Game():
     
     
     def setGame(self,game):
-        self = game
+        self.game = game
 
     def setLstPlayer(self,lstPlayer):
         self.lstPlayer = lstPlayer

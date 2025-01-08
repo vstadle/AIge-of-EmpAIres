@@ -275,8 +275,8 @@ class ViewPygame():
         start_y = 0
 
 
-        for row in range(pos_x,end_x):
-            for col in range(pos_y,end_y):
+        for row in range(self.map_height):
+            for col in range(self.map_width):
                 iso_x = start_x + (col - row) * self.iso_tile_width // 2 * zoom_level
                 iso_y = start_y + (col + row) * self.iso_tile_height // 2 * zoom_level
 
