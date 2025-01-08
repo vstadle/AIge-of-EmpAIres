@@ -15,7 +15,7 @@ from model.TownCenter import TownCenter
 
 class ViewPygame():
     def __init__(self, map):
-        self.FPS = 60
+        self.FPS = 360
         self.clock = pygame.time.Clock()
         self.map = map
         self.update_window_size()
@@ -250,7 +250,6 @@ class ViewPygame():
 
 
     def draw_map_2_5D(self, screen, pos_x, pos_y, zoom_level):
-        self.clock.tick(self.FPS)
         
         for event in pygame.event.get(pygame.VIDEORESIZE):
             self.screen_width = event.w
@@ -264,7 +263,12 @@ class ViewPygame():
         map_surface_height = (self.map_width + self.map_height) * self.iso_tile_height // 2 * zoom_level
         iso_surface = pygame.Surface((map_surface_width, map_surface_height))
         iso_surface.fill(self.BLACK)
-        
+
+        nbtuile_visible_x = screen.get_width() // self.iso_tile_width // zoom_level
+        nbtuile_visible_y = screen.get_height() // self.iso_tile_height // zoom_level
+
+
+
         diamond_left = self.map_height * self.iso_tile_width // 2 * zoom_level
         diamond_top = 0
         diamond_width = self.map_width * self.iso_tile_width // 2 * zoom_level
@@ -272,10 +276,15 @@ class ViewPygame():
         start_x = diamond_left
         start_y = 0
 
+
         for row in range(self.map_height):
             for col in range(self.map_width):
                 iso_x = start_x + (col - row) * self.iso_tile_width // 2 * zoom_level
                 iso_y = start_y + (col + row) * self.iso_tile_height // 2 * zoom_level
+
+                if (iso_x - self.iso_tile_width*pos_x > screen.get_width()) or (iso_y - self.iso_tile_height*pos_y > screen.get_height() or iso_x - self.iso_tile_width*pos_x < -self.iso_tile_width*zoom_level) or (iso_y - self.iso_tile_height*pos_y < -self.iso_tile_height*zoom_level):
+                    continue
+
 
                 if (iso_x >= diamond_left - diamond_width and 
                     iso_x <= diamond_left + diamond_width and
@@ -523,8 +532,7 @@ class ViewPygame():
                     (view_x, view_y, 
                     screen.get_width(), 
                     screen.get_height()))
-        
-        self.draw_minimap(screen, view_x, view_y, zoom_level)    
+          
         self.display_fps(screen)
         pygame.display.flip()
 
@@ -551,7 +559,7 @@ class ViewPygame():
         fps = str(int(self.clock.get_fps()))
         fps_text = self.font.render(fps, True, self.WHITE)
         screen.blit(fps_text, (10, 10))
-        self.clock.tick(60)
+        self.clock.tick(360)
 
     def scale_sprite(self, sprite):
         """Scale a sprite while maintaining aspect ratio"""
