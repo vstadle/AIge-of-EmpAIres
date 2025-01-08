@@ -15,7 +15,7 @@ from model.TownCenter import TownCenter
 
 class ViewPygame():
     def __init__(self, map):
-        self.FPS = 60
+        self.FPS = 120
         self.clock = pygame.time.Clock()
         self.map = map
         self.update_window_size()
@@ -56,11 +56,10 @@ class ViewPygame():
         self.BROWN = (127, 42, 42)
         self.BLUE = (135, 206, 250)
         self.RED = (255, 0, 0)
-        self.load_sprite()
         self.load_tree_sprites()
         self.load_gold_sprites()
         self.load_villager_sprites()
-        self.ground_sprite = self.load_sprite()
+        self.ground_sprite = self.load_grass_sprite()
         self.barracks_sprite = self.load_barracks_sprite()
         self.archeryrange_sprite = self.load_archeryrange_sprite()
         self.stable_sprite = self.load_stable_sprite()
@@ -73,15 +72,13 @@ class ViewPygame():
         self.clock = pygame.time.Clock()
         self.font = pygame.font.SysFont(None, 24)
 
-    def load_sprite(self):
+    def load_grass_sprite(self):
         current_dir = os.path.dirname(os.path.abspath(__file__))
         project_root = os.path.dirname(os.path.dirname(current_dir))
-        sprite_path = os.path.join(project_root, "Sprite_aoe", "miscellaneous","grass2.png")
+        sprite_path = os.path.join(project_root, "Sprite_aoe", "miscellaneous","grass2.webp")
         
         ground_sprite = pygame.image.load(sprite_path).convert_alpha()
-        ground_sprite = pygame.transform.smoothscale(ground_sprite,
-                                                  (int(self.iso_tile_width),
-                                                   int(self.iso_tile_height)))
+        
         return ground_sprite
     def load_gold_sprites(self):
         current_dir = os.path.dirname(os.path.abspath(__file__))
@@ -95,6 +92,7 @@ class ViewPygame():
                 sprite = pygame.image.load(sprite_path).convert()
                 sprite.set_colorkey((255, 0, 255))
                 self.gold_sprites.append(sprite)
+
     def load_towncenterleft_sprite(self):
         current_dir = os.path.dirname(os.path.abspath(__file__))
         project_root = os.path.dirname(os.path.dirname(current_dir))
@@ -108,15 +106,14 @@ class ViewPygame():
         towncenterright_path = os.path.join(project_root, "Sprite_aoe", "towncenter","Towncenterright14.png")
         towncenterright = pygame.image.load(towncenterright_path).convert_alpha()
         return towncenterright
+
     def load_towncentermiddle_sprite(self):
         current_dir = os.path.dirname(os.path.abspath(__file__))
         project_root = os.path.dirname(os.path.dirname(current_dir))
         towncentermiddle_path = os.path.join(project_root, "Sprite_aoe", "towncenter","Towncentermiddle14.png")
         towncentermiddle = pygame.image.load(towncentermiddle_path).convert_alpha()
         return towncentermiddle
-    
-
-        
+            
     def load_tree_sprites(self):
         current_dir = os.path.dirname(os.path.abspath(__file__))
         project_root = os.path.dirname(os.path.dirname(current_dir))
@@ -251,7 +248,10 @@ class ViewPygame():
 
     def draw_map_2_5D(self, screen, pos_x, pos_y, zoom_level):
         self.clock.tick(self.FPS)
-        
+        nb_tiles_x = self.screen_height // self.TILE_SIZE
+        nb_tiles_y = self.screen_width // self.TILE_SIZE
+        end_x = pos_x + nb_tiles_x
+        end_y = pos_y + nb_tiles_y
         for event in pygame.event.get(pygame.VIDEORESIZE):
             self.screen_width = event.w
             self.screen_height = event.h
@@ -272,8 +272,8 @@ class ViewPygame():
         start_x = diamond_left
         start_y = 0
 
-        for row in range(self.map_height):
-            for col in range(self.map_width):
+        for row in range(pos_x,end_x):
+            for col in range(pos_y,end_y):
                 iso_x = start_x + (col - row) * self.iso_tile_width // 2 * zoom_level
                 iso_y = start_y + (col + row) * self.iso_tile_height // 2 * zoom_level
 
@@ -313,10 +313,13 @@ class ViewPygame():
                         tree_sprite = self.tree_positions[(row, col)]
                         scaled_tree_sprite = pygame.transform.scale(
                             tree_sprite,
-                            (int(self.iso_tile_width * zoom_level),
-                            int(self.iso_tile_height * zoom_level))
+                            (int(self.iso_tile_width *1.25* zoom_level),
+                            int(self.iso_tile_height *1.82* zoom_level))
                         )
-                        iso_surface.blit(scaled_tree_sprite, (iso_x - self.iso_tile_width // 2 * zoom_level, iso_y))
+                        iso_surface.blit(scaled_tree_sprite, 
+                        (iso_x - self.iso_tile_width // 2 * zoom_level,
+                         iso_y - (self.iso_tile_height * 2 * zoom_level)))
+                        iso_surface.blit(scaled_tree_sprite, (iso_x - self.iso_tile_width // 2 * zoom_level,iso_y - (self.iso_tile_height // 2 * zoom_level)))
                     elif cell_content == 'T':
                         scaled_sprite = pygame.transform.scale(
                             self.ground_sprite,
@@ -364,7 +367,7 @@ class ViewPygame():
                         scaled_villager_sprite = pygame.transform.scale(
                             villager_sprite,
                             (int(self.iso_tile_width * zoom_level),
-                            int(self.iso_tile_height * zoom_level))
+                            int(self.iso_tile_height *2* zoom_level))
                         )
                         iso_surface.blit(scaled_villager_sprite, (iso_x - self.iso_tile_width // 2 * zoom_level, iso_y))
                     else:
@@ -384,13 +387,13 @@ class ViewPygame():
                                 scaled_sprite = pygame.transform.scale(
                                     sprite,
                                     (int(self.iso_tile_width * 3 * zoom_level),
-                                    int(self.iso_tile_height * 3 * zoom_level))
+                                    int(self.iso_tile_height * 6 * zoom_level))
                                 )
                                 
                                 iso_surface.blit(
                                     scaled_sprite,
-                                    (iso_x - (self.iso_tile_width * zoom_level), 
-                                    iso_y - (self.iso_tile_height * 2 * zoom_level))
+                                    (iso_x - (self.iso_tile_width *1.5* zoom_level), 
+                                    iso_y - (self.iso_tile_height * 5 * zoom_level))
                                 )
                             else:
                                 scaled_grass = pygame.transform.scale(
@@ -524,7 +527,7 @@ class ViewPygame():
                     screen.get_width(), 
                     screen.get_height()))
         
-        self.draw_minimap(screen, view_x, view_y, zoom_level)    
+        self.draw_minimap(screen, view_x, view_y, zoom_level)
         self.display_fps(screen)
         pygame.display.flip()
 
@@ -553,22 +556,12 @@ class ViewPygame():
         screen.blit(fps_text, (10, 10))
         self.clock.tick(60)
 
-    def scale_sprite(self, sprite):
-        """Scale a sprite while maintaining aspect ratio"""
-        sprite = pygame.transform.scale2x(sprite)
-        original_width, original_height = sprite.get_size()
-        aspect_ratio = original_width / original_height
-        
-        # Base size on tile dimensions
-        target_height = int(self.iso_tile_height * 3)  # Pour un bâtiment de 3x3 tiles
-        target_width = int(target_height * aspect_ratio)
-        
-        return pygame.transform.smoothscale(sprite, (target_width, target_height))
+    
 
     def load_barracks_sprite(self):
         current_dir = os.path.dirname(os.path.abspath(__file__))
         project_root = os.path.dirname(os.path.dirname(current_dir))
-        barracks_path = os.path.join(project_root, "Sprite_aoe", "buildings","barracks.bmp")
+        barracks_path = os.path.join(project_root, "Sprite_aoe", "buildings","barracks.png")
         sprite = pygame.image.load(barracks_path).convert()
         sprite.set_colorkey((255, 0, 255))
         return sprite
