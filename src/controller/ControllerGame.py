@@ -141,7 +141,7 @@ class ControllerGame():
                     cplayer.update_training()
                     cplayer.update_building()
 
-            clock.tick(60)
+            #clock.tick(60)
 
     def toggle_pause(self):
         self.paused = not self.paused
