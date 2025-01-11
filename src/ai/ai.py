@@ -432,7 +432,7 @@ class AI:
         self.verifCollectVillager()
 
         '''Vérification constructions des batiments'''
-        '''for building in self.lstBuildingWaiting:
+        for building in self.lstBuildingWaiting:
             if self.villager_is_available() is not None:
                 cpt_villager = self.count_villager_inactivity()
                 position = self.findPlaceForBuildings(building)
@@ -440,7 +440,7 @@ class AI:
                     check = self.cplayer.addBuilding(building, position[0], position[1])
                     if check == 0:
                         self.lstBuildingWaiting.remove(building)
-                    break'''
+                    break
 
         if self.cplayer.player.food < 200:
             farm = Farm()
