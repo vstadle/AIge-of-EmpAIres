@@ -160,7 +160,7 @@ class ControllerGame():
                     cplayer.update_training()
                     cplayer.update_building()
     
-            self.clock.tick(150)  # Limité à 150 FPS
+            self.clock.tick(200)  # Limité à 150 FPS
         # Cleanup après la boucle
         pygame.quit()
         sys.exit()

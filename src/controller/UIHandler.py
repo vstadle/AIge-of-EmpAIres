@@ -189,7 +189,7 @@ class UIHandler():
                             load_game_active = False
                             
 
-            clock.tick(150)
+            clock.tick(200)
 
     def start(self):
         self.controllerGame.run()

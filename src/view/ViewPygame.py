@@ -716,6 +716,11 @@ class ViewPygame:
         return world
 
     def draw_map_2_5D(self):
+        # Optimisation : stocker les références aux fonctions fréquemment utilisées
+        _min = min
+        _max = max
+        _int = int
+        
         self.screen.fill((0, 0, 0))
         self.camera.handle_input()
         
@@ -729,63 +734,70 @@ class ViewPygame:
         # Liste pour le tri en Z
         render_list = []
         
-        # Optimisation: Utiliser un cache pour les positions de rendu fréquemment utilisées
-        cache_key = (self.camera.scroll.x, self.camera.scroll.y)
-        if cache_key not in self._render_positions_cache:
-            self._render_positions_cache = {}  # Vider le cache si la caméra a bougé
+        # Optimisation : pré-charger les maps
+        game_map = self.map.getMap()
+        buildings_map = self.map.get_map_buildings()
+        
+        # Optimisation : stocker la largeur de la grass_tiles
+        grass_width_half = self.grass_tiles.get_width()/2
         
         for x in range(self.grid_length_x):
             for y in range(self.grid_length_y):
                 render_pos = self.world[x][y]["render_pos"]
-                screen_x = render_pos[0] + self.grass_tiles.get_width()/2 + self.camera.scroll.x
+                screen_x = render_pos[0] + grass_width_half + self.camera.scroll.x
                 screen_y = render_pos[1] + self.camera.scroll.y
                 
-                # Vérification de la visibilité
+                # Vérification de la visibilité avec marges pour la vue isométrique
                 if (-margin_x <= screen_x <= self.width + margin_x and 
                     -margin_y <= screen_y <= self.height + margin_y):
                     
-                    cell_content = self.map.getMap()[y][x]
-                    building = self.map.get_map_buildings()[y][x]
+                    cell_content = game_map[y][x]
+                    building = buildings_map[y][x]
                     
                     # Ajouter les éléments visibles à la liste de rendu
                     if cell_content == 'W':
+                        tree = self.tiles["tree"]
                         render_list.append((
                             screen_y,
-                            (self.tiles["tree"], 
-                             (screen_x, screen_y - self.tiles["tree"].get_height() + self.TILE_SIZE - 20))
+                            (tree, 
+                            (screen_x, screen_y - tree.get_height() + self.TILE_SIZE - 20))
                         ))
                     elif cell_content == 'G':
+                        gold = self.tiles["gold"]
                         render_list.append((
                             screen_y,
-                            (self.tiles["gold"], 
-                             (screen_x, screen_y - (self.tiles["gold"].get_height() - self.TILE_SIZE) / 2))
+                            (gold, 
+                            (screen_x, screen_y - (gold.get_height() - self.TILE_SIZE) / 2))
                         ))
                     elif cell_content == 'v':
                         render_list.append((
                             screen_y + self.TILE_SIZE,
                             (self.cached_sprites['villager'],
-                             (screen_x - self.TILE_SIZE//2+self.TILE_SIZE, 
-                              screen_y - self.TILE_SIZE//2+10))
+                            (screen_x - self.TILE_SIZE//2 + self.TILE_SIZE, 
+                            screen_y - self.TILE_SIZE//2 + 10))
                         ))
-                    # Gestion des bâtiments avec vérification d'adjacence optimisée
+                    
+                    # Gestion des bâtiments
                     if building:
                         self._add_building_to_render_list(
                             building, x, y, screen_x, screen_y, render_list
                         )
-                    
         
         # Trier et dessiner les éléments
-        for _, (sprite, pos) in sorted(render_list, key=lambda x: x[0]):
-            self.screen.blit(sprite, pos)
+        if render_list:
+            for _, (sprite, pos) in sorted(render_list, key=lambda x: x[0]):
+                self.screen.blit(sprite, pos)
         
         # UI elements
-        self.draw_text(
-            self.screen,
-            f'FPS: {int(self.clock.get_fps())}',
-            25,
-            (255, 255, 255),
-            (10, 10)
+        if not hasattr(self, 'fps_font'):
+            self.fps_font = pygame.font.SysFont(None, 25)
+        
+        fps_text = self.fps_font.render(
+            f'FPS: {_int(self.clock.get_fps())}',
+            True,
+            (255, 255, 255)
         )
+        self.screen.blit(fps_text, (10, 10))
         
         self.draw_minimap()
         self.draw_player_info()
@@ -884,7 +896,15 @@ class ViewPygame:
     def create_static_minimap(self):
         """Crée la partie statique de la minimap une seule fois"""
         minimap_size = self.minimap_base.get_height()
-        
+        self.minimap_colors = {
+        'W': (9, 82, 40),
+        'G': (255, 215, 0),
+        'default': (0, 128, 0),
+        'TownCenter': (0, 0, 255),
+        'Barracks': (255, 0, 0),
+        'Stable': (128, 128, 128),
+        'ArcheryRange': (0, 128, 255)
+        }
         # Fond noir semi-transparent
         pygame.draw.rect(self.minimap_base, (0, 0, 0, 128), (0, 0, self.minimap_base.get_width(), minimap_size))
         
@@ -920,18 +940,18 @@ class ViewPygame:
                 
                 color = (0, 128, 0)  # Couleur par défaut
                 if cell_content == 'W':
-                    color = (9, 82, 40)
+                    color = self.minimap_colors['W']
                 elif cell_content == 'G':
-                    color = (255, 215, 0)
+                    color = self.minimap_colors['G']
                 elif building is not None:
                     if isinstance(building, TownCenter):
-                        color = (0, 0, 255)
+                        color = self.minimap_colors['TownCenter']
                     elif isinstance(building, Barracks):
-                        color = (255, 0, 0)
+                        color = self.minimap_colors['Barracks']
                     elif isinstance(building,Stable):
-                        color = (128,128,128)
+                        color = self.minimap_colors['Stable']
                     elif isinstance(building,ArcheryRange):
-                        color = (0,128,255)
+                        color = self.minimap_colors['ArcheryRange']
                     
                 
                 points = [
