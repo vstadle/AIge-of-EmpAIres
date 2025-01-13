@@ -663,7 +663,8 @@ class ViewPygame:
             "gold": os.path.join(project_root, "Sprite_aoe/gold/GoldMine002.png"),
             "archeryrange": os.path.join(project_root, "Sprite_aoe/buildings/archery_range.png"),
             "stable": os.path.join(project_root, "Sprite_aoe/buildings/Stable.png"),
-            "farm": os.path.join(project_root, "Sprite_aoe/buildings/farm.png")
+            "farm": os.path.join(project_root, "Sprite_aoe/buildings/farm.png"),
+            "villager": os.path.join(project_root, "Sprite_aoe/villager/standard_male/StandGround/Villagerstand001.png")
         }
         
         return {name: pygame.image.load(path).convert_alpha() 
@@ -691,6 +692,10 @@ class ViewPygame:
             'farm': pygame.transform.scale(
                 self.tiles["farm"],
                 (5 * self.TILE_SIZE, 5 * self.TILE_SIZE)
+            ),
+            'villager': pygame.transform.scale(
+                self.tiles["villager"],
+                (self.TILE_SIZE, self.TILE_SIZE)  # Taille 1x1 pour le villageois
             ),
         }
 
@@ -755,12 +760,19 @@ class ViewPygame:
                             (self.tiles["gold"], 
                              (screen_x, screen_y - (self.tiles["gold"].get_height() - self.TILE_SIZE) / 2))
                         ))
-                    
+                    elif cell_content == 'v':
+                        render_list.append((
+                            screen_y + self.TILE_SIZE,
+                            (self.cached_sprites['villager'],
+                             (screen_x - self.TILE_SIZE//2+self.TILE_SIZE, 
+                              screen_y - self.TILE_SIZE//2+10))
+                        ))
                     # Gestion des bâtiments avec vérification d'adjacence optimisée
                     if building:
                         self._add_building_to_render_list(
                             building, x, y, screen_x, screen_y, render_list
                         )
+                    
         
         # Trier et dessiner les éléments
         for _, (sprite, pos) in sorted(render_list, key=lambda x: x[0]):
@@ -783,7 +795,7 @@ class ViewPygame:
         if isinstance(building, TownCenter):
             if (y == 0 or not isinstance(self.map.get_map_buildings()[y - 1][x], TownCenter)) and \
                (x == 0 or not isinstance(self.map.get_map_buildings()[y][x - 1], TownCenter)):
-                sprite_x = screen_x - self.cached_sprites['towncenter'].get_width()//2 +self.TILE_SIZE
+                sprite_x = screen_x - self.cached_sprites['towncenter'].get_width()//2 + 1.5*self.TILE_SIZE
                 sprite_y = screen_y - self.cached_sprites['towncenter'].get_height() + 2.7 * self.TILE_SIZE
                 render_list.append((
                     screen_y + self.TILE_SIZE * 4,
@@ -792,7 +804,7 @@ class ViewPygame:
         elif isinstance(building, Barracks):
             if (y == 0 or not isinstance(self.map.get_map_buildings()[y - 1][x], Barracks)) and \
                (x == 0 or not isinstance(self.map.get_map_buildings()[y][x - 1], Barracks)):
-                sprite_x = screen_x - self.cached_sprites['barracks'].get_width()//2 +2* self.TILE_SIZE
+                sprite_x = screen_x - self.cached_sprites['barracks'].get_width()//2 + self.TILE_SIZE
                 sprite_y = screen_y - self.cached_sprites['barracks'].get_height()//2 +0.5*self.TILE_SIZE
                 render_list.append((
                     screen_y + self.TILE_SIZE * 2,
