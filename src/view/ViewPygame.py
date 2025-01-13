@@ -1,18 +1,7 @@
-import pygame
-import sys
-import os
-import random
-from model.Farm import Farm
-from model.Keep import Keep
-from model.Barracks import Barracks
-from model.ArcheryRange import ArcheryRange
-from model.Stable import Stable
-from model.House import House
-from model.Camp import Camp
-from model.TownCenter import TownCenter
 
 
 
+'''
 class ViewPygame():
     def __init__(self, map):
         self.FPS = 360
@@ -139,7 +128,8 @@ class ViewPygame():
                 sprite = pygame.image.load(sprite_path).convert()
                 sprite.set_colorkey((255, 0, 255))
                 self.villager_sprites.append(sprite)
-    '''    
+    '''  
+'''  
     def draw_map(self, screen, pos_x, pos_y):
         screen.fill(self.WHITE)
         for row in range(self.GRID_HEIGHT):
@@ -154,7 +144,8 @@ class ViewPygame():
                         text_surface = self.font.render(self.map.getMap()[map_row][map_col], True, self.BLACK)
                         screen.blit(text_surface, (x + self.TILE_SIZE // 4, y + self.TILE_SIZE // 4))
         pygame.display.flip()
-    '''
+'''
+'''
 
     def update_window_size(self):
         display_info = pygame.display.Info()
@@ -602,6 +593,471 @@ class ViewPygame():
             for col in range(len(self.mapBuildings[row])):
                 if self.mapBuildings[row][col] == building:
                     return col, row
-        return None, None  # Si non trouvé
+        return None, None  # Si non trouvé'''
+import pygame
+import sys
+import os
+import random
+from model.Farm import Farm
+from model.Keep import Keep
+from model.Barracks import Barracks
+from model.ArcheryRange import ArcheryRange
+from model.Stable import Stable
+from model.House import House
+from model.Camp import Camp
+from model.TownCenter import TownCenter
+from view.Camera import Camera
+
+
+class ViewPygame:
+    # Constantes de classe
+        
+    
+    def __init__(self, grid_length_x, grid_length_y, width, height, screen, game_map, clock, game):
+        pygame.init()
+        self.game = game
+        self.show_player_info = False
+        self.panel_surface = None
+        self.panel_rect = None
+        self.clock = clock
+        self.map = game_map
+        self.grid_length_x = grid_length_x
+        self.grid_length_y = grid_length_y
+        self.TILE_SIZE = 64
+        self.width = width
+        self.height = height
+        self.screen = screen
+        self.camera = Camera(self.width, self.height, self.grid_length_x, self.grid_length_y)
+        
+        # Créer la surface de fond une seule fois
+        self.grass_tiles = pygame.Surface(
+            (grid_length_x * self.TILE_SIZE * 2, (grid_length_y+2) * self.TILE_SIZE)
+        ).convert_alpha()
+        
+        # Charger et mettre en cache tous les sprites au démarrage
+        self.tiles = self._load_images()
+        self.cached_sprites = self._precache_all_sprites()
+        
+        # Initialiser la minimap
+        minimap_size = min(self.width, self.height) // 5
+        self.minimap_base = pygame.Surface((minimap_size * 2, minimap_size), pygame.SRCALPHA).convert_alpha()
+        self.create_static_minimap()
+        
+        # Créer le monde une seule fois
+        self.world = self._create_world()
+        self.initialize_player_panel()
+        
+        # Cache pour les positions de rendu (optimisation)
+        self._render_positions_cache = {}
+    
+    def _load_images(self):
+        current_dir = os.path.dirname(os.path.abspath(__file__))
+        project_root = os.path.dirname(os.path.dirname(current_dir))
+        
+        SPRITE_PATHS = {
+            "block": os.path.join(project_root, "Sprite_aoe/miscellaneous/block.png"),
+            "tree": os.path.join(project_root, "Sprite_aoe/miscellaneous/tree.png"),
+            "rock": os.path.join(project_root, "Sprite_aoe/miscellaneous/rock.png"),
+            "towncenter": os.path.join(project_root, "Sprite_aoe/buildings/town_center.webp"),
+            "barracks": os.path.join(project_root, "Sprite_aoe/buildings/barracks.png"),
+            "gold": os.path.join(project_root, "Sprite_aoe/gold/GoldMine002.png"),
+            "archeryrange": os.path.join(project_root, "Sprite_aoe/buildings/archery_range.png"),
+            "stable": os.path.join(project_root, "Sprite_aoe/buildings/Stable.png"),
+            "farm": os.path.join(project_root, "Sprite_aoe/buildings/farm.png")
+        }
+        
+        return {name: pygame.image.load(path).convert_alpha() 
+                for name, path in SPRITE_PATHS.items()}
+    
+    def _precache_all_sprites(self):
+        """Pré-redimensionne tous les sprites nécessaires"""
+        return {
+            'towncenter': pygame.transform.scale(
+                self.tiles["towncenter"], 
+                (8 * self.TILE_SIZE, 4 * self.TILE_SIZE)
+            ),
+            'barracks': pygame.transform.scale(
+                self.tiles["barracks"], 
+                (int(4.5 * self.TILE_SIZE), int(4.5 * self.TILE_SIZE))
+            ),
+            'archeryrange':pygame.transform.scale(
+                self.tiles["archeryrange"], 
+                (5 * self.TILE_SIZE, 5 * self.TILE_SIZE)
+            ),
+            'stable': pygame.transform.scale(
+            self.tiles["stable"], 
+            (5 * self.TILE_SIZE, 5 * self.TILE_SIZE)
+            ),
+            'farm': pygame.transform.scale(
+                self.tiles["farm"],
+                (5 * self.TILE_SIZE, 5 * self.TILE_SIZE)
+            ),
+        }
+
+    def _create_world(self):
+        world = []
+        for grid_x in range(self.grid_length_x):
+            world.append([])
+            for grid_y in range(self.grid_length_y):
+                world_tile = self.grid_to_world(grid_x, grid_y)
+                world[grid_x].append(world_tile)
+                
+                # Dessiner l'herbe de base
+                render_pos = world_tile["render_pos"]
+                self.grass_tiles.blit(
+                    self.tiles["block"],
+                    (render_pos[0] + self.grass_tiles.get_width()/2, render_pos[1])
+                )
+        return world
+
+    def draw_map_2_5D(self):
+        self.screen.fill((0, 0, 0))
+        self.camera.handle_input()
+        
+        # Dessiner le fond d'herbe
+        self.screen.blit(self.grass_tiles, (self.camera.scroll.x, self.camera.scroll.y))
+        
+        # Calculer les marges pour la visibilité
+        margin_x = self.width // 2
+        margin_y = self.height // 2
+        
+        # Liste pour le tri en Z
+        render_list = []
+        
+        # Optimisation: Utiliser un cache pour les positions de rendu fréquemment utilisées
+        cache_key = (self.camera.scroll.x, self.camera.scroll.y)
+        if cache_key not in self._render_positions_cache:
+            self._render_positions_cache = {}  # Vider le cache si la caméra a bougé
+        
+        for x in range(self.grid_length_x):
+            for y in range(self.grid_length_y):
+                render_pos = self.world[x][y]["render_pos"]
+                screen_x = render_pos[0] + self.grass_tiles.get_width()/2 + self.camera.scroll.x
+                screen_y = render_pos[1] + self.camera.scroll.y
+                
+                # Vérification de la visibilité
+                if (-margin_x <= screen_x <= self.width + margin_x and 
+                    -margin_y <= screen_y <= self.height + margin_y):
+                    
+                    cell_content = self.map.getMap()[y][x]
+                    building = self.map.get_map_buildings()[y][x]
+                    
+                    # Ajouter les éléments visibles à la liste de rendu
+                    if cell_content == 'W':
+                        render_list.append((
+                            screen_y,
+                            (self.tiles["tree"], 
+                             (screen_x, screen_y - self.tiles["tree"].get_height() + self.TILE_SIZE - 20))
+                        ))
+                    elif cell_content == 'G':
+                        render_list.append((
+                            screen_y,
+                            (self.tiles["gold"], 
+                             (screen_x, screen_y - (self.tiles["gold"].get_height() - self.TILE_SIZE) / 2))
+                        ))
+                    
+                    # Gestion des bâtiments avec vérification d'adjacence optimisée
+                    if building:
+                        self._add_building_to_render_list(
+                            building, x, y, screen_x, screen_y, render_list
+                        )
+        
+        # Trier et dessiner les éléments
+        for _, (sprite, pos) in sorted(render_list, key=lambda x: x[0]):
+            self.screen.blit(sprite, pos)
+        
+        # UI elements
+        self.draw_text(
+            self.screen,
+            f'FPS: {int(self.clock.get_fps())}',
+            25,
+            (255, 255, 255),
+            (10, 10)
+        )
+        
+        self.draw_minimap()
+        self.draw_player_info()
+
+    def _add_building_to_render_list(self, building, x, y, screen_x, screen_y, render_list):
+        #Méthode auxiliaire pour ajouter les bâtiments à la liste de rendu
+        if isinstance(building, TownCenter):
+            if (y == 0 or not isinstance(self.map.get_map_buildings()[y - 1][x], TownCenter)) and \
+               (x == 0 or not isinstance(self.map.get_map_buildings()[y][x - 1], TownCenter)):
+                sprite_x = screen_x - self.cached_sprites['towncenter'].get_width()//2 +self.TILE_SIZE
+                sprite_y = screen_y - self.cached_sprites['towncenter'].get_height() + 2.7 * self.TILE_SIZE
+                render_list.append((
+                    screen_y + self.TILE_SIZE * 4,
+                    (self.cached_sprites['towncenter'], (sprite_x, sprite_y))
+                ))
+        elif isinstance(building, Barracks):
+            if (y == 0 or not isinstance(self.map.get_map_buildings()[y - 1][x], Barracks)) and \
+               (x == 0 or not isinstance(self.map.get_map_buildings()[y][x - 1], Barracks)):
+                sprite_x = screen_x - self.cached_sprites['barracks'].get_width()//2 +2* self.TILE_SIZE
+                sprite_y = screen_y - self.cached_sprites['barracks'].get_height()//2 +0.5*self.TILE_SIZE
+                render_list.append((
+                    screen_y + self.TILE_SIZE * 2,
+                    (self.cached_sprites['barracks'], (sprite_x, sprite_y))
+                ))
+        elif isinstance(building, ArcheryRange):
+            if (y == 0 or not isinstance(self.map.get_map_buildings()[y - 1][x], ArcheryRange)) and \
+            (x == 0 or not isinstance(self.map.get_map_buildings()[y][x - 1], ArcheryRange)):  # Corrigé la vérification
+                sprite_x = screen_x - self.cached_sprites['archeryrange'].get_width()//2 + 1.5*self.TILE_SIZE
+                sprite_y = screen_y - self.cached_sprites['archeryrange'].get_height()//2+0.5*self.TILE_SIZE
+                render_list.append((
+                    screen_y + self.TILE_SIZE * 2,
+                    (self.cached_sprites['archeryrange'], (sprite_x, sprite_y))
+                ))
+        elif isinstance(building, Stable):
+            if (y == 0 or not isinstance(self.map.get_map_buildings()[y - 1][x], Stable)) and \
+            (x == 0 or not isinstance(self.map.get_map_buildings()[y][x - 1], Stable)):
+                sprite_x = screen_x - self.cached_sprites['stable'].get_width()//2 + self.TILE_SIZE
+                sprite_y = screen_y - self.cached_sprites['stable'].get_height()//2 + 0.5*self.TILE_SIZE
+                render_list.append((
+                    screen_y + self.TILE_SIZE * 2,
+                    (self.cached_sprites['stable'], (sprite_x, sprite_y))
+                ))
+        elif isinstance(building, Farm):  # Ajout de la condition pour la ferme
+            if (y == 0 or not isinstance(self.map.get_map_buildings()[y - 1][x], Farm)) and \
+            (x == 0 or not isinstance(self.map.get_map_buildings()[y][x - 1], Farm)):
+                sprite_x = screen_x - self.cached_sprites['farm'].get_width()//2 + self.TILE_SIZE
+                sprite_y = screen_y - self.cached_sprites['farm'].get_height()//2 + 0.5*self.TILE_SIZE
+                render_list.append((
+                    screen_y + self.TILE_SIZE * 2,
+                    (self.cached_sprites['farm'], (sprite_x, sprite_y))
+                ))
+
+
+    def grid_to_world(self, grid_x, grid_y):
+        # Calculer les coordonnées cartésiennes de la tuile
+        rect = [
+            (grid_x * self.TILE_SIZE, grid_y * self.TILE_SIZE),
+            (grid_x * self.TILE_SIZE + self.TILE_SIZE, grid_y * self.TILE_SIZE),
+            (grid_x * self.TILE_SIZE + self.TILE_SIZE, grid_y * self.TILE_SIZE + self.TILE_SIZE),
+            (grid_x * self.TILE_SIZE, grid_y * self.TILE_SIZE + self.TILE_SIZE)
+        ]
+
+        # Conversion en coordonnées isométriques
+        iso_poly = [self.cart_to_iso(x, y) for x, y in rect]
+        
+        # Calculer la position minimale des coordonnées isométriques pour centrer la tuile
+        minx = min([x for x, y in iso_poly]) -1
+        miny = min([y for x, y in iso_poly]) -1
+
+        out = {
+            "grid": [grid_x, grid_y],
+            "cart_rect": rect,
+            "iso_poly": iso_poly,
+            "render_pos": [minx, miny]  # Position rendue en isométrique pour le rendu visuel
+        }
+
+        return out
+
+
+    def cart_to_iso(self, x, y):
+        iso_x = x - y
+        iso_y = (x + y)/2
+        return iso_x, iso_y
 
     
+
+    
+
+    def draw_text(self,screen, text, size, colour, pos):
+
+        font = pygame.font.SysFont(None, size)
+        text_surface = font.render(text, True, colour)
+        text_rect = text_surface.get_rect(topleft=pos)
+
+        screen.blit(text_surface, text_rect)
+    def create_static_minimap(self):
+        """Crée la partie statique de la minimap une seule fois"""
+        minimap_size = self.minimap_base.get_height()
+        
+        # Fond noir semi-transparent
+        pygame.draw.rect(self.minimap_base, (0, 0, 0, 128), (0, 0, self.minimap_base.get_width(), minimap_size))
+        
+        # Calculer l'échelle
+        max_iso_width = (self.grid_length_x + self.grid_length_y) * self.TILE_SIZE
+        max_iso_height = (self.grid_length_x + self.grid_length_y) * self.TILE_SIZE / 2
+        scale = min(minimap_size * 2 / max_iso_width, minimap_size * 1.2 / max_iso_height)
+        
+        center_x = self.minimap_base.get_width() // 2
+        center_y = self.minimap_base.get_height() // 2
+        
+        offset_x = -(self.grid_length_x * self.TILE_SIZE * scale) / 2
+        offset_y = -(self.grid_length_y * self.TILE_SIZE * scale) / 2
+        
+        # Pré-calculer toutes les positions et tailles
+        point_width = int(self.TILE_SIZE * scale)
+        point_height = int(self.TILE_SIZE * scale / 2)
+        
+        # Dessiner la carte statique
+        for x in range(self.grid_length_x):
+            for y in range(self.grid_length_y):
+                cart_x = x * self.TILE_SIZE * scale + offset_x
+                cart_y = y * self.TILE_SIZE * scale + offset_y
+                
+                iso_x = (cart_x - cart_y)
+                iso_y = (cart_x + cart_y) / 2
+                
+                screen_x = center_x + iso_x
+                screen_y = center_y + iso_y
+                
+                cell_content = self.map.getMap()[y][x]
+                building = self.map.get_map_buildings()[y][x]
+                
+                color = (0, 128, 0)  # Couleur par défaut
+                if cell_content == 'W':
+                    color = (9, 82, 40)
+                elif cell_content == 'G':
+                    color = (255, 215, 0)
+                elif building is not None:
+                    if isinstance(building, TownCenter):
+                        color = (0, 0, 255)
+                    elif isinstance(building, Barracks):
+                        color = (255, 0, 0)
+                    elif isinstance(building,Stable):
+                        color = (128,128,128)
+                    elif isinstance(building,ArcheryRange):
+                        color = (0,128,255)
+                    
+                
+                points = [
+                    (screen_x, screen_y),
+                    (screen_x + point_width//2, screen_y + point_height//2),
+                    (screen_x, screen_y + point_height),
+                    (screen_x - point_width//2, screen_y + point_height//2)
+                ]
+                pygame.draw.polygon(self.minimap_base, color, points, 3)
+
+    def draw_minimap(self):
+        """Dessine la minimap avec interaction"""
+        minimap_x = self.width - self.minimap_base.get_width() - 10
+        minimap_y = 10
+        
+        # Calculer la position du viewport
+        viewport_scale_x = self.minimap_base.get_width() / self.grass_tiles.get_width()
+        viewport_scale_y = self.minimap_base.get_height() / self.grass_tiles.get_height()
+        
+        viewport_x = minimap_x + (-self.camera.scroll.x * viewport_scale_x)
+        viewport_y = minimap_y + (-self.camera.scroll.y * viewport_scale_y)
+        viewport_width = self.width * viewport_scale_x
+        viewport_height = self.height * viewport_scale_y
+        
+        # Créer le rectangle de la minimap pour la détection des clics
+        minimap_rect = pygame.Rect(minimap_x, minimap_y, 
+                                 self.minimap_base.get_width(), 
+                                 self.minimap_base.get_height())
+        
+        # Afficher la minimap pré-rendue
+        self.screen.blit(self.minimap_base, (minimap_x, minimap_y))
+        
+        # Dessiner le viewport
+        viewport_rect = pygame.Rect(viewport_x, viewport_y, viewport_width, viewport_height)
+        pygame.draw.rect(self.screen, (255, 255, 255), viewport_rect, 1)
+        
+        # Cadre de la minimap
+        pygame.draw.rect(self.screen, (255, 255, 255), 
+                        (minimap_x-1, minimap_y-1, 
+                         self.minimap_base.get_width()+2, 
+                         self.minimap_base.get_height()+2), 1)
+        
+        # Gérer la navigation via la minimap
+        mouse_pos = pygame.mouse.get_pos()
+        grass_tiles_size = (self.grass_tiles.get_width(), self.grass_tiles.get_height())
+        self.camera.handle_minimap_navigation(mouse_pos, minimap_rect, grass_tiles_size)
+    
+
+    def initialize_player_panel(self):
+        minimap_size = min(self.width, self.height) // 5
+        panel_width = minimap_size * 2
+        
+        player_count = len(self.game.lstPlayer)
+        panel_height = 40 + (player_count * 55)
+        
+        self.panel_surface = pygame.Surface((panel_width, panel_height), pygame.SRCALPHA)
+        
+        for y in range(panel_height):
+            alpha = 180
+            blue_value = int(15 * (y / panel_height))
+            pygame.draw.line(
+                self.panel_surface,
+                (0, 0, blue_value, alpha),
+                (0, y),
+                (panel_width, y)
+            )
+        
+        panel_x = self.width - panel_width - 10
+        panel_y = 10 + minimap_size + 10
+        self.panel_rect = pygame.Rect(panel_x, panel_y, panel_width, panel_height)
+
+    def draw_player_info(self):
+        if not self.show_player_info:
+            return
+        
+        self.screen.blit(self.panel_surface, self.panel_rect)
+        
+        pygame.draw.rect(self.screen, (30, 30, 50), self.panel_rect, 2)
+        pygame.draw.rect(self.screen, (100, 100, 150), self.panel_rect.inflate(2, 2), 1)
+        
+        text_x = self.panel_rect.x + 10
+        text_y = self.panel_rect.y + 10
+        
+        self.draw_text(
+            self.screen,
+            "Players Information",
+            24,
+            (220, 220, 255),
+            (self.panel_rect.centerx - 60, text_y)
+        )
+        
+        pygame.draw.line(
+            self.screen,
+            (100, 100, 150),
+            (self.panel_rect.x + 10, text_y + 25),
+            (self.panel_rect.right - 10, text_y + 25),
+            1
+        )
+        
+        text_y += 35
+        
+        for player in self.game.lstPlayer:
+            player_bg_rect = pygame.Rect(text_x, text_y, self.panel_rect.width - 20, 45)
+            player_color = player.getColor()
+            
+            r = (player_color >> 16) & 255
+            g = (player_color >> 8) & 255
+            b = player_color & 255
+            bg_color = (r, g, b, 30)
+            
+            pygame.draw.rect(self.screen, bg_color, player_bg_rect, 0, 3)
+            
+            # Nom du joueur
+            self.draw_text(
+                self.screen,
+                player.name,
+                20,
+                player_color,
+                (text_x + 5, text_y + 20)
+            )
+            
+            # Ressources avec texte simple
+            resources_text = f"Wood: {player.wood}  Gold: {player.gold}  Food: {player.food}"
+            self.draw_text(
+                self.screen,
+                resources_text,
+                16,
+                (200, 200, 200),
+                (text_x + 5, text_y + 20)
+            )
+            
+            # Unités
+            units_text = f"Units: {player.countUnits()}"
+            units_text_rect = self.draw_text(
+                self.screen,
+                units_text,
+                16,
+                (200, 200, 200),
+                (text_x + self.panel_rect.width - 80, text_y + 20)  # Décalage ajusté pour éviter les dépassements
+            )
+            text_y += 55
