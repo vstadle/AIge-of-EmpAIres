@@ -613,7 +613,7 @@ class ViewPygame:
     # Constantes de classe
         
     
-    def __init__(self, grid_length_x, grid_length_y, width, height, screen, game_map, clock, game):
+    def __init__(self, grid_length_x, grid_length_y, game_map, clock, game):
         pygame.init()
         self.game = game
         self.show_player_info = False
@@ -624,11 +624,11 @@ class ViewPygame:
         self.grid_length_x = grid_length_x
         self.grid_length_y = grid_length_y
         self.TILE_SIZE = 64
-        self.width = width
-        self.height = height
-        self.screen = screen
+        self.width = 1550
+        self.height = 865
+        self.screen = pygame.display.set_mode((self.width,self.height))
         self.camera = Camera(self.width, self.height, self.grid_length_x, self.grid_length_y)
-        
+        self.fps_font = pygame.font.SysFont(None, 25)
         # Créer la surface de fond une seule fois
         self.grass_tiles = pygame.Surface(
             (grid_length_x * self.TILE_SIZE * 2, (grid_length_y+2) * self.TILE_SIZE)
@@ -733,14 +733,18 @@ class ViewPygame:
         
         # Liste pour le tri en Z
         render_list = []
-        
+        tree_positions = [] #liste pour regrouper les positions des arbres
         # Optimisation : pré-charger les maps
         game_map = self.map.getMap()
         buildings_map = self.map.get_map_buildings()
         
         # Optimisation : stocker la largeur de la grass_tiles
         grass_width_half = self.grass_tiles.get_width()/2
-        
+        camera_scroll_x = self.camera.scroll.x
+        camera_scroll_y = self.camera.scroll.y
+        tree = self.tiles["tree"]
+        tree_height = tree.get_height()
+    
         for x in range(self.grid_length_x):
             for y in range(self.grid_length_y):
                 render_pos = self.world[x][y]["render_pos"]
@@ -757,7 +761,7 @@ class ViewPygame:
                     # Ajouter les éléments visibles à la liste de rendu
                     if cell_content == 'W':
                         tree = self.tiles["tree"]
-                        render_list.append((
+                        tree_positions.append((
                             screen_y,
                             (tree, 
                             (screen_x, screen_y - tree.get_height() + self.TILE_SIZE - 20))
@@ -782,15 +786,18 @@ class ViewPygame:
                         self._add_building_to_render_list(
                             building, x, y, screen_x, screen_y, render_list
                         )
+        tree_positions.sort(key=lambda x: x[0])
+    
         
+        # Dessiner tous les arbres en une seule opération
+        if tree_positions:
+            for _, (tree, pos) in sorted(tree_positions, key=lambda x: x[0]):
+                self.screen.blit(tree, pos)
         # Trier et dessiner les éléments
         if render_list:
             for _, (sprite, pos) in sorted(render_list, key=lambda x: x[0]):
                 self.screen.blit(sprite, pos)
         
-        # UI elements
-        if not hasattr(self, 'fps_font'):
-            self.fps_font = pygame.font.SysFont(None, 25)
         
         fps_text = self.fps_font.render(
             f'FPS: {_int(self.clock.get_fps())}',
@@ -919,7 +926,7 @@ class ViewPygame:
         offset_x = -(self.grid_length_x * self.TILE_SIZE * scale) / 2
         offset_y = -(self.grid_length_y * self.TILE_SIZE * scale) / 2
         
-        # Pré-calculer toutes les positions et tailles
+        # Pré-calculer toutes les posit ions et tailles
         point_width = int(self.TILE_SIZE * scale)
         point_height = int(self.TILE_SIZE * scale / 2)
         

@@ -16,13 +16,10 @@ from model.Game import Game
 from view.Camera import Camera
 
 class ControllerGame():
-    def __init__(self, cmap, lstcPlayers, game, uiHandler, screen):
-        self.curses_screen = screen  # Renommé pour clarté
+    def __init__(self, cmap, lstcPlayers, game, uiHandler):
         self.cmap = cmap
         self.lstcPlayers = lstcPlayers
-        # Définir une taille par défaut pour la fenêtre Pygame
-        self.width = 1550
-        self.height = 865
+        
         self.game = Game()
         self.game.setMap(self.cmap.map)
         for cplayer in lstcPlayers:
@@ -32,12 +29,10 @@ class ControllerGame():
     
         self.viewTerminal = None
         self.viewPygame = None
-        self.pygame_screen = None  # Sera initialisé plus tard
 
         self.mode = "terminal"
         self.paused = False
         self.zoom_level = 1.0
-        self.camera = Camera(self.width, self.height,119,119)
 
     def run(self):
 
@@ -92,9 +87,8 @@ class ControllerGame():
         
     def change_mode(self):
         pygame.init()
-        self.pygame_screen = pygame.display.set_mode((self.width, self.height))
         self.clock = pygame.time.Clock()
-        self.viewPygame = ViewPygame(119, 119, self.width, self.height, self.pygame_screen,self.cmap.map,self.clock,self.game)
+        self.viewPygame = ViewPygame(119, 119, self.cmap.map,self.clock,self.game)
         self.run_pygame()
 
     def run_pygame(self):
@@ -103,7 +97,7 @@ class ControllerGame():
         running = True
         
         while running:
-            self.camera.handle_input()            
+            self.viewPygame.camera.handle_input()            
             keys = pygame.key.get_pressed()
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
@@ -115,11 +109,12 @@ class ControllerGame():
                         running = False
                         break
                     if event.key == pygame.K_v:
-                        running = False
+                        running = False 
                         pygame.quit()
                         self.run()  # Retour à la vue curses
                         return 
-                   
+                    
+                        
                     if event.key == pygame.K_F1:
                         self.viewPygame.show_player_info = not self.viewPygame.show_player_info
                         pygame.display.flip()
@@ -142,14 +137,7 @@ class ControllerGame():
                 break
 
             if not self.paused:
-                if keys[pygame.K_z]:
-                    pos_y -= 1
-                if keys[pygame.K_s]:
-                    pos_y += 1
-                if keys[pygame.K_q]:
-                    pos_x -= 1
-                if keys[pygame.K_d]:
-                    pos_x += 1
+                
                 if keys[pygame.K_ESCAPE]:
                     webbrowser.open("https://www.youtube.com/watch?v=dQw4w9WgXcQ")
                 

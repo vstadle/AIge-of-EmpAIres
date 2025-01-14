@@ -72,7 +72,7 @@ class UIHandler():
         self.game.setMap(self.controllerMap.map)
         for player in self.lstPlayers:
             self.game.lstPlayer.append(player.getPlayer())
-        self.controllerGame = ControllerGame(self.controllerMap, self.lstPlayers, self.game, self,self.screen)
+        self.controllerGame = ControllerGame(self.controllerMap, self.lstPlayers, self.game, self)
         pygame.quit()
         self.start()
 

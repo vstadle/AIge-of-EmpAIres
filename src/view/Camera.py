@@ -5,26 +5,38 @@ class Camera:
         self.width = width
         self.height = height
         self.scroll = pygame.Vector2(0, 0)
-        self.speed = 20  # Vitesse de déplacement de la caméra
-        self.min_speed = 5
-        self.max_speed = 50
+        self.speed = 10  # Vitesse de déplacement de la caméra
+        self.speed_max = 20
         self.TILE_SIZE = 64  
         self.grid_length_x = grid_length_x
         self.grid_length_y = grid_length_y
 
     def handle_input(self):
         keys = pygame.key.get_pressed()
-        
+        shift_pressed = pygame.key.get_mods() & pygame.KMOD_SHIFT
+
         # Mouvement de la caméra avec Z, Q, S, D
-        if keys[pygame.K_z]:
-            self.scroll.y += self.speed
-        if keys[pygame.K_s]:
-            self.scroll.y -= self.speed
-        if keys[pygame.K_q]:
-            self.scroll.x += self.speed
-        if keys[pygame.K_d]:
-            self.scroll.x -= self.speed
+        if shift_pressed:
+            if keys[pygame.K_z]:
+                self.scroll.y += self.speed_max
+            if keys[pygame.K_s]:
+                self.scroll.y -= self.speed_max
+            if keys[pygame.K_q]:
+                self.scroll.x += self.speed_max
+            if keys[pygame.K_d]:
+                self.scroll.x -= self.speed_max
+        else:
+            if keys[pygame.K_z]:
+                self.scroll.y += self.speed
+            if keys[pygame.K_s]:
+                self.scroll.y -= self.speed
+            if keys[pygame.K_q]:
+                self.scroll.x += self.speed
+            if keys[pygame.K_d]:
+                self.scroll.x -= self.speed
+
         self.clamp_scroll()
+    
     
 
     
