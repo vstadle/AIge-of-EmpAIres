@@ -263,9 +263,11 @@ class ControllerPlayer():
                     building.setY(y)
                     self.player.getBuildingQueue().remove(item)
                     print(building, " is placed")
+                    return 0
                 else:
                     print()
                     #print("Erreur de placement du batiment" , building, player)
+        return -1
                 
     def addUnitInitialize(self, unit, building):
         x = building.getX()

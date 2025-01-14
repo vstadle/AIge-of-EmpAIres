@@ -143,10 +143,17 @@ class ControllerGame():
                 
                 self.viewPygame.draw_map_2_5D()
                 pygame.display.flip()
-                
+                check = 0
+                check2 = 0
                 for cplayer in self.lstcPlayers:
                     cplayer.update_training()
-                    cplayer.update_building()
+                    check = cplayer.update_building()
+                    if(check==0):
+                        check2+=1
+                if check2!=0:
+                    self.viewPygame.create_static_minimap()
+
+                    
     
             self.clock.tick(200)  # Limité à 150 FPS
         # Cleanup après la boucle

@@ -664,7 +664,8 @@ class ViewPygame:
             "archeryrange": os.path.join(project_root, "Sprite_aoe/buildings/archery_range.png"),
             "stable": os.path.join(project_root, "Sprite_aoe/buildings/Stable.png"),
             "farm": os.path.join(project_root, "Sprite_aoe/buildings/farm.png"),
-            "villager": os.path.join(project_root, "Sprite_aoe/villager/standard_male/StandGround/Villagerstand001.png")
+            "villager": os.path.join(project_root, "Sprite_aoe/villager/standard_male/StandGround/Villagerstand001.png"),
+            "house": os.path.join(project_root,"Sprite_aoe/buildings/house.png")
         }
         
         return {name: pygame.image.load(path).convert_alpha() 
@@ -695,7 +696,11 @@ class ViewPygame:
             ),
             'villager': pygame.transform.scale(
                 self.tiles["villager"],
-                (self.TILE_SIZE, self.TILE_SIZE)  # Taille 1x1 pour le villageois
+                (self.TILE_SIZE, self.TILE_SIZE) 
+            ),
+            'house': pygame.transform.scale(
+                self.tiles["house"],
+                (1.48*self.TILE_SIZE, 1.25*self.TILE_SIZE)
             ),
         }
 
@@ -856,6 +861,15 @@ class ViewPygame:
                     screen_y + self.TILE_SIZE * 2,
                     (self.cached_sprites['farm'], (sprite_x, sprite_y))
                 ))
+        elif isinstance(building, House):  # Ajout de la condition pour la ferme
+            if (y == 0 or not isinstance(self.map.get_map_buildings()[y - 1][x], Farm)) and \
+            (x == 0 or not isinstance(self.map.get_map_buildings()[y][x - 1], Farm)):
+                sprite_x = screen_x - self.cached_sprites['house'].get_width()//2
+                sprite_y = screen_y - self.cached_sprites['house'].get_height()//2
+                render_list.append((
+                    screen_y + self.TILE_SIZE * 2,
+                    (self.cached_sprites['house'], (sprite_x, sprite_y))
+                ))
 
 
     def grid_to_world(self, grid_x, grid_y):
@@ -910,7 +924,8 @@ class ViewPygame:
         'TownCenter': (0, 0, 255),
         'Barracks': (255, 0, 0),
         'Stable': (128, 128, 128),
-        'ArcheryRange': (0, 128, 255)
+        'ArcheryRange': (0, 128, 255),
+        'Farm': (165,42,42)
         }
         # Fond noir semi-transparent
         pygame.draw.rect(self.minimap_base, (0, 0, 0, 128), (0, 0, self.minimap_base.get_width(), minimap_size))
@@ -959,6 +974,8 @@ class ViewPygame:
                         color = self.minimap_colors['Stable']
                     elif isinstance(building,ArcheryRange):
                         color = self.minimap_colors['ArcheryRange']
+                    elif isinstance(building,Farm):
+                        color = self.minimap_colors['Farm']
                     
                 
                 points = [
