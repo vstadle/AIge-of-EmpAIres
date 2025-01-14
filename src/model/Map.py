@@ -37,6 +37,8 @@ class Map():
         self.map = [[" " for x in range(120)] for y in range(120)]
         self.map[0][0] = 'R'
         self.map[119][119] = 'R'
+        self.map[119][118] = 'v'
+
         
     
     def generateGenerousResources(self):

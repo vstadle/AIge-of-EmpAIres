@@ -13,14 +13,16 @@ from view.ViewTerminal import ViewTerminal
 from view.ViewPygame import ViewPygame
 
 from model.Game import Game
+from view.Camera import Camera
 
 class ControllerGame():
-
-    def __init__(self, cmap, lstcPlayers, game , uiHandler):
-        
+    def __init__(self, cmap, lstcPlayers, game, uiHandler, screen):
+        self.curses_screen = screen  # Renommé pour clarté
         self.cmap = cmap
         self.lstcPlayers = lstcPlayers
-
+        # Définir une taille par défaut pour la fenêtre Pygame
+        self.width = 1550
+        self.height = 865
         self.game = Game()
         self.game.setMap(self.cmap.map)
         for cplayer in lstcPlayers:
@@ -30,10 +32,12 @@ class ControllerGame():
     
         self.viewTerminal = None
         self.viewPygame = None
+        self.pygame_screen = None  # Sera initialisé plus tard
 
         self.mode = "terminal"
         self.paused = False
         self.zoom_level = 1.0
+        self.camera = Camera(self.width, self.height,119,119)
 
     def run(self):
 
@@ -88,26 +92,37 @@ class ControllerGame():
         
     def change_mode(self):
         pygame.init()
-        self.viewPygame = ViewPygame(self.cmap.map)
+        self.pygame_screen = pygame.display.set_mode((self.width, self.height))
+        self.clock = pygame.time.Clock()
+        self.viewPygame = ViewPygame(119, 119, self.width, self.height, self.pygame_screen,self.cmap.map,self.clock,self.game)
         self.run_pygame()
 
     def run_pygame(self):
         tab_pressed = False
         pos_x, pos_y = 0, 0
-        clock = pygame.time.Clock()
-        while True:
+        running = True
+        
+        while running:
+            self.camera.handle_input()            
             keys = pygame.key.get_pressed()
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
-                    pygame.quit()
-                    sys.exit()
+                    running = False
+                    break
                 if event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_p:
                         self.uiHandler.saveGame()
-                        sys.exit()
+                        running = False
+                        break
                     if event.key == pygame.K_v:
+                        running = False
                         pygame.quit()
-                        return
+                        self.run()  # Retour à la vue curses
+                        return 
+                   
+                    if event.key == pygame.K_F1:
+                        self.viewPygame.show_player_info = not self.viewPygame.show_player_info
+                        pygame.display.flip()
                     if event.key == pygame.K_TAB and not tab_pressed:
                         tab_pressed = True
                         self.toggle_pause()
@@ -121,6 +136,10 @@ class ControllerGame():
                         self.zoom_level = round(max(0.5, self.zoom_level - 0.1), 1)
                         if self.zoom_level < 0.1:
                             self.zoom_level = 0.1
+       
+
+            if not running:
+                break
 
             if not self.paused:
                 if keys[pygame.K_z]:
@@ -133,16 +152,19 @@ class ControllerGame():
                     pos_x += 1
                 if keys[pygame.K_ESCAPE]:
                     webbrowser.open("https://www.youtube.com/watch?v=dQw4w9WgXcQ")
-
-                self.viewPygame.draw_map_2_5D(self.viewPygame.screen, pos_x, pos_y, self.zoom_level)
+                
+                self.viewPygame.draw_map_2_5D()
                 pygame.display.flip()
-
+                
                 for cplayer in self.lstcPlayers:
                     cplayer.update_training()
                     cplayer.update_building()
-
-            #clock.tick(60)
-
+    
+            self.clock.tick(200)  # Limité à 150 FPS
+        # Cleanup après la boucle
+        pygame.quit()
+        sys.exit()
+        
     def toggle_pause(self):
         self.paused = not self.paused
         if self.paused:

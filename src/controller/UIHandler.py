@@ -16,7 +16,7 @@ from controller.ControllerGame import ControllerGame
 
 class UIHandler():
     def __init__(self):
-
+        self.screen = pygame.display.set_mode((600,600))
         #Création de la map
         self.game = Game()
         self.controllerMap = ControllerMap()
@@ -67,12 +67,12 @@ class UIHandler():
     def start_new_game(self):
         # Lancer une nouvelle partie
         self.controllerMap.genRessources(MapType.CENTER_RESOURCES)
-        self.initialize("Mean", 2)  # Exemple : type "Marines", 6 joueurs
+        self.initialize("Marines", 4)  # Exemple : type "Marines", 4 joueurs
         self.controllerMap.setLstPlayers(self.lstPlayers)
         self.game.setMap(self.controllerMap.map)
         for player in self.lstPlayers:
             self.game.lstPlayer.append(player.getPlayer())
-        self.controllerGame = ControllerGame(self.controllerMap, self.lstPlayers, self.game, self)
+        self.controllerGame = ControllerGame(self.controllerMap, self.lstPlayers, self.game, self,self.screen)
         pygame.quit()
         self.start()
 
@@ -189,7 +189,7 @@ class UIHandler():
                             load_game_active = False
                             
 
-            clock.tick(60)
+            clock.tick(200)
 
     def start(self):
         self.controllerGame.run()
