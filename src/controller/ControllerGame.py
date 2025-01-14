@@ -120,13 +120,13 @@ class ControllerGame():
             if not self.paused:
 
                 if key == ord('z'):
-                    pos_x -= 1
+                    self.viewTerminal.camera.move(-1, 0, stdscr)
                 elif key == ord('s'):
-                    pos_x += 1
+                    self.viewTerminal.camera.move(1, 0, stdscr)
                 elif key == ord('q'):
-                    pos_y -= 1
+                    self.viewTerminal.camera.move(0, -1, stdscr)
                 elif key == ord('d'):
-                    pos_y += 1
+                    self.viewTerminal.camera.move(0, 1, stdscr)
                 elif key == ord('p'):
                     self.uiHandler.saveGame()
                     stdscr.clear()
@@ -135,6 +135,15 @@ class ControllerGame():
                     self.change_mode()
 
                 
+                if pos_x < 0:
+                    pos_x = 0
+                elif pos_x + stdscr.getmaxyx()[0] > len(self.cmap.map.map):
+                    pos_x = len(self.cmap.map.map) - 1
+                if pos_y < 0:
+                    pos_y = 0
+                elif pos_y + stdscr.getmaxyx()[1] > len(self.cmap.map.map[0]) - 1:
+                    pos_y = len(self.cmap.map.map[0]) - 1
+
                 if current_time - start_time > time_to_update:
                     start_time = current_time
                     for ai in self.lstAI:
