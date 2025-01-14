@@ -48,12 +48,16 @@ class ControllerGame():
         for cplayer in lstcPlayers:
             self.lstAI.append(AI(self.game, cplayer))
 
+        self.stdscr = None
+
     def run(self):
 
         self.viewTerminal = ViewTerminal(self.cmap.map)
         curses.wrapper(self.run_terminal)
 
     def run_terminal(self, stdscr):
+
+        self.stdscr = stdscr
 
         stdscr.nodelay(True)
 
@@ -134,16 +138,6 @@ class ControllerGame():
                 elif key == ord('v'):
                     self.change_mode()
 
-                
-                if pos_x < 0:
-                    pos_x = 0
-                elif pos_x + stdscr.getmaxyx()[0] > len(self.cmap.map.map):
-                    pos_x = len(self.cmap.map.map) - 1
-                if pos_y < 0:
-                    pos_y = 0
-                elif pos_y + stdscr.getmaxyx()[1] > len(self.cmap.map.map[0]) - 1:
-                    pos_y = len(self.cmap.map.map[0]) - 1
-
                 if current_time - start_time > time_to_update:
                     start_time = current_time
                     for ai in self.lstAI:
@@ -155,7 +149,7 @@ class ControllerGame():
                     cplayer.updating_collect()
                     cplayer.updating_moving()
 
-                self.viewTerminal.draw_map(stdscr, pos_x, pos_y)
+                self.viewTerminal.draw_map(stdscr)
         
     def change_mode(self):
         pygame.init()
@@ -174,6 +168,7 @@ class ControllerGame():
                     sys.exit()
                 if event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_p:
+                        self.stdscr.clear()
                         self.uiHandler.saveGame()
                         sys.exit()
                     if event.key == pygame.K_v:
