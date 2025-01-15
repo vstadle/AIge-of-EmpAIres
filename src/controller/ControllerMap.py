@@ -34,6 +34,8 @@ class ControllerMap():
         self.pos_y = 0
         self.training_queue = []
         self.lstPlayers = []
+        self.size_map_x = map.size_map_x
+        self.size_map_y = map.size_map_y
 
     def setLstPlayers(self, lstPlayers):
         self.lstPlayers = lstPlayers
