@@ -65,6 +65,7 @@ class ControllerGame():
         stdscr.nodelay(True)
 
         tab_pressed = False
+        p_pressed = False
 
         pos_x, pos_y = 0, 0
 
@@ -124,6 +125,23 @@ class ControllerGame():
             else:
                 tab_pressed = False
 
+            if key == ord('p'):
+                if not p_pressed:
+                    self.pause()
+                else:
+                    self.pause()
+                p_pressed = False
+            else:
+                p_pressed = False
+
+            if key == curses.KEY_F7 or key == curses.KEY_F11:
+                self.uiHandler.saveGame()
+            elif key == curses.KEY_F12:
+                self.paused = True
+                pygame.quit()
+                self.uiHandler.show_menu()
+
+
             if not self.paused:
 
                 if key == ord('z'):
@@ -134,16 +152,17 @@ class ControllerGame():
                     self.viewTerminal.camera.move(0, -1, stdscr)
                 elif key == ord('d'):
                     self.viewTerminal.camera.move(0, 1, stdscr)
-                elif key == ord('p'):
+                elif key == ord('o'):
                     self.uiHandler.saveGame()
                     stdscr.clear()
                     sys.exit()
-                elif key == ord('v'):
+                elif key == curses.KEY_F9:
                     self.change_mode()
 
                 if current_time - start_time > time_to_update:
                     start_time = current_time
                     for ai in self.lstAI:
+                        stdscr.clear()
                         ai.choose_strategie()
                 
                 for cplayer in self.lstcPlayers:
@@ -163,6 +182,7 @@ class ControllerGame():
     def run_pygame(self):
         frame_counter = 0
         tab_pressed = False
+        p_pressed = False
         running = True
         
         while running:
@@ -173,27 +193,38 @@ class ControllerGame():
                     running = False
                     break
                 if event.type == pygame.KEYDOWN:
-                    if event.key == pygame.K_p:
+                    if event.key == pygame.K_o:
                         self.stdscr.clear()
                         self.uiHandler.saveGame()
                         running = False
                         break
-                    if event.key == pygame.K_v:
-                        running = False 
-                        pygame.quit()
-                        self.run()  # Retour à la vue curses
-                        return 
-                    
-                        
-                    if event.key == pygame.K_F1:
+                    elif event.key == pygame.K_F1:
                         self.viewPygame.show_player_info = not self.viewPygame.show_player_info
                         pygame.display.flip()
-                    if event.key == pygame.K_TAB and not tab_pressed:
+                    elif event.key == pygame.K_TAB and not tab_pressed:
                         tab_pressed = True
                         self.toggle_pause()
+                    elif event.key == pygame.K_p and not p_pressed:
+                        p_pressed = True
+                        self.pause()
+                    elif event.key == pygame.K_F9:
+                        running = False
+                        pygame.quit()
+                        #self.run()
+                        return
+                    elif event.key == pygame.K_F12:
+                        self.paused = True
+                        pygame.quit()
+                        self.uiHandler.show_menu()
+                        return
+                    elif event.key == pygame.K_F7 or event.key == pygame.K_F11:
+                        self.uiHandler.saveGame()
+                    
                 if event.type == pygame.KEYUP:
                     if event.key == pygame.K_TAB:
                         tab_pressed = False
+                    elif event.key == pygame.K_p:
+                        p_pressed = False
                 if event.type == pygame.MOUSEBUTTONDOWN:
                     if event.button == 4:  
                         self.zoom_level = round(min(3, self.zoom_level + 0.1), 1)
@@ -237,3 +268,6 @@ class ControllerGame():
             webbrowser.open(current_path)
         else:
             logs("GAME UNPAUSED", level=logging.INFO)
+    
+    def pause(self):
+        self.paused = not self.paused
