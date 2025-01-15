@@ -412,7 +412,7 @@ class UIHandler():
             "Goran VALIDZIC",
             "Gabriel SCAVONE",
             "",
-            "Remerciements spéciaux",
+            "Remerciement spécial",
             "à Monsieur HUGOT"
         ]
         
