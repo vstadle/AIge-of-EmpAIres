@@ -148,7 +148,7 @@ class ControllerGame():
                     self.uiHandler.saveGame()
                     stdscr.clear()
                     sys.exit()
-                elif key == ord('v'):
+                elif key == 273:
                     self.change_mode()
 
                 if current_time - start_time > time_to_update:
@@ -189,12 +189,6 @@ class ControllerGame():
                         self.uiHandler.saveGame()
                         running = False
                         break
-                    elif event.key == pygame.K_v:
-                        running = False 
-                        pygame.quit()
-                        self.run()  # Retour à la vue curses
-                        return
-                        
                     elif event.key == pygame.K_F1:
                         self.viewPygame.show_player_info = not self.viewPygame.show_player_info
                         pygame.display.flip()
@@ -204,6 +198,11 @@ class ControllerGame():
                     elif event.key == pygame.K_p and not p_pressed:
                         p_pressed = True
                         self.pause()
+                    elif event.key == pygame.K_F9:
+                        running = False
+                        pygame.quit()
+                        #self.run()
+                        return
                 if event.type == pygame.KEYUP:
                     if event.key == pygame.K_TAB:
                         tab_pressed = False
