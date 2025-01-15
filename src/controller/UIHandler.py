@@ -25,8 +25,12 @@ class UIHandler():
         self.controllerGame = None
         self.isSaved = False
         self.nameFile = ""
-        
+        self.logo_size = (200, 200)  # Taille réduite pour mieux s'intégrer en haut
+
     def show_menu(self):
+        logo_click_count = 0
+        last_click_time = 0
+        click_timeout = 500 #Easter Egg
         pygame.init()
         screen = pygame.display.set_mode((800, 600), pygame.RESIZABLE)
         pygame.display.set_caption("Menu Principal")
@@ -35,7 +39,7 @@ class UIHandler():
         background = pygame.image.load("../data/img/background.png")
         button_image = pygame.image.load("../data/img/button.png")
         font = pygame.font.Font("../data/font/CinzelDecorative-Regular.ttf", 32)
-        
+        logo = pygame.image.load("../data/img/logo2.png")
         buttons = [
             ("Nouvelle Partie", self.show_game_config),
             ("Charger Partie", lambda: self.show_load_game_menu(screen, font)),
@@ -49,6 +53,11 @@ class UIHandler():
             screen_width, screen_height = screen.get_size()
             screen.blit(pygame.transform.scale(background, (screen_width, screen_height)), (0, 0))
             
+            
+            logo_x = (screen_width - self.logo_size[0]) // 2
+            logo_rect = pygame.Rect(logo_x, 20, self.logo_size[0], self.logo_size[1])
+            screen.blit(pygame.transform.scale(logo, self.logo_size), (logo_x, 20))
+
             mouse_pos = pygame.mouse.get_pos()
             button_height = 60 
             spacing = 30  # espace entre les boutons
@@ -82,6 +91,20 @@ class UIHandler():
                     pygame.quit()
                     sys.exit()
                 elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+                    current_time = pygame.time.get_ticks()
+                
+                    if logo_rect.collidepoint(mouse_pos):
+                        if current_time - last_click_time < click_timeout:
+                            logo_click_count += 1
+                        else:
+                            logo_click_count = 1
+                        
+                        last_click_time = current_time
+                        
+                        if logo_click_count >= 5:  # Après 5 clics rapides
+                            menu_active = False
+                            self.show_credits()
+                            return
                     for i, (text, action) in enumerate(buttons):
                         button_rect = pygame.Rect(
                             (screen_width - 350) // 2,
@@ -102,7 +125,8 @@ class UIHandler():
         font = pygame.font.Font("../data/font/CinzelDecorative-Regular.ttf", 24)
         button_image = pygame.image.load("../data/img/button.png")
         background = pygame.image.load("../data/img/background.png")
-        
+        logo = pygame.image.load("../data/img/logo2.png")
+        back_arrow = pygame.image.load("../data/img/back_arrow.png")
         # Configuration par défaut
         config = {
             'type_game': 'LEAN',
@@ -116,7 +140,7 @@ class UIHandler():
         game_types = ['LEAN', 'MEAN', 'MARINES']
         map_types = ['GENEROUS', 'CENTER']
         player_range = range(2, 9)
-        size_range = range(60, 241, 20)
+        size_range = range(120, 241, 20)
         
         selected_option = None
         config_active = True
@@ -125,14 +149,16 @@ class UIHandler():
             screen.fill((0, 0, 0))
             screen_width, screen_height = screen.get_size()
             screen.blit(pygame.transform.scale(background, (screen_width, screen_height)), (0, 0))
-            
+            logo_x = (screen_width - self.logo_size[0]) // 2
+            screen.blit(pygame.transform.scale(logo, self.logo_size), (logo_x, 20))
             # Position de départ pour les options
-            start_y = 50
+            start_y = 200
             spacing = 60
             current_y = start_y
             mouse_pos = pygame.mouse.get_pos()
-            
-            # Fonction helper pour créer un bouton avec texte
+            back_button_size = (50, 50)
+            back_button_rect = pygame.Rect(20, 20, back_button_size[0], back_button_size[1])
+            screen.blit(pygame.transform.scale(back_arrow, back_button_size), back_button_rect)
             def draw_config_button(text, value, y_pos, options=None):
                 button_width = 350
                 button_height = 50
@@ -180,6 +206,10 @@ class UIHandler():
                 
                 elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
                     for key, rect in buttons.items():
+                        if back_button_rect.collidepoint(mouse_pos):
+                            config_active = False
+                            self.show_menu()
+                            return
                         if rect.collidepoint(mouse_pos):
                             selected_option = key
                             if key == 'type_game':
@@ -359,3 +389,75 @@ class UIHandler():
 
     def start(self):
         self.controllerGame.run()
+
+    def show_credits(self):
+        screen = pygame.display.set_mode((800, 600), pygame.RESIZABLE)
+        pygame.display.set_caption("Crédits")
+        
+        font_title = pygame.font.Font("../data/font/CinzelDecorative-Regular.ttf", 40)
+        font_text = pygame.font.Font("../data/font/CinzelDecorative-Regular.ttf", 24)
+        button_image = pygame.image.load("../data/img/button.png")
+        background = pygame.image.load("../data/img/background.png")
+        
+        credits = [
+            "Développeurs",
+            "Valentin STADLER",
+            "Goran VALIDZIC",
+            "Nora MASSOT",
+            "Amélie Sauvan-Magnet",
+            "Gabriel SCAVONE",
+            "Melvin MINVIELLE",
+            "",
+            "Game Design",
+            "Goran VALIDZIC",
+            "Gabriel SCAVONE",
+            "",
+            "Remerciements spéciaux",
+            "à Monsieur HUGOT"
+        ]
+        
+        credits_active = True
+        scroll_position = screen.get_height()
+        scroll_speed = 1
+        
+        while credits_active:
+            screen.fill((0, 0, 0))
+            screen_width, screen_height = screen.get_size()
+            screen.blit(pygame.transform.scale(background, (screen_width, screen_height)), (0, 0))
+            list = [0,8,12,13]
+            # Affichage des crédits avec défilement
+            current_y = scroll_position
+            for i, line in enumerate(credits):
+                if i in list:  # Pour les titres de sections
+                    text = font_title.render(line, True, (255, 215, 0))  # Or pour les titres
+                else:
+                    text = font_text.render(line, True, (255, 255, 255))  # Blanc pour le texte
+                
+                text_rect = text.get_rect(center=(screen_width/2, current_y))
+                screen.blit(text, text_rect)
+                current_y += 60
+            
+            scroll_position -= scroll_speed
+            
+            # Réinitialiser le défilement quand tous les crédits sont passés
+            if scroll_position < -current_y + screen_height/2:
+                scroll_position = screen.get_height()
+            
+            pygame.display.flip()
+            
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    credits_active = False
+                    pygame.quit()
+                    sys.exit()
+                elif event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_ESCAPE:
+                        credits_active = False
+                        self.show_menu()
+                        return
+                elif event.type == pygame.MOUSEBUTTONDOWN:
+                    credits_active = False
+                    self.show_menu()
+                    return
+                elif event.type == pygame.VIDEORESIZE:
+                    screen = pygame.display.set_mode(event.size, pygame.RESIZABLE)
