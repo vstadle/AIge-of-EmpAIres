@@ -642,7 +642,12 @@ class ViewPygame:
         minimap_size = min(self.width, self.height) // 5
         self.minimap_base = pygame.Surface((minimap_size * 2, minimap_size), pygame.SRCALPHA).convert_alpha()
         self.create_static_minimap()
-        
+        #Initialiser les FPS
+        self.fps_update_frequency = 500  # Mise à jour toutes les 500ms
+        self.last_fps_update = pygame.time.get_ticks()
+        self.current_fps_display = "FPS: 0"
+        self.fps_samples = []
+        self.max_samples = 10  # Nombre d'échantillons
         # Créer le monde une seule fois
         self.world = self._create_world()
         self.initialize_player_panel()
@@ -731,7 +736,6 @@ class ViewPygame:
         
         # Dessiner le fond d'herbe
         self.screen.blit(self.grass_tiles, (self.camera.scroll.x, self.camera.scroll.y))
-        
         # Calculer les marges pour la visibilité
         margin_x = self.width // 2
         margin_y = self.height // 2
@@ -804,16 +808,36 @@ class ViewPygame:
                 self.screen.blit(sprite, pos)
         
         
-        fps_text = self.fps_font.render(
-            f'FPS: {_int(self.clock.get_fps())}',
-            True,
-            (255, 255, 255)
-        )
-        self.screen.blit(fps_text, (10, 10))
-        
         self.draw_minimap()
         self.draw_player_info()
+        self._update_fps_display()
+        self.screen.blit(self.fps_surface, (10, 10))
 
+
+    def _update_fps_display(self):
+        current_time = pygame.time.get_ticks()
+        
+        # Ajouter le FPS actuel aux échantillons
+        current_fps = self.clock.get_fps()
+        self.fps_samples.append(current_fps)
+        
+        # Garder seulement les N derniers échantillons
+        if len(self.fps_samples) > self.max_samples:
+            self.fps_samples.pop(0)
+        
+        # Mettre à jour l'affichage toutes les 500ms
+        if current_time - self.last_fps_update >= self.fps_update_frequency:
+            # Calculer la moyenne des FPS
+            avg_fps = sum(self.fps_samples) / len(self.fps_samples)
+            self.current_fps_display = f"FPS: {int(avg_fps)}"
+            self.last_fps_update = current_time
+            
+            # Pré-rendre le texte des FPS
+            self.fps_surface = self.fps_font.render(
+                self.current_fps_display,
+                True,
+                (255, 255, 255)
+            )
     def _add_building_to_render_list(self, building, x, y, screen_x, screen_y, render_list):
         #Méthode auxiliaire pour ajouter les bâtiments à la liste de rendu
         if isinstance(building, TownCenter):
