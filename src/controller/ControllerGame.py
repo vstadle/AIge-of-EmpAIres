@@ -48,12 +48,16 @@ class ControllerGame():
         for cplayer in lstcPlayers:
             self.lstAI.append(AI(self.game, cplayer))
 
+        self.stdscr = None
+
     def run(self):
 
         self.viewTerminal = ViewTerminal(self.cmap.map)
         curses.wrapper(self.run_terminal)
 
     def run_terminal(self, stdscr):
+
+        self.stdscr = stdscr
 
         stdscr.nodelay(True)
 
@@ -120,13 +124,13 @@ class ControllerGame():
             if not self.paused:
 
                 if key == ord('z'):
-                    pos_x -= 1
+                    self.viewTerminal.camera.move(-1, 0, stdscr)
                 elif key == ord('s'):
-                    pos_x += 1
+                    self.viewTerminal.camera.move(1, 0, stdscr)
                 elif key == ord('q'):
-                    pos_y -= 1
+                    self.viewTerminal.camera.move(0, -1, stdscr)
                 elif key == ord('d'):
-                    pos_y += 1
+                    self.viewTerminal.camera.move(0, 1, stdscr)
                 elif key == ord('p'):
                     self.uiHandler.saveGame()
                     stdscr.clear()
@@ -134,7 +138,6 @@ class ControllerGame():
                 elif key == ord('v'):
                     self.change_mode()
 
-                
                 if current_time - start_time > time_to_update:
                     start_time = current_time
                     for ai in self.lstAI:
@@ -146,7 +149,7 @@ class ControllerGame():
                     cplayer.updating_collect()
                     cplayer.updating_moving()
 
-                self.viewTerminal.draw_map(stdscr, pos_x, pos_y)
+                self.viewTerminal.draw_map(stdscr)
         
     def change_mode(self):
         pygame.init()
@@ -165,6 +168,7 @@ class ControllerGame():
                     sys.exit()
                 if event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_p:
+                        self.stdscr.clear()
                         self.uiHandler.saveGame()
                         sys.exit()
                     if event.key == pygame.K_v:
