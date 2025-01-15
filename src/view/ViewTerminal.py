@@ -32,8 +32,6 @@ class ViewTerminal:
         visible_rows = min(max_y, self.GRID_HEIGHT)
         visible_cols = min(max_x, self.GRID_WIDTH)
 
-        logs(f"max_y={max_y}, max_x={max_x}, visible_rows={visible_rows}, visible_cols={visible_cols}", level=logging.DEBUG)
-
         # Parcourir uniquement la zone visible
         for row in range(visible_rows):
             for col in range(visible_cols):

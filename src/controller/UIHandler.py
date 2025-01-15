@@ -32,7 +32,7 @@ class UIHandler():
         last_click_time = 0
         click_timeout = 500 #Easter Egg
         pygame.init()
-        screen = pygame.display.set_mode((800, 600), pygame.RESIZABLE)
+        screen = pygame.display.set_mode((800, 600))
         pygame.display.set_caption("Menu Principal")
         
         # Charger les ressources
