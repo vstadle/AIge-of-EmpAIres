@@ -18,7 +18,9 @@ from web.generate_html import generateHtml
 class ControllerMap():
     def __init__(self, size_map_x, size_map_y):
         pygame.init()
-        self.map = Map(size_map_x, size_map_y)
+        self.size_map_x = size_map_x
+        self.size_map_y = size_map_y
+        self.map = Map(self.size_map_x, self.size_map_y)
         self.pos_x = 0
         self.pos_y = 0
         self.training_queue = []

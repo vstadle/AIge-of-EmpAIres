@@ -157,13 +157,12 @@ class ControllerGame():
     def change_mode(self):
         pygame.init()
         self.clock = pygame.time.Clock()
-        self.viewPygame = ViewPygame(119, 119, self.cmap.map,self.clock,self.game)
+        self.viewPygame = ViewPygame(self.cmap.size_map_x, self.cmap.size_map_y, self.cmap.map,self.clock,self.game)
         self.run_pygame()
 
     def run_pygame(self):
         frame_counter = 0
         tab_pressed = False
-        pos_x, pos_y = 0, 0
         running = True
         
         while running:

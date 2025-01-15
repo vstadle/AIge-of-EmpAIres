@@ -18,30 +18,26 @@ from logs.logger import logs
 
 class UIHandler():
     def __init__(self):
-        self.screen = pygame.display.set_mode((600,600))
-        #Création de la map
+        self.screen = pygame.display.set_mode((800, 600))
         self.game = Game()
-        self.controllerMap = ControllerMap(120,120)
+        self.controllerMap = ControllerMap(120, 120)
         self.lstPlayers = []
         self.controllerGame = None
-
         self.isSaved = False
         self.nameFile = ""
-
+        
     def show_menu(self):
         pygame.init()
-        
-        # Définir la taille initiale de la fenêtre
         screen = pygame.display.set_mode((800, 600), pygame.RESIZABLE)
         pygame.display.set_caption("Menu Principal")
         
         # Charger les ressources
-        background = pygame.image.load(f"../data/img/menu_background.png")  # Remplacez par une image de style médiéval
-        button_image = pygame.image.load(f"../data/img/button.png")  # Remplacez par une texture de bouton médiéval
-        font = pygame.font.Font(f"../data/font/CinzelDecorative-Regular.ttf", 36)  # Remplacez par une police médiévale
+        background = pygame.image.load("../data/img/background.png")
+        button_image = pygame.image.load("../data/img/button.png")
+        font = pygame.font.Font("../data/font/CinzelDecorative-Regular.ttf", 32)
         
         buttons = [
-            ("Nouvelle Partie", self.start_new_game),
+            ("Nouvelle Partie", self.show_game_config),
             ("Charger Partie", lambda: self.show_load_game_menu(screen, font)),
             ("Quitter", sys.exit)
         ]
@@ -50,122 +46,175 @@ class UIHandler():
         
         while menu_active:
             screen.fill((0, 0, 0))
-            
-            # Ajuster l'image de fond à la taille de l'écran
-            screen.blit(pygame.transform.scale(background, screen.get_size()), (0, 0))
-            
-            # Obtenir la taille actuelle de l'écran
             screen_width, screen_height = screen.get_size()
+            screen.blit(pygame.transform.scale(background, (screen_width, screen_height)), (0, 0))
             
-            # Centrer dynamiquement les boutons
             mouse_pos = pygame.mouse.get_pos()
-            for i, (text, action) in enumerate(buttons):
-                button_width, button_height = 300, 50
-                x = (screen_width - button_width) // 2
-                y = (screen_height - (len(buttons) * (button_height + 20))) // 2 + i * (button_height + 20)
+            button_height = 60 
+            spacing = 30  # espace entre les boutons
+            total_height = len(buttons) * (button_height + spacing)
+            
+            current_y = (screen_height - total_height) // 2
+            
+            for text, action in buttons:
+                button_width = 350 
+                button_rect = pygame.Rect((screen_width - button_width) // 2, current_y, button_width, button_height)
                 
-                # Définir le rectangle du bouton
-                button_rect = pygame.Rect(x, y, button_width, button_height)
-                
-                # Vérifier si la souris est au-dessus du bouton
                 is_hovered = button_rect.collidepoint(mouse_pos)
-                button_color = (200, 200, 100) if is_hovered else (160, 82, 45)  # Or couleur en fonction du thème
+                button_color = (200, 200, 100) if is_hovered else (160, 82, 45)
                 
-                # Dessiner le bouton
-                pygame.draw.rect(screen, button_color, button_rect)
-                screen.blit(pygame.transform.scale(button_image, button_rect.size), button_rect.topleft)
+                # dessin bouton
+                scaled_button = pygame.transform.scale(button_image, (button_width, button_height))
+                screen.blit(scaled_button, button_rect.topleft)
                 
-                # Ajouter le texte centré sur le bouton
+                # centrer le texte
                 label = font.render(text, True, (255, 255, 255))
                 label_rect = label.get_rect(center=button_rect.center)
-                screen.blit(label, label_rect.topleft)
+                screen.blit(label, label_rect)
+                
+                current_y += button_height + spacing
             
-            # Rafraîchir l'écran
             pygame.display.flip()
             
-            # Gérer les événements
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     menu_active = False
                     pygame.quit()
                     sys.exit()
-                elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:  # Clic gauche
+                elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
                     for i, (text, action) in enumerate(buttons):
-                        button_width, button_height = 300, 50
-                        x = (screen_width - button_width) // 2
-                        y = (screen_height - (len(buttons) * (button_height + 20))) // 2 + i * (button_height + 20)
-                        button_rect = pygame.Rect(x, y, button_width, button_height)
+                        button_rect = pygame.Rect(
+                            (screen_width - 350) // 2,
+                            (screen_height - total_height) // 2 + i * (button_height + spacing),
+                            350,
+                            button_height
+                        )
                         if button_rect.collidepoint(mouse_pos):
-                            menu_active = False
                             action()
+                            menu_active = False
                 elif event.type == pygame.VIDEORESIZE:
-                    # Ajuster l'écran à la nouvelle taille
                     screen = pygame.display.set_mode(event.size, pygame.RESIZABLE)
 
-    def start_new_game(self):
-
-        pygame.quit()
-
-        '''Demande des paramètres pour une nouvelle partie'''
-        while(True):
-            typeGame = input("Type de partie (Lean, Mean, Marines) : ")
-            typeGame = typeGame.upper()
-            if typeGame in ["LEAN", "MEAN", "MARINES"]:
-                break
-            else:
-                print("Type de partie invalide")
+    def show_game_config(self):
+        screen = pygame.display.set_mode((800, 600), pygame.RESIZABLE)
+        pygame.display.set_caption("Configuration de la Partie")
         
-        while(True):
-            nbPlayers = input("Nombre de joueurs : ")
-            if nbPlayers.isdigit():
-                nbPlayers = int(nbPlayers)
-                break
-            else:
-                print("Nombre de joueurs invalide")
-
-        while(True):
-            typeMap = input("Type de carte (Generous, Center) : ")
-            typeMap = typeMap.upper()
-            if typeMap in ["GENEROUS", "CENTER"]:
-                if typeMap == "GENEROUS":
-                    typeRessource = MapType.GENEROUS_RESOURCES
-                    break
-                elif typeMap == "CENTER":
-                    typeRessource = MapType.CENTER_RESOURCES
-                    break
-            else:
-                print("Type de carte invalide")
-
-        while(True):
-            size_x = input("Taille de la carte (x) : ")
-            if size_x.isdigit():
-                size_x = int(size_x)
-                if size_x > 0:
-                    break
-            print("Taille invalide")
+        font = pygame.font.Font("../data/font/CinzelDecorative-Regular.ttf", 24)
+        button_image = pygame.image.load("../data/img/button.png")
+        background = pygame.image.load("../data/img/background.png")
+        
+        # Configuration par défaut
+        config = {
+            'type_game': 'LEAN',
+            'map_type': 'GENEROUS',
+            'nb_players': 2,
+            'size_x': 120,
+            'size_y': 120
+        }
+        
+        # Options disponibles
+        game_types = ['LEAN', 'MEAN', 'MARINES']
+        map_types = ['GENEROUS', 'CENTER']
+        player_range = range(2, 9)
+        size_range = range(60, 241, 20)
+        
+        selected_option = None
+        config_active = True
+        
+        while config_active:
+            screen.fill((0, 0, 0))
+            screen_width, screen_height = screen.get_size()
+            screen.blit(pygame.transform.scale(background, (screen_width, screen_height)), (0, 0))
             
-        while(True):
-            size_y = input("Taille de la carte (y) : ")
-            if size_y.isdigit():
-                size_y = int(size_y)
-                if size_y > 0:
-                    break
-            print("Taille invalide")
-        '''Initialisation de la partie'''
-
-        print("Création de la partie...")
-
-        # Lancer une nouvelle partie
-        self.controllerMap = ControllerMap(size_x, size_y)
-        self.controllerMap.map.mapType = typeRessource
-        self.controllerMap.genRessources(typeRessource)
-        self.initialize(typeGame, nbPlayers)  # Exemple : type "Marines", 6 joueurs
-        self.controllerMap.setLstPlayers(self.lstPlayers)
-        self.game.setMap(self.controllerMap.map)
-        for player in self.lstPlayers:
-            self.game.lstPlayer.append(player.getPlayer())
-        self.controllerGame = ControllerGame(self.controllerMap, self.lstPlayers, self.game, self)
-        self.start()
+            # Position de départ pour les options
+            start_y = 50
+            spacing = 60
+            current_y = start_y
+            mouse_pos = pygame.mouse.get_pos()
+            
+            # Fonction helper pour créer un bouton avec texte
+            def draw_config_button(text, value, y_pos, options=None):
+                button_width = 350
+                button_height = 50
+                button_x = (screen_width - button_width) // 2
+                
+                button_rect = pygame.Rect(button_x, y_pos, button_width, button_height)
+                is_hovered = button_rect.collidepoint(mouse_pos)
+                
+                scaled_button = pygame.transform.scale(button_image, (button_width, button_height))
+                screen.blit(scaled_button, button_rect.topleft)
+                
+                label = font.render(f"{text}: {value}", True, (255, 255, 255))
+                label_rect = label.get_rect(center=button_rect.center)
+                screen.blit(label, label_rect)
+                
+                return button_rect
+            
+            # Dessiner les options
+            buttons = {}
+            buttons['type_game'] = draw_config_button("Type de jeu", config['type_game'], current_y)
+            current_y += spacing
+            
+            buttons['map_type'] = draw_config_button("Type de carte", config['map_type'], current_y)
+            current_y += spacing
+            
+            buttons['nb_players'] = draw_config_button("Nombre de joueurs", config['nb_players'], current_y)
+            current_y += spacing
+            
+            buttons['size_x'] = draw_config_button("Largeur de la carte", config['size_x'], current_y)
+            current_y += spacing
+            
+            buttons['size_y'] = draw_config_button("Hauteur de la carte", config['size_y'], current_y)
+            current_y += spacing
+            
+            # Bouton de démarrage
+            start_button_rect = draw_config_button("Démarrer la partie", "", current_y + 20)
+            
+            pygame.display.flip()
+            
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    config_active = False
+                    pygame.quit()
+                    sys.exit()
+                
+                elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+                    for key, rect in buttons.items():
+                        if rect.collidepoint(mouse_pos):
+                            selected_option = key
+                            if key == 'type_game':
+                                current_index = game_types.index(config[key])
+                                config[key] = game_types[(current_index + 1) % len(game_types)]
+                            elif key == 'map_type':
+                                current_index = map_types.index(config[key])
+                                config[key] = map_types[(current_index + 1) % len(map_types)]
+                            elif key == 'nb_players':
+                                current_index = list(player_range).index(config[key])
+                                config[key] = list(player_range)[(current_index + 1) % len(player_range)]
+                            elif key in ['size_x', 'size_y']:
+                                current_index = list(size_range).index(config[key])
+                                config[key] = list(size_range)[(current_index + 1) % len(size_range)]
+                    
+                    if start_button_rect.collidepoint(mouse_pos):
+                        # Convertir le type de carte en MapType
+                        pygame.quit()
+                        type_ressource = MapType.GENEROUS_RESOURCES if config['map_type'] == 'GENEROUS' else MapType.CENTER_RESOURCES
+                        
+                        # Initialiser la nouvelle partie avec les configurations choisies
+                        self.controllerMap = ControllerMap(config['size_x'], config['size_y'])
+                        self.controllerMap.map.mapType = type_ressource
+                        self.controllerMap.genRessources(type_ressource)
+                        self.initialize(config['type_game'], config['nb_players'])
+                        self.controllerMap.setLstPlayers(self.lstPlayers)
+                        self.game.setMap(self.controllerMap.map)
+                        for player in self.lstPlayers:
+                            self.game.lstPlayer.append(player.getPlayer())
+                        self.controllerGame = ControllerGame(self.controllerMap, self.lstPlayers, self.game, self)
+                        config_active = False
+                        self.start()
+                
+                elif event.type == pygame.VIDEORESIZE:
+                    screen = pygame.display.set_mode(event.size, pygame.RESIZABLE)
 
     def saveGame(self):
         if not os.path.exists("../save"):
