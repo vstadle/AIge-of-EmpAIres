@@ -425,6 +425,7 @@ class UIHandler():
             screen_width, screen_height = screen.get_size()
             screen.blit(pygame.transform.scale(background, (screen_width, screen_height)), (0, 0))
             list = [0,8,12,13]
+            total_credits_height = len(credits) * 60
             # Affichage des crédits avec défilement
             current_y = scroll_position
             for i, line in enumerate(credits):
@@ -440,9 +441,9 @@ class UIHandler():
             scroll_position -= scroll_speed
             
             # Réinitialiser le défilement quand tous les crédits sont passés
-            if scroll_position < -current_y + screen_height/2:
-                scroll_position = screen.get_height()
-            
+            if scroll_position < -total_credits_height:
+                scroll_position = screen_height
+           
             pygame.display.flip()
             
             for event in pygame.event.get():
