@@ -26,37 +26,40 @@ class UIHandler():
         self.isSaved = False
         self.nameFile = ""
         self.logo_size = (200, 200)  # Taille réduite pour mieux s'intégrer en haut
+        self.font = None
+        self.screen = None
 
     def show_menu(self):
         logo_click_count = 0
         last_click_time = 0
         click_timeout = 500 #Easter Egg
         pygame.init()
-        screen = pygame.display.set_mode((800, 600))
+        self.screen = pygame.display.set_mode((800, 600))
         pygame.display.set_caption("Menu Principal")
         
         # Charger les ressources
         background = pygame.image.load("../data/img/background.png")
         button_image = pygame.image.load("../data/img/button.png")
         font = pygame.font.Font("../data/font/CinzelDecorative-Regular.ttf", 32)
+        self.font = font
         logo = pygame.image.load("../data/img/logo2.png")
         buttons = [
             ("Nouvelle Partie", self.show_game_config),
-            ("Charger Partie", lambda: self.show_load_game_menu(screen, font)),
+            ("Charger Partie", lambda: self.show_load_game_menu()),
             ("Quitter", sys.exit)
         ]
         
         menu_active = True
         
         while menu_active:
-            screen.fill((0, 0, 0))
-            screen_width, screen_height = screen.get_size()
-            screen.blit(pygame.transform.scale(background, (screen_width, screen_height)), (0, 0))
+            self.screen.fill((0, 0, 0))
+            screen_width, screen_height = self.screen.get_size()
+            self.screen.blit(pygame.transform.scale(background, (screen_width, screen_height)), (0, 0))
             
             
             logo_x = (screen_width - self.logo_size[0]) // 2
             logo_rect = pygame.Rect(logo_x, 20, self.logo_size[0], self.logo_size[1])
-            screen.blit(pygame.transform.scale(logo, self.logo_size), (logo_x, 20))
+            self.screen.blit(pygame.transform.scale(logo, self.logo_size), (logo_x, 20))
 
             mouse_pos = pygame.mouse.get_pos()
             button_height = 60 
@@ -74,12 +77,12 @@ class UIHandler():
                 
                 # dessin bouton
                 scaled_button = pygame.transform.scale(button_image, (button_width, button_height))
-                screen.blit(scaled_button, button_rect.topleft)
+                self.screen.blit(scaled_button, button_rect.topleft)
                 
                 # centrer le texte
                 label = font.render(text, True, (255, 255, 255))
                 label_rect = label.get_rect(center=button_rect.center)
-                screen.blit(label, label_rect)
+                self.screen.blit(label, label_rect)
                 
                 current_y += button_height + spacing
             
@@ -116,10 +119,10 @@ class UIHandler():
                             action()
                             menu_active = False
                 elif event.type == pygame.VIDEORESIZE:
-                    screen = pygame.display.set_mode(event.size, pygame.RESIZABLE)
+                    self.screen = pygame.display.set_mode(event.size, pygame.RESIZABLE)
 
     def show_game_config(self):
-        screen = pygame.display.set_mode((800, 600), pygame.RESIZABLE)
+        screen = pygame.display.set_mode((800, 600))
         pygame.display.set_caption("Configuration de la Partie")
         
         font = pygame.font.Font("../data/font/CinzelDecorative-Regular.ttf", 24)
@@ -249,10 +252,6 @@ class UIHandler():
     def saveGame(self):
         if not os.path.exists("../save"):
             os.makedirs("../save")
-        screen = pygame.display.set_mode((400, 300))
-        pygame.display.set_caption("Save Game")
-        screen.fill((0, 0, 0))  
-        pygame.display.update()
         lsttemp = []
         for players in self.lstPlayers:
             lsttemp.append(players.getPlayer())
@@ -346,7 +345,13 @@ class UIHandler():
             self.lstPlayers[0].trainVillager(self.lstPlayers[0].getPlayer().getBuildings()[0])
             '''
             
-    def show_load_game_menu(self, screen, font):
+    def show_load_game_menu(self):
+        if not pygame.display.get_surface():
+            pygame.init()
+            self.screen = pygame.display.set_mode((800, 600))
+        
+        pygame.display.set_caption("Charger une partie")
+
         clock = pygame.time.Clock()
         files = os.listdir('../save/')
         scroll_offset = 0
@@ -354,18 +359,18 @@ class UIHandler():
 
         load_game_active = True
         while load_game_active:
-            screen.fill((0, 0, 0))
+            self.screen.fill((0, 0, 0))
             mouse_pos = pygame.mouse.get_pos()
 
             y = 100 - scroll_offset
             file_positions = []
 
             for file in files:
-                label = font.render(file, True, (255, 255, 255))
+                label = self.font.render(file, True, (255, 255, 255))
                 rect = label.get_rect(topleft=(100, y))
                 color = (200, 200, 0) if rect.collidepoint(mouse_pos) else (255, 255, 255)
-                label = font.render(file, True, color)
-                screen.blit(label, rect.topleft)
+                label = self.font.render(file, True, color)
+                self.screen.blit(label, rect.topleft)
                 file_positions.append((file, rect))
                 y += 40
 

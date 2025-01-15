@@ -134,6 +134,14 @@ class ControllerGame():
             else:
                 p_pressed = False
 
+            if key == curses.KEY_F7 or key == curses.KEY_F11:
+                self.uiHandler.saveGame()
+            elif key == curses.KEY_F12:
+                self.paused = True
+                pygame.quit()
+                self.uiHandler.show_menu()
+
+
             if not self.paused:
 
                 if key == ord('z'):
@@ -148,12 +156,13 @@ class ControllerGame():
                     self.uiHandler.saveGame()
                     stdscr.clear()
                     sys.exit()
-                elif key == 273:
+                elif key == curses.KEY_F9:
                     self.change_mode()
 
                 if current_time - start_time > time_to_update:
                     start_time = current_time
                     for ai in self.lstAI:
+                        stdscr.clear()
                         ai.choose_strategie()
                 
                 for cplayer in self.lstcPlayers:
@@ -203,6 +212,14 @@ class ControllerGame():
                         pygame.quit()
                         #self.run()
                         return
+                    elif event.key == pygame.K_F12:
+                        self.paused = True
+                        pygame.quit()
+                        self.uiHandler.show_menu()
+                        return
+                    elif event.key == pygame.K_F7 or event.key == pygame.K_F11:
+                        self.uiHandler.saveGame()
+                    
                 if event.type == pygame.KEYUP:
                     if event.key == pygame.K_TAB:
                         tab_pressed = False

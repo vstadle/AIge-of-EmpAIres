@@ -56,8 +56,7 @@ class ViewTerminal:
                 try:
                     stdscr.addch(row, col, char, color_pair)
                 except curses.error as e:
-                    print(f"Error at (row={row}, col={col}) with char='{char}' and color_pair={color_pair}: {e}")
-
+                    pass
         # Rafraîchir l'écran une seule fois après avoir dessiné la carte visible
         stdscr.refresh()
 
