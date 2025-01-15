@@ -626,7 +626,7 @@ class ViewPygame:
         self.TILE_SIZE = 64
         self.width = 1550
         self.height = 865
-        self.screen = pygame.display.set_mode((self.width,self.height))
+        self.screen = pygame.display.set_mode((self.width,self.height), pygame.DOUBLEBUF | pygame.RESIZABLE)
         self.camera = Camera(self.width, self.height, self.grid_length_x, self.grid_length_y)
         self.fps_font = pygame.font.SysFont(None, 25)
         # Créer la surface de fond une seule fois
@@ -654,6 +654,13 @@ class ViewPygame:
         
         # Cache pour les positions de rendu (optimisation)
         self._render_positions_cache = {}
+
+        # Pré-rendre le texte des FPS
+        self.fps_surface = self.fps_font.render(
+                self.current_fps_display,
+                True,
+                (255, 255, 255)
+            )
     
     def _load_images(self):
         current_dir = os.path.dirname(os.path.abspath(__file__))

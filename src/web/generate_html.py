@@ -10,12 +10,15 @@ from model.House import House
 from model.Keep import Keep
 from model.Stable import Stable
 from model.TownCenter import TownCenter
+from logs.logger import logs
+
 import os
+import logging
 
 def generateHtml(lstPlayers):
     current_path = os.getcwd() + "/web/index.html"
     clear_html(current_path)
-    print("Generating HTML")
+    logs("Generating HTML", level=logging.INFO)
     content = ""
     for player in lstPlayers:
         units_type = calculate_unit(player.getPlayer())
@@ -55,7 +58,7 @@ def generateHtml(lstPlayers):
         """
     
     insert_html(content, current_path)
-    print("HTML generated")
+    logs("HTML generated", level=logging.INFO)
 
 def calculate_unit(player):
     cptVillager = 0

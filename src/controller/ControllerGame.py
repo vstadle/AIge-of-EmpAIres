@@ -3,7 +3,10 @@ import pygame
 import sys
 import webbrowser
 import os
+import logging  
+import time
 
+from logs.logger import logs
 from web.generate_html import generateHtml
 
 from controller.ControllerMap import ControllerMap
@@ -15,8 +18,18 @@ from view.ViewPygame import ViewPygame
 from model.Game import Game
 from view.Camera import Camera
 
+from model.Gold import Gold
+from model.TownCenter import TownCenter
+from model.Farm import Farm
+
+from ai.ai import AI
+
 class ControllerGame():
-    def __init__(self, cmap, lstcPlayers, game, uiHandler):
+
+    log_win = None
+
+    def __init__(self, cmap, lstcPlayers, game , uiHandler):
+        
         self.cmap = cmap
         self.lstcPlayers = lstcPlayers
         
@@ -34,6 +47,12 @@ class ControllerGame():
         self.paused = False
         self.zoom_level = 1.0
 
+        self.lstAI = []
+        for cplayer in lstcPlayers:
+            self.lstAI.append(AI(self.game, cplayer))
+
+        self.stdscr = None
+
     def run(self):
 
         self.viewTerminal = ViewTerminal(self.cmap.map)
@@ -41,15 +60,58 @@ class ControllerGame():
 
     def run_terminal(self, stdscr):
 
+        self.stdscr = stdscr
+
         stdscr.nodelay(True)
 
         tab_pressed = False
 
         pos_x, pos_y = 0, 0
 
+        time_to_update = 0.5
+
+        start_time = time.time()
+
+        #Test Collecte des ressources avec un villageois
+        '''
+        self.cmap.map.mapRessources[0][0] = Gold()
+        self.cmap.map.mapRessources[0][0].setXY(0, 0)
+        self.cmap.map.map[0][0] = "G"
+        self.cmap.map.map[0][1] = "v"
+        self.lstcPlayers[0].collectResources(self.lstcPlayers[0].player.units[0], self.cmap.map.mapRessources[0][0], 2, 2)
+        '''
+
+        '''
+        logs(self.lstcPlayers[0].__str__(), level=logging.INFO)
+        for unit in self.lstcPlayers[0].player.units:
+            logs(unit.__str__(), level=logging.INFO)
+        '''
+
+        logs("List player in the game :")
+        for cplayer in self.lstcPlayers:
+            logs(cplayer.player.__repr__(), level=logging.INFO)
+
+        logs("Size of the map: " + str(len(self.cmap.map.map)) + "x" + str(len(self.cmap.map.map[0])), level=logging.INFO)
+
+        logs("Game started", level=logging.INFO)
+    
+        #self.lstcPlayers[0].addBuilding(TownCenter(), 10, 10)
+        
+        #self.lstcPlayers[0].player.gold = 50
+
+        logs("Nb d'IA : " + str(len(self.lstAI)), level=logging.INFO)
+
+
+        #self.lstcPlayers[0].addBuilding(Farm(), 10, 10)
+
+        #self.lstcPlayers[0].move(self.lstcPlayers[0].player.units[0], 119, 1)
+
+        for ai in self.lstAI:
+            ai.start_strategie()
+
         while True:
             #stdscr.refresh()
-
+            current_time = time.time()
             key = stdscr.getch()
 
             if key == 9:  # Si la touche "Tab" est pressée
@@ -65,13 +127,13 @@ class ControllerGame():
             if not self.paused:
 
                 if key == ord('z'):
-                    pos_x -= 1
+                    self.viewTerminal.camera.move(-1, 0, stdscr)
                 elif key == ord('s'):
-                    pos_x += 1
+                    self.viewTerminal.camera.move(1, 0, stdscr)
                 elif key == ord('q'):
-                    pos_y -= 1
+                    self.viewTerminal.camera.move(0, -1, stdscr)
                 elif key == ord('d'):
-                    pos_y += 1
+                    self.viewTerminal.camera.move(0, 1, stdscr)
                 elif key == ord('p'):
                     self.uiHandler.saveGame()
                     stdscr.clear()
@@ -79,11 +141,18 @@ class ControllerGame():
                 elif key == ord('v'):
                     self.change_mode()
 
+                if current_time - start_time > time_to_update:
+                    start_time = current_time
+                    for ai in self.lstAI:
+                        ai.choose_strategie()
+                
                 for cplayer in self.lstcPlayers:
                     cplayer.update_training()
                     cplayer.update_building()
+                    cplayer.updating_collect()
+                    cplayer.updating_moving()
 
-                self.viewTerminal.draw_map(stdscr, pos_x, pos_y)
+                self.viewTerminal.draw_map(stdscr)
         
     def change_mode(self):
         pygame.init()
@@ -92,6 +161,7 @@ class ControllerGame():
         self.run_pygame()
 
     def run_pygame(self):
+        frame_counter = 0
         tab_pressed = False
         pos_x, pos_y = 0, 0
         running = True
@@ -105,6 +175,7 @@ class ControllerGame():
                     break
                 if event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_p:
+                        self.stdscr.clear()
                         self.uiHandler.saveGame()
                         running = False
                         break
@@ -131,11 +202,7 @@ class ControllerGame():
                         self.zoom_level = round(max(0.5, self.zoom_level - 0.1), 1)
                         if self.zoom_level < 0.1:
                             self.zoom_level = 0.1
-       
-
-            if not running:
-                break
-
+                    
             if not self.paused:
                 
                 if keys[pygame.K_ESCAPE]:
@@ -148,6 +215,8 @@ class ControllerGame():
                 for cplayer in self.lstcPlayers:
                     cplayer.update_training()
                     check = cplayer.update_building()
+                    cplayer.updating_collect()
+                    cplayer.updating_moving()
                     if(check==0):
                         check2+=1
                 if check2!=0:
@@ -163,9 +232,9 @@ class ControllerGame():
     def toggle_pause(self):
         self.paused = not self.paused
         if self.paused:
-            print("Paused")
+            logs("GAME PAUSED", level=logging.INFO)
             generateHtml(self.lstcPlayers)
             current_path = "file://" + os.getcwd() + "/web/index.html"
             webbrowser.open(current_path)
         else:
-            print("Unpaused")
+            logs("GAME UNPAUSED", level=logging.INFO)

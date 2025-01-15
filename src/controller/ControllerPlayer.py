@@ -2,7 +2,9 @@ import pygame
 import sys
 import random
 import time
+import logging
 
+from controller import A_Star
 from model.Player import Player
 from model.TownCenter import TownCenter
 from model.Farm import Farm
@@ -14,12 +16,19 @@ from model.Swordsman import Swordsman
 from model.Barracks import Barracks
 from model.Stable import Stable
 from model.ArcheryRange import ArcheryRange
+from model.Gold import Gold
+from model.Wood import Wood
+from logs.logger import logs
+from model.Buildings import Buildings
+from model.House import House
 
 class ControllerPlayer():
     
     def __init__(self, player, cmap):
         self.player = player
         self.cmap = cmap
+        self.queueCollect = []
+        self.queueMoving = []
     
     @classmethod
     def from_saved(cls,player,cmap):
@@ -205,9 +214,11 @@ class ControllerPlayer():
                     self.addBuildingInitialize(archeryrange, posx, posy)
                     check = True
 
-        print(self.player.name)
+        '''
+        logs(self.player.name, level=logging.INFO)
         for building in self.player.getBuildings():
-            print(building)
+            logs(building.__str__(), level=logging.INFO)
+        '''
 
     def addBuildingInitialize(self, building, x, y):
         self.player.addBuilding(building)
@@ -228,9 +239,29 @@ class ControllerPlayer():
                     if not is_free:
                         break
                 if is_free:
-                    print(building, " add to building queue")
+
+                    cpt = 0
+                    lstVillager = []
+                    for villager in self.player.units:
+                        if isinstance(villager, Villager) and villager.action == None:
+                            cpt += 1
+                            lstVillager.append(villager)
+                            villager.action = "build"
+                    if cpt == 0:
+                        #logs(self.player.name + " : No villager available", level=logging.INFO)
+                        return -1
+                    elif cpt == 1:
+                        buildingTime = building.getBuildingTime()
+                    elif cpt > 1:
+                        buildingTime = (3*building.getBuildingTime()) / (cpt + 2)
+                    logs(self.player.name + " : " + building.__str__() + " add to building queue buildingTime = " + str(buildingTime), level=logging.INFO)
                     self.player.removeResourcesForBuilding(building)
-                    self.player.getBuildingQueue().append({"building": building, "player": self.player, "start_time": time.time(), "x": x, "y": y})
+                    self.cmap.map.addBuildingTemp(building, x, y)
+                    self.player.getBuildingQueue().append({"building": building, "player": self.player, "start_time": time.time(), "buildingTime": buildingTime, 'lstVillagers': lstVillager, "x": x, "y": y})
+                    return 0
+            else:
+                #logs(self.player.name + " : Building is too big", level=logging.INFO)
+                return -1    
 
     def update_building(self):
         current_time = time.time()
@@ -239,30 +270,38 @@ class ControllerPlayer():
             building = item["building"]
             player = item["player"]
             start_time = item["start_time"]
+            buildingTime = item["buildingTime"]
+            lstVillagers = item["lstVillagers"]
             building = item["building"]
             x = item["x"]
             y = item["y"]
 
-            if current_time - start_time >= building.getBuildingTime():
+            if current_time - start_time >= buildingTime:
 
                 is_free = True
                 for i in range(building.getSizeMap()):
                     for j in range(building.getSizeMap()):
                         if(not self.cmap.is_free(x+i, y+j)):
-                            print(x+i, y+j)
-                            print("Error  with building placement : ", building)
+                            s = f"{x+i} {y+j}"
+                            logs(s, level=logging.ERROR)
+                            logs(self.player.name + " : Error  with building placement : "+ building.__str__(), level=logging.ERROR)
                             is_free = False
                             break
                     if(not is_free):
                         break
 
                 if(is_free):
+                    if isinstance(building, Farm):
+                        player.food += building.food
+                        logs(self.player.name + " : Farm build, add " + str(building.food) + " to food player", level=logging.INFO)
                     player.addBuilding(building)
                     self.cmap.map.addBuilding(building, x, y, player)
                     building.setX(x)
                     building.setY(y)
                     self.player.getBuildingQueue().remove(item)
-                    print(building, " is placed")
+                    logs(self.player.name + " : " + building.__str__() + " is placed", level=logging.INFO)
+                    for villager in lstVillagers:
+                        villager.action = None
                     return 0
                 else:
                     print()
@@ -294,7 +333,7 @@ class ControllerPlayer():
 
     def addUnit(self,unit, building):
         start_time = time.time()
-        print(unit, " add to training queue")
+        logs(self.player.name + " : " + unit.__str__() + " add to training queue", level=logging.INFO)
         self.player.getTrainingQueue().append({"unit": unit, "player": self.player, "start_time": start_time, "building": building})
 
     def update_training(self):
@@ -320,11 +359,10 @@ class ControllerPlayer():
                         for dy in range(-layer, layer, + 1):
                             if abs(dx) == layer or abs(dy) == layer:
                                 nx, ny = x + dx, y + dy
-                                if self.cmap.map.is_free(nx,ny):
+                                if self.cmap.map.is_free(nx,ny) and self.cmap.map.map[nx][ny] == " ":
                                     self.cmap.map.addUnits(unit, nx, ny, player)
                                     self.player.addUnit(unit)
                                     placed = True
-                                    print(unit , " is placed")
                                     break
                         if placed:
                             break
@@ -336,37 +374,223 @@ class ControllerPlayer():
 
     def trainVillager(self, building):
         villager = Villager()
-        if self.player.canAffordUnit(villager):
-            self.player.removeResourcesForUnit(villager)
-            self.addUnit(villager, building)
-            return 0
-        return -1
+        if self.player.population < 200 and (len(self.player.units)+len(self.player.training_queue)) < self.player.population:
+            if self.player.canAffordUnit(villager):
+                self.player.removeResourcesForUnit(villager)
+                self.addUnit(villager, building)
+                return 0
+            else :
+                return 1
+        else:
+            #logs(self.player.name + " : Population is full", level=logging.INFO)
+            return -1
     
     def trainArcher(self, building):
         archer = Archer()
-        if self.player.canAffordUnit(archer):
-            self.addUnit(archer, building)
-            self.player.removeResourcesForUnit(archer)
-            return 0
-        return -1
+        if self.player.population < 200 and (len(self.player.units)+len(self.player.training_queue)) < self.player.population:
+            if self.player.canAffordUnit(archer):
+                self.addUnit(archer, building)
+                self.player.removeResourcesForUnit(archer)
+                return 0
+            else:
+                return 1
+        else:
+            #logs(self.player.name + " : Population is full", level=logging.INFO)
+            return -1
 
     def trainHorseman(self, building):
         horseman = Horseman()
-        if self.player.canAffordUnit(horseman):
-            self.addUnit(horseman, building)
-            self.player.removeResourcesForUnit(horseman)
-            return 0
+        if self.player.population < 200 and (len(self.player.units)+len(self.player.training_queue)) < self.player.population:
+            if self.player.canAffordUnit(horseman):
+                self.addUnit(horseman, building)
+                self.player.removeResourcesForUnit(horseman)
+                return 0
+            else :
+                return 1
         else:
+            #logs(self.player.name + " : Population is full", level=logging.INFO)
             return -1
     
     def trainSwordsman(self, building):
         swordsman = Swordsman()
-        if self.player.canAffordUnit(swordsman):
-            self.addUnit(swordsman, building)
-            self.player.removeResourcesForUnit(swordsman)
+        if self.player.population < 200 and (len(self.player.units)+len(self.player.training_queue)) < self.player.population:
+            if self.player.canAffordUnit(swordsman):
+                self.addUnit(swordsman, building)
+                self.player.removeResourcesForUnit(swordsman)
+                return 0
+            else :
+                return 1
+        else:
+            #logs(self.player.name + " : Population is full", level=logging.INFO)
+            return -1
+
+    def collectResources(self, villager, ressource):
+        unit_x = villager.x
+        unit_y = villager.y
+        can_collect = False
+
+        # Calcul des distances en X et Y
+        distance_x = abs(ressource.getX() - unit_x)
+        distance_y = abs(ressource.getY() - unit_y)
+
+        if distance_x <= 1 and distance_y <= 1:
+            if villager.carryingType == None:
+                if isinstance(ressource, Gold):
+                    villager.carryingType = "Gold"
+                    can_collect = True
+                elif isinstance(ressource, Wood):
+                    villager.carryingType = "Wood"
+                    can_collect = True
+            elif isinstance(ressource, Gold) and villager.carryingType == "Gold":
+                can_collect = True
+            elif isinstance(ressource, Wood) and villager.carryingType == "Wood":
+                can_collect = True
+            
+            if can_collect:
+                #Le villageois est à la bonne distance pour collecter des ressources
+                logs(self.player.name + " : Villager is collecting resources", level=logging.INFO)
+                start_time = time.time()
+                villager.action = "collect"
+                self.queueCollect.append({"villager": villager, "start_time": start_time, "ressource": ressource})
+                logs(self.player.name + " : Villager is collecting resources", level=logging.INFO)
+        else:
+            logs(self.player.name + " : Villager is too far to collect resources", level=logging.INFO)
+    
+    def updating_collect(self):
+        current_time = time.time()
+        #print(current_time)
+        for item in self.queueCollect[:]:
+            villager = item["villager"]
+            start_time = item["start_time"]
+            ressource = item["ressource"]
+            if current_time - start_time >= villager.collectPerSecond:
+                #logs(self.player.name + " : villager can collect ressources", level=logging.INFO)
+                if(villager.canCollectRessources() and ressource.capacity > 0):
+                    villager.collect(ressource)
+                    #logs(self.player.name + " : villager collect ressources", level=logging.INFO)
+                    #logs(villager.carrying.__str__(), level=logging.INFO)
+                    self.queueCollect.remove(item)
+                    start_time = time.time()
+                    if(ressource.capacity <= 0):
+                        logs(self.player.name + " : Ressource is empty", level=logging.INFO)
+                        self.cmap.map.mapRessources[ressource.getX()][ressource.getY()] = None
+                        self.cmap.map.map[ressource.getX()][ressource.getY()] = " "
+                        villager.action = None
+                    else:
+                        self.queueCollect.append({"villager": villager, "start_time": start_time, "ressource": ressource})
+                else:
+                    logs(self.player.name + " : Villagers can't collect ressources", level=logging.INFO)
+                    villager.action = None
+                    self.queueCollect.remove(item)
+
+    def moveWithChemin(self, unit, chemin):
+        
+        if chemin is not None:
+            start = unit.getPosition()
+            end = chemin[len(chemin)-1]
+            
+            logs(self.player.name + " : " + str(unit) + " is moving", level=logging.INFO)
+            unit.action = "move"
+            start_time = time.time()
+            self.queueMoving.append({"unit": unit, "start_time": start_time, "chemin": chemin})
             return 0
         else:
+            logs(self.player.name + " : " + str(unit) + " No path found", level=logging.INFO)
             return -1
+
+    def move(self, unit, x, y):
+        start = unit.getPosition()
+        end = (x,y)
+        logs(self.player.name + " : " + str(unit) + " is moving", level=logging.INFO)
+        chemin = A_Star.a_star(self.cmap.map, start, end)
+        unit.action = "move"
+        if chemin is None:
+            logs(self.player.name + " : " + str(unit) + " No path found", level=logging.INFO)
+            return -1
+        else:
+            chemin.pop(0)
+            #logs("Chemin : " + chemin.__str__(), level=logging.INFO)
+            start_time = time.time()
+            self.queueMoving.append({"unit": unit, "start_time": start_time, "chemin": chemin})
+            return 0
+
+    def updating_moving(self):
+        current_time = time.time()
+        for item in self.queueMoving[:]:
+            unit = item["unit"]
+            start_time = item["start_time"]
+            chemin = item["chemin"]
+            if current_time - start_time >= unit.speed:
+                #logs("Unit is moving", level=logging.INFO)
+                case = chemin[0]
+                x = case[0]
+                y = case[1]
+                pos = unit.getPosition()
+                #logs("Position : " + pos.__str__(), level=logging.INFO)
+                #logs("Next_position : " + case.__str__(), level=logging.INFO)
+                #logs("Next_position : " + self.cmap.map.map[x][y], level=logging.INFO)
+                #logs("Current Position : " + self.cmap.map.map[pos[0]][pos[1]], level=logging.INFO)
+                if self.cmap.map.is_free(x,y) and self.cmap.map.map[x][y] == " ":
+                    self.queueMoving.remove(item)
+                    self.cmap.map.moveUnit(unit, x, y, self.player)
+                    chemin.pop(0)
+                    start_time = time.time()
+                    if len(chemin) > 0:
+                        self.queueMoving.append({"unit": unit, "start_time": start_time, "chemin": chemin})
+                    else:
+                        logs(self.player.name + " : " + str(unit) + " is arrived", level=logging.INFO)
+                        unit.action = None
+                else:
+                    #logs("Case :" + self.cmap.map.map[x][y], level=logging.INFO)
+                    #logs("Unit position :" + str(unit.getPosition()), level=logging.INFO)
+                    #logs("Unit can't move", level=logging.INFO)
+                    #logs("Path : " + chemin.__str__(), level=logging.INFO)
+                    self.queueMoving.remove(item)
+                    chemin = A_Star.a_star(self.cmap.map, (unit.getPosition()), chemin[len(chemin)-1])
+                    if chemin is None:
+                        logs(self.player.name + " : " + str(unit) + " No path found", level=logging.ERROR)
+                        unit.action = None
+                    else:
+                        chemin.pop(0)
+                        #logs("New path : " + chemin.__str__(), level=logging.INFO)
+                        start_time = time.time()
+                        case = chemin[0]
+                        x = case[0]
+                        y = case[1]
+                        if len(chemin) == 1:
+                            logs(self.player.name + " : " + str(unit) + " is block", level=logging.ERROR)
+                            unit.action = None
+                        else:
+                            if self.cmap.map.is_free(x,y) and self.cmap.map.map[x][y] == " ":
+                                self.cmap.map.moveUnit(unit, x, y, self.player)
+                                chemin.pop(0)
+                                if len(chemin) > 0:
+                                    self.queueMoving.append({"unit": unit, "start_time": start_time, "chemin": chemin})
+                                else:
+                                    logs(self.player.name + " : " + str(unit) + " is arrived", level=logging.INFO)
+                                    unit.action = None
+
+    def depositResources(self, villager, target_deposit):
+
+        villager_position = villager.getPosition()
+
+        distance_x = abs(target_deposit[0] - villager.x)
+        distance_y = abs(target_deposit[1] - villager.y)
+        if distance_x <= 1 and distance_y <= 1:
+            if villager.carryingType == 'Gold':
+                self.player.addGold(villager.carrying)
+                villager.carrying = 0
+                villager.carryingType = None
+                logs(self.player.name + " : Villager deposit gold : " + str(self.player), level=logging.INFO)
+            elif villager.carryingType == 'Wood':
+                self.player.addWood(villager.carrying)
+                villager.carrying = 0
+                villager.carryingType = None
+                logs(self.player.name + " : Villager deposit wood : " + str(self.player), level=logging.INFO)
+            villager.action = None
+        
+        else :
+            logs(self.player.name + " : Villager is too far to deposit resources", level=logging.INFO)
 
     def getPlayer(self):
         return self.player

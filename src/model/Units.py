@@ -14,6 +14,9 @@ class Units():
         self.speed = speed
         self.range = range
         self.letter = letter
+        self.action = None
+        self.x = None
+        self.y = None
 
     def __repr__(self):
         return "Units(%r, %r, %r, %r, %r)" % (self.health, self.attack, self.speedAtack, self.speed, self.range)
@@ -48,3 +51,12 @@ class Units():
     
     def getCostW(self):
         return self.costW
+    
+    def setPosition(self, x, y):
+        self.x = x
+        self.y = y
+
+    def getPosition(self):
+        if self.x == None or self.y == None:
+            return None
+        return self.x, self.y

@@ -1,4 +1,8 @@
 import curses
+import logging
+
+from logs.logger import logs
+from view.Camera_terminal import Camera_terminal
 
 class ViewTerminal:
 
@@ -11,7 +15,9 @@ class ViewTerminal:
 
         self.map = map
 
-    def draw_map(self, stdscr, start_row, start_col):
+        self.camera = Camera_terminal(map)
+
+    def draw_map(self, stdscr):
         stdscr.clear()
         
         # Vérification que les couleurs sont initialisées (uniquement une fois)
@@ -26,11 +32,14 @@ class ViewTerminal:
         visible_rows = min(max_y, self.GRID_HEIGHT)
         visible_cols = min(max_x, self.GRID_WIDTH)
 
+        logs(f"max_y={max_y}, max_x={max_x}, visible_rows={visible_rows}, visible_cols={visible_cols}", level=logging.DEBUG)
+
         # Parcourir uniquement la zone visible
         for row in range(visible_rows):
             for col in range(visible_cols):
-                map_row = start_row + row
-                map_col = start_col + col
+
+                map_row = self.camera.pos_x + row
+                map_col = self.camera.pos_y + col
 
                 # Vérifier si les indices sont valides pour la carte
                 if 0 <= map_row < len(self.map.map) and 0 <= map_col < len(self.map.map[0]):

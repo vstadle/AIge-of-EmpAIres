@@ -28,11 +28,19 @@ class Player():
         self.food = f
         self.wood = w
         self.gold = g
+        self.population = 0
         self.training_queue = []
         self.buildings_queue = []
         self.id = Player.cptPlayer
         Player.cptPlayer += 1
-        self.color = Player.lstColor[self.id]
+        self.color = None
+        try:
+            self.color = Player.lstColor[self.id]
+        except IndexError:
+            self.color = Player.lstColor[0]
+
+    def __repr__(self):
+        return "Player: %r, Gold: %r, Wood: %r, Food: %r Population: %r" % (self.name, self.gold, self.wood, self.food, self.population)
 
     def addUnit(self, unit):
         self.units.append(unit)
@@ -68,7 +76,8 @@ class Player():
         return (self.wood >= building.costW)
 
     def canAffordUnit(self, unit):
-        return (self.food >= unit.costF and self.wood >= unit.costW and self.gold >= unit.costG)
+        temp = len(self.units) + len(self.training_queue)
+        return (self.food >= unit.costF and self.wood >= unit.costW and self.gold >= unit.costG and temp <= self.population)
 
     def removeResourcesForBuilding(self, building):
         self.wood -= building.costW
