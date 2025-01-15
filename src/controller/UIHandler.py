@@ -456,9 +456,6 @@ class UIHandler():
                         credits_active = False
                         self.show_menu()
                         return
-                elif event.type == pygame.MOUSEBUTTONDOWN:
-                    credits_active = False
-                    self.show_menu()
-                    return
+                
                 elif event.type == pygame.VIDEORESIZE:
                     screen = pygame.display.set_mode(event.size, pygame.RESIZABLE)
