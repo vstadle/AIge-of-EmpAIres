@@ -215,3 +215,4 @@ class ControllerGame():
             webbrowser.open(current_path)
         else:
             logs("GAME UNPAUSED", level=logging.INFO)
+
