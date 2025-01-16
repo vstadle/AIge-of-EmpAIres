@@ -213,3 +213,5 @@ class ControllerGame():
             generateHtml(self.lstcPlayers)
             current_path = "file://" + os.getcwd() + "/web/index.html"
             webbrowser.open(current_path)
+        else:
+            logs("GAME UNPAUSED", level=logging.INFO)
