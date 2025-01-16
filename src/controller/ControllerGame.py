@@ -156,7 +156,7 @@ class ControllerGame():
                     self.uiHandler.saveGame()
                     stdscr.clear()
                     sys.exit()
-                elif key == curses.KEY_F9:
+                elif key == curses.KEY_F2 or key == curses.KEY_F9:
                     self.change_mode()
 
                 if current_time - start_time > time_to_update:

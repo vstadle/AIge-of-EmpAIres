@@ -16,6 +16,73 @@ from model.Player import Player
 from controller.ControllerGame import ControllerGame
 from logs.logger import logs
 
+class SliderControl:
+    def __init__(self, x, y, width, height, min_val, max_val, initial_val, button_image):
+        # Zone complète du slider (incluant le texte)
+        self.full_height = 100  # Augmentation de la hauteur totale
+        self.rect = pygame.Rect(x, y, width, height)
+        self.min_val = min_val
+        self.max_val = max_val
+        self.value = initial_val
+        self.grabbed = False
+        self.handle_width = 20
+        self.handle_height = height + 10
+        self.button_image = button_image
+        
+    def get_handle_rect(self):
+        value_ratio = (self.value - self.min_val) / (self.max_val - self.min_val)
+        handle_x = self.rect.x + (self.rect.width - self.handle_width) * value_ratio
+        handle_y = self.rect.y - 5
+        return pygame.Rect(handle_x, handle_y, self.handle_width, self.handle_height)
+    
+    def handle_event(self, event, mouse_pos):
+        handle_rect = self.get_handle_rect()
+        
+        if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+            if handle_rect.collidepoint(mouse_pos):
+                self.grabbed = True
+            elif self.rect.collidepoint(mouse_pos):
+                self.grabbed = True
+                rel_x = mouse_pos[0] - self.rect.x
+                ratio = max(0, min(1, rel_x / self.rect.width))
+                self.value = int(self.min_val + ratio * (self.max_val - self.min_val))
+                self.value = max(self.min_val, min(self.max_val, self.value))
+        
+        elif event.type == pygame.MOUSEBUTTONUP and event.button == 1:
+            self.grabbed = False
+        
+        elif event.type == pygame.MOUSEMOTION and self.grabbed:
+            rel_x = mouse_pos[0] - self.rect.x
+            ratio = max(0, min(1, rel_x / self.rect.width))
+            self.value = int(self.min_val + ratio * (self.max_val - self.min_val))
+            self.value = max(self.min_val, min(self.max_val, self.value))
+    
+    def draw(self, screen, font, label):
+        # Calculer la zone complète du slider (texte + barre)
+        button_width = 350  # Même largeur que les autres boutons
+        full_rect = pygame.Rect(
+            self.rect.x - (button_width - self.rect.width) // 2,  # Centrer par rapport à la barre
+            self.rect.y - 60,  # Position plus haute pour inclure le texte
+            button_width,  # Largeur égale aux autres boutons
+            self.full_height  # Hauteur totale incluant le texte et le slider
+        )
+        
+        # Dessiner le fond complet avec l'image du bouton
+        scaled_button = pygame.transform.scale(self.button_image, (full_rect.width, full_rect.height))
+        screen.blit(scaled_button, full_rect.topleft)
+        
+        # Dessiner la barre du slider
+        pygame.draw.rect(screen, (80, 80, 80), self.rect)
+        
+        # Dessiner le curseur
+        handle_rect = self.get_handle_rect()
+        handle_color = (200, 200, 100) if self.grabbed else (160, 82, 45)
+        pygame.draw.rect(screen, handle_color, handle_rect)
+        
+        # Afficher la valeur et le label
+        value_text = font.render(f"{label}: {self.value}", True, (255, 255, 255))
+        text_rect = value_text.get_rect(center=(full_rect.centerx, self.rect.y - 20))
+        screen.blit(value_text, text_rect)
 class UIHandler():
     def __init__(self):
         self.screen = pygame.display.set_mode((800, 600))
@@ -128,9 +195,8 @@ class UIHandler():
         font = pygame.font.Font("../data/font/CinzelDecorative-Regular.ttf", 24)
         button_image = pygame.image.load("../data/img/button.png")
         background = pygame.image.load("../data/img/background.png")
-        logo = pygame.image.load("../data/img/logo2.png")
         back_arrow = pygame.image.load("../data/img/back_arrow.png")
-        # Configuration par défaut
+        
         config = {
             'type_game': 'LEAN',
             'map_type': 'GENEROUS',
@@ -139,11 +205,15 @@ class UIHandler():
             'size_y': 120
         }
         
-        # Options disponibles
         game_types = ['LEAN', 'MEAN', 'MARINES']
         map_types = ['GENEROUS', 'CENTER']
         player_range = range(2, 9)
-        size_range = range(120, 241, 20)
+        
+        slider_width = 300
+        slider_x = (800 - slider_width) // 2
+        
+        slider_x_coord = SliderControl(slider_x, 340, slider_width, 10, 120, 300, config['size_x'], button_image)
+        slider_y_coord = SliderControl(slider_x, 440, slider_width, 10, 120, 300, config['size_y'], button_image)
         
         selected_option = None
         config_active = True
@@ -152,19 +222,20 @@ class UIHandler():
             screen.fill((0, 0, 0))
             screen_width, screen_height = screen.get_size()
             screen.blit(pygame.transform.scale(background, (screen_width, screen_height)), (0, 0))
-            logo_x = (screen_width - self.logo_size[0]) // 2
-            screen.blit(pygame.transform.scale(logo, self.logo_size), (logo_x, 20))
-            # Position de départ pour les options
-            start_y = 200
+            
+            start_y = 50
             spacing = 60
+            slider_spacing = 100
             current_y = start_y
             mouse_pos = pygame.mouse.get_pos()
+            
             back_button_size = (50, 50)
             back_button_rect = pygame.Rect(20, 20, back_button_size[0], back_button_size[1])
             screen.blit(pygame.transform.scale(back_arrow, back_button_size), back_button_rect)
-            def draw_config_button(text, value, y_pos, options=None):
-                button_width = 350
-                button_height = 50
+            
+            def draw_config_button(text, value, y_pos, options=None, width=350, height=50):
+                button_width = width
+                button_height = height
                 button_x = (screen_width - button_width) // 2
                 
                 button_rect = pygame.Rect(button_x, y_pos, button_width, button_height)
@@ -173,13 +244,12 @@ class UIHandler():
                 scaled_button = pygame.transform.scale(button_image, (button_width, button_height))
                 screen.blit(scaled_button, button_rect.topleft)
                 
-                label = font.render(f"{text}: {value}", True, (255, 255, 255))
+                label = font.render(f"{text}: {value}" if value else text, True, (255, 255, 255))
                 label_rect = label.get_rect(center=button_rect.center)
                 screen.blit(label, label_rect)
                 
                 return button_rect
             
-            # Dessiner les options
             buttons = {}
             buttons['type_game'] = draw_config_button("Type de jeu", config['type_game'], current_y)
             current_y += spacing
@@ -188,16 +258,20 @@ class UIHandler():
             current_y += spacing
             
             buttons['nb_players'] = draw_config_button("Nombre de joueurs", config['nb_players'], current_y)
-            current_y += spacing
+            current_y += 2 * spacing
             
-            buttons['size_x'] = draw_config_button("Largeur de la carte", config['size_x'], current_y)
-            current_y += spacing
+            slider_x_coord.rect.y = current_y + 20
+            slider_x_coord.draw(screen, font, "Largeur de la carte")
+            current_y += slider_spacing
             
-            buttons['size_y'] = draw_config_button("Hauteur de la carte", config['size_y'], current_y)
-            current_y += spacing
+            slider_y_coord.rect.y = current_y + 20
+            slider_y_coord.draw(screen, font, "Hauteur de la carte")
+            current_y += slider_spacing - 20
             
-            # Bouton de démarrage
-            start_button_rect = draw_config_button("Démarrer la partie", "", current_y + 20)
+            config['size_x'] = slider_x_coord.value
+            config['size_y'] = slider_y_coord.value
+            
+            start_button_rect = draw_config_button("Démarrer la partie", "", current_y + 20, None, 520, 80)
             
             pygame.display.flip()
             
@@ -207,12 +281,56 @@ class UIHandler():
                     pygame.quit()
                     sys.exit()
                 
-                elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+                # Gestion des sliders
+                slider_x_coord.handle_event(event, mouse_pos)
+                slider_y_coord.handle_event(event, mouse_pos)
+                
+                if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+                    if back_button_rect.collidepoint(mouse_pos):
+                        config_active = False
+                        self.show_menu()
+                        return
+                    
+                    if start_button_rect.collidepoint(mouse_pos):
+                        # Réinitialisation complète du jeu
+                        self.game = Game()  # Créer une nouvelle instance de Game
+                        self.lstPlayers = []  # Réinitialiser la liste des joueurs
+                        
+                        # Initialiser la carte avec les dimensions choisies
+                        self.controllerMap = ControllerMap(config['size_x'], config['size_y'])
+                        
+                        # Configurer le type de carte et générer les ressources
+                        if config['map_type'] == 'CENTER':
+                            self.controllerMap.map.setMapType(MapType.CENTER_RESOURCES)
+                            self.controllerMap.map.generateCenterResources()
+                        else:
+                            self.controllerMap.map.setMapType(MapType.GENEROUS_RESOURCES)
+                            self.controllerMap.map.generateGenerousResources()
+                            
+                        # Générer la forêt
+                        self.controllerMap.map.generateForest()
+                        
+                        # Initialiser les joueurs et leurs unités
+                        self.initialize(config['type_game'], config['nb_players'])
+                        
+                        # Mettre à jour la map avec les joueurs
+                        self.controllerMap.setLstPlayers(self.lstPlayers)
+                        
+                        # Mettre à jour l'objet Game avec les données initiales
+                        lsttemp = []
+                        for player in self.lstPlayers:
+                            lsttemp.append(player.getPlayer())
+                        self.game.setLstPlayer(lsttemp)
+                        self.game.setMap(self.controllerMap.map)
+                        
+                        # Créer le contrôleur de jeu
+                        self.controllerGame = ControllerGame(self.controllerMap, self.lstPlayers, self.game, self)
+                        
+                        config_active = False
+                        pygame.quit()
+                        self.start()
+                    
                     for key, rect in buttons.items():
-                        if back_button_rect.collidepoint(mouse_pos):
-                            config_active = False
-                            self.show_menu()
-                            return
                         if rect.collidepoint(mouse_pos):
                             selected_option = key
                             if key == 'type_game':
@@ -222,33 +340,8 @@ class UIHandler():
                                 current_index = map_types.index(config[key])
                                 config[key] = map_types[(current_index + 1) % len(map_types)]
                             elif key == 'nb_players':
-                                current_index = list(player_range).index(config[key])
-                                config[key] = list(player_range)[(current_index + 1) % len(player_range)]
-                            elif key in ['size_x', 'size_y']:
-                                current_index = list(size_range).index(config[key])
-                                config[key] = list(size_range)[(current_index + 1) % len(size_range)]
-                    
-                    if start_button_rect.collidepoint(mouse_pos):
-                        # Convertir le type de carte en MapType
-                        pygame.quit()
-                        type_ressource = MapType.GENEROUS_RESOURCES if config['map_type'] == 'GENEROUS' else MapType.CENTER_RESOURCES
-                        
-                        # Initialiser la nouvelle partie avec les configurations choisies
-                        self.controllerMap = ControllerMap(config['size_x'], config['size_y'])
-                        self.controllerMap.map.mapType = type_ressource
-                        self.controllerMap.genRessources(type_ressource)
-                        self.initialize(config['type_game'], config['nb_players'])
-                        self.controllerMap.setLstPlayers(self.lstPlayers)
-                        self.game.setMap(self.controllerMap.map)
-                        for player in self.lstPlayers:
-                            self.game.lstPlayer.append(player.getPlayer())
-                        self.controllerGame = ControllerGame(self.controllerMap, self.lstPlayers, self.game, self)
-                        config_active = False
-                        self.start()
-                
-                elif event.type == pygame.VIDEORESIZE:
-                    screen = pygame.display.set_mode(event.size, pygame.RESIZABLE)
-
+                                current_index = player_range.index(config[key])
+                                config[key] = player_range[(current_index + 1) % len(player_range)]
     def saveGame(self):
         if not os.path.exists("../save"):
             os.makedirs("../save")

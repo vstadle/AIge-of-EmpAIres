@@ -37,6 +37,11 @@ class ControllerMap():
         self.size_map_x = map.size_map_x
         self.size_map_y = map.size_map_y
 
+    def reset_map_size(self, size_x, size_y):
+       self.map = Map(size_x, size_y)
+       self.size_map_x = size_x
+       self.size_map_y = size_y
+
     def setLstPlayers(self, lstPlayers):
         self.lstPlayers = lstPlayers
 
