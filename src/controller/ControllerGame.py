@@ -124,13 +124,13 @@ class ControllerGame():
             if not self.paused:
 
                 if key == ord('z'):
-                    self.viewTerminal.camera.move(-1, 0, stdscr)
-                elif key == ord('s'):
-                    self.viewTerminal.camera.move(1, 0, stdscr)
-                elif key == ord('q'):
                     self.viewTerminal.camera.move(0, -1, stdscr)
-                elif key == ord('d'):
+                elif key == ord('s'):
                     self.viewTerminal.camera.move(0, 1, stdscr)
+                elif key == ord('q'):
+                    self.viewTerminal.camera.move(-1, 0, stdscr)
+                elif key == ord('d'):
+                    self.viewTerminal.camera.move(1, 0, stdscr)
                 elif key == ord('p'):
                     self.uiHandler.saveGame()
                     stdscr.clear()

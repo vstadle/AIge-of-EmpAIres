@@ -26,13 +26,13 @@ class ViewTerminal:
             self.colors_initialized = True
         
         # Dimensions de l'écran
-        max_y, max_x = stdscr.getmaxyx()
+        max_x, max_y = stdscr.getmaxyx()
 
         # Limiter les dimensions visibles aux dimensions de la carte
         visible_rows = min(max_y, self.GRID_HEIGHT)
         visible_cols = min(max_x, self.GRID_WIDTH)
 
-        logs(f"max_y={max_y}, max_x={max_x}, visible_rows={visible_rows}, visible_cols={visible_cols}", level=logging.DEBUG)
+        #logs("Affichage de la carte visible: " + str(visible_rows) + " " + str(visible_cols), logging.INFO)
 
         # Parcourir uniquement la zone visible
         for row in range(visible_rows):
@@ -56,7 +56,7 @@ class ViewTerminal:
 
                 # Ajouter le caractère à la position (row, col)
                 try:
-                    stdscr.addch(row, col, char, color_pair)
+                    stdscr.addch(col, row, char, color_pair)
                 except curses.error as e:
                     print(f"Error at (row={row}, col={col}) with char='{char}' and color_pair={color_pair}: {e}")
 
