@@ -72,7 +72,7 @@ class ViewPygame:
         
         SPRITE_PATHS = {
             "block": os.path.join(project_root, "Sprite_aoe/miscellaneous/block.png"),
-            "tree": os.path.join(project_root, "Sprite_aoe/miscellaneous/tree.png"),
+            "tree": os.path.join(project_root, "Sprite_aoe/miscellaneous/tree1.png"),
             "rock": os.path.join(project_root, "Sprite_aoe/miscellaneous/rock.png"),
             "towncenter": os.path.join(project_root, "Sprite_aoe/buildings/town_center.webp"),
             "barracks": os.path.join(project_root, "Sprite_aoe/buildings/barracks.png"),
