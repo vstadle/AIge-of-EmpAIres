@@ -34,7 +34,8 @@ class AI:
         self.lstVillagerCollect = []
     
         self.lstBuildingWaiting = []
-    
+        self.lstUnitWaiting = []
+
     def villager_is_available(self):
         for unit in self.cplayer.player.units:
             if isinstance(unit, Villager) and unit.action is None:
@@ -265,6 +266,45 @@ class AI:
                 else:
                     self.lstVillagerCollect.remove(item)
 
+    def verifBuilding(self):
+            for building in self.lstBuildingWaiting:
+                if self.villager_is_available() is not None:
+                    cpt_villager = self.count_villager_inactivity()
+                    position = self.findPlaceForBuildings(building)
+                    if position is not None:
+                        check = self.cplayer.addBuilding(building, position[0], position[1])
+                        if check == 0:
+                            self.lstBuildingWaiting.remove(building)
+                        break
+
+    def verifUnit(self):
+        for unit in self.lstUnitWaiting:
+            if self.villager_is_available() is not None:
+                if unit == "villager":
+                    towncenter = self.findBuildings(TownCenter)
+                    if towncenter is not None:
+                        check = self.cplayer.trainVillager(towncenter)
+                        if check == 0:
+                            self.lstUnitWaiting.remove(unit)
+                elif unit == "swordsman":
+                    barracks = self.findBuildings(Barracks)
+                    if barracks is not None:
+                        check = self.cplayer.trainSwordsman(barracks)
+                        if check == 0:
+                            self.lstUnitWaiting.remove(unit)
+                elif unit == "archer":
+                    archery = self.findBuildings(ArcheryRange)
+                    if archery is not None:
+                        check = self.cplayer.trainArcher(archery)
+                        if check == 0:
+                            self.lstUnitWaiting.remove(unit)
+                elif unit == "horseman":
+                    stable = self.findBuildings(Stable)
+                    if stable is not None:
+                        check = self.cplayer.trainHorseman(stable)
+                        if check == 0:
+                            self.lstUnitWaiting.remove(unit)
+
     def find_adjacent_free_tile(self, resource):
         adjacent_positions = [
             (resource.x - 1, resource.y),
@@ -372,6 +412,11 @@ class AI:
         for building in self.cplayer.player.buildings:
             if isinstance(building, name):
                 return building
+        
+    def findWaitBuildings(self, name):
+        for building in self.lstBuildingWaiting:
+            if isinstance(building, name):
+                return building
 
     def start_strategie(self):
         
@@ -426,93 +471,228 @@ class AI:
                 cpt += 1
         return cpt
 
-    def choose_strategie(self):
+    def build(self, typeOfBuilding):
+            if typeOfBuilding == TownCenter:
+                building = TownCenter()
+            elif typeOfBuilding == Camp:
+                building = Camp()
+            elif typeOfBuilding == Barracks:
+                building = Barracks()
+            elif typeOfBuilding == ArcheryRange:
+                building = ArcheryRange()
+            elif typeOfBuilding == Stable:
+                building = Stable()
+            elif typeOfBuilding == House:
+                building = House()
+            elif typeOfBuilding == Farm:
+                building = Farm()
+            elif typeOfBuilding == Keep:
+                building = Keep()
+            else:
+                return None
+            position = self.findPlaceForBuildings(building)
+            if position is not None:
+                check = self.cplayer.addBuilding(building, position[0], position[1])
+                if check == 2:
+                    self.lstBuildingWaiting.append(building)
 
-        ''' On vérifier les villageois qui collectent des ressources '''
-        self.verifCollectVillager()
+    def expansion_strategie(self):
 
-        '''Vérification constructions des batiments'''
-        for building in self.lstBuildingWaiting:
-            if self.villager_is_available() is not None:
-                cpt_villager = self.count_villager_inactivity()
-                position = self.findPlaceForBuildings(building)
-                if position is not None:
-                    check = self.cplayer.addBuilding(building, position[0], position[1])
-                    if check == 0:
-                        self.lstBuildingWaiting.remove(building)
-                    break
+        logs(self.cplayer.player.name + " :  Expansion strategie", logging.INFO)
 
-        if self.cplayer.player.food < 200:
-            farm = Farm()
-            if self.cplayer.player.canAffordBuilding(farm):
-                position = self.findPlaceForBuildings(farm)
-                if position is not None:
-                    check = self.cplayer.addBuilding(Farm(), position[0], position[1])
-                    if check == -1:
-                        self.lstBuildingWaiting.append(farm)
-        
-        
-        if ((len(self.cplayer.player.units) + len(self.cplayer.player.training_queue))) == self.cplayer.player.population:
-            #logs(self.cplayer.player.name + " :  Population is full (AI Information)", logging.INFO)
+        ''' Stratégie d'expansion de l'IA '''
+        ''' On construit des farms et des houses pour pouvoir entrainer des unités '''
+        ''' On entraine des villageois pour collecter des ressources '''
+        ''' On entraine des unités pour se défendre '''
+
+        if self.villager_is_available() is None:
+            towncenter = self.findBuildings(TownCenter)
+            if towncenter is not None:
+                check = self.cplayer.trainVillager(towncenter)
+                if check == 1:
+                    self.lstUnitWaiting.append("villager")
+
+        if self.cplayer.player.food < 300:
+            for i in range (0, 2):
+                farm = Farm()
+                if self.cplayer.player.canAffordBuilding(farm):
+                    position = self.findPlaceForBuildings(farm)
+                    if position is not None:
+                        check = self.cplayer.addBuilding(Farm(), position[0], position[1])
+                        if check == 2:
+                            self.lstBuildingWaiting.append(farm)
+
+        nb_unit = len(self.cplayer.player.units)
+
+        ratio_unit = nb_unit // self.cplayer.player.population
+
+        if ratio_unit < 0.8:
             house = House()
             if self.cplayer.player.canAffordBuilding(house):
-                self.lstBuildingWaiting = [house] + self.lstBuildingWaiting
+                position = self.findPlaceForBuildings(house)
+                if position is not None:
+                    check = self.cplayer.addBuilding(House(), position[0], position[1])
+                    if check == 2:
+                        self.lstBuildingWaiting.append(house)
+
+        cpt_villager, cpt_swordsman, cpt_archer, cpt_horseman = self.count_Unit()
+        ratio_villager = cpt_villager // len(self.cplayer.player.units)
+        ration_sworsman = cpt_swordsman // len(self.cplayer.player.units)
+        ration_archer = cpt_archer // len(self.cplayer.player.units)
+        ration_horseman = cpt_horseman // len(self.cplayer.player.units)
+
+        while ratio_villager < 0.25:
+            towncenter = self.findBuildings(TownCenter)
+            if towncenter is None:
+                towncenter = self.findWaitBuildings(TownCenter)
+                if towncenter is None:
+                    self.build(TownCenter)
+                    break
+            elif towncenter is not None:
+                check = self.cplayer.trainVillager(towncenter)
+                if check == 1:
+                    self.lstUnitWaiting.append("villager")
+            ratio_villager = cpt_villager + 1 // len(self.cplayer.player.units) + len(self.lstUnitWaiting)
+
+        while ration_sworsman < 0.25:
+            barracks = self.findBuildings(Barracks)
+            if barracks is None:
+                barracks = self.findWaitBuildings(Barracks)
+                if barracks is None:
+                    self.build(Barracks)
+                    break
+            elif barracks is not None:
+                check = self.cplayer.trainSwordsman(barracks)
+                if check == 1:
+                    self.lstUnitWaiting.append("swordsman")
+            ration_sworsman = cpt_swordsman + 1 // len(self.cplayer.player.units) + len(self.lstUnitWaiting)
         
-                    
-        else:
-            '''Vérification entrainement des unités'''
-            cpt_villager, cpt_swordsman, cpt_archer, cpt_horseman = self.count_Unit()
-            ratio_villager = cpt_villager // len(self.cplayer.player.units)
-            ration_sworsman = cpt_swordsman // len(self.cplayer.player.units)
-            ration_archer = cpt_archer // len(self.cplayer.player.units)
-            ration_horseman = cpt_horseman // len(self.cplayer.player.units)
+        while ration_archer < 0.25:
+            archery = self.findBuildings(ArcheryRange)
+            if archery is None:
+                archery = self.findWaitBuildings(ArcheryRange)
+                if archery is None:
+                    self.build(ArcheryRange)
+                    break
+            elif archery is not None:
+                check = self.cplayer.trainArcher(archery)
+                if check == 1:
+                    self.lstUnitWaiting.append("archer")
+            ration_archer = cpt_archer + 1 // len(self.cplayer.player.units) + len(self.lstUnitWaiting)
 
-            if ratio_villager < 0.5:
-                towncenter = self.findBuildings(TownCenter)
-                if towncenter is not None:
-                    check = self.cplayer.trainVillager(towncenter)
-                    if check == 1:
-                        self.lstBuildingWaiting.append(Farm())
-                    elif check == -1:
-                        self.lstBuildingWaiting.append(House())
+        while ration_horseman < 0.25:
+            stable = self.findBuildings(Stable)
+            if stable is None:
+                stable = self.findWaitBuildings(Stable)
+                if stable is None:
+                    self.build(Stable)
+                    break
+            elif stable is not None:
+                check = self.cplayer.trainHorseman(stable)
+                if check == 1:
+                    self.lstUnitWaiting.append("horseman")
+            ration_horseman = cpt_horseman + 1 // len(self.cplayer.player.units) + len(self.lstUnitWaiting)
 
-            if ration_sworsman < 0.5:
-                barracks = self.findBuildings(Barracks)
-                if barracks is not None:
-                    check = self.cplayer.trainSwordsman(barracks)
-                    if check == 1:
-                        self.lstBuildingWaiting.append(Farm())
-                    elif check == -1:
-                        self.lstBuildingWaiting.append(House())
-            
-            if ration_archer < 0.5:
-                archery = self.findBuildings(ArcheryRange)
-                if archery is not None:
-                    check = self.cplayer.trainArcher(archery)
-                    if check == 1:
-                        self.lstBuildingWaiting.append(Farm())
-                    elif check == -1:
-                        self.lstBuildingWaiting.append(House())
-            
-            if ration_horseman < 0.5:
-                stable = self.findBuildings(Stable)
-                if stable is not None:
-                    check = self.cplayer.trainHorseman(stable)
-                    if check == 1:
-                        self.lstBuildingWaiting.append(Farm())
-                    elif check == -1:
-                        self.lstBuildingWaiting.append(House())
-            
-            if self.cplayer.player.gold > 1000 and self.cplayer.player.wood > 1000:
-                self.lstBuildingWaiting.append(Camp())
-                self.lstBuildingWaiting.append(Barracks())
-                self.lstBuildingWaiting.append(ArcheryRange())
-                self.lstBuildingWaiting.append(Stable())
-                self.lstBuildingWaiting.append(Keep())
-                self.lstBuildingWaiting.append(TownCenter())
-            else:
-                cpt_villager = self.count_villager_inactivity()
-                if cpt_villager > 0:
-                    for i in range(0, cpt_villager//4):
-                        self.collectGold()
-                        self.collectWood()
+    def collect_strategie(self):
+
+        logs(self.cplayer.player.name + " :  Collect strategie", logging.INFO)
+
+        ''' Stratégie de collecte de l'IA '''
+        ''' On collecte des ressources pour pouvoir construire des batiments et entrainer des unités '''
+        ''' On récupère le nombre de villageois inactifs pour les faire collecter des ressources'''
+
+        cpt_inactive_villager = self.count_villager_inactivity()
+        if cpt_inactive_villager > 0:
+            cpt_inactive_villager = cpt_inactive_villager // 2
+            for i in range(0, cpt_inactive_villager):
+                self.collectGold()
+                self.collectWood()
+            self.collectWood()
+
+    def attack_strategie(self):
+
+        logs(self.cplayer.player.name + " :  Attack strategie", logging.INFO)
+
+        pass
+
+    def reforcement_strategie(self):
+
+        logs(self.cplayer.player.name + " :  Reforcement strategie", logging.INFO)
+
+        ''' Stratégie de renforcement de l'IA '''
+        ''' On entraine beaucoup d'unités pour attaquer l'adversaire '''
+        ''' On construit des batiments pour pouvoir entrainer des unités '''
+        ''' On construit des batiments de défense '''
+
+        cpt_villager, cpt_swordsman, cpt_archer, cpt_horseman = self.count_Unit()
+        ratio_villager = cpt_villager // len(self.cplayer.player.units)
+        ration_sworsman = cpt_swordsman // len(self.cplayer.player.units)
+        ration_archer = cpt_archer // len(self.cplayer.player.units)
+        ration_horseman = cpt_horseman // len(self.cplayer.player.units)
+
+        while ration_sworsman < 0.34:
+            barracks = self.findBuildings(Barracks)
+            if barracks is not None:
+                check = self.cplayer.trainSwordsman(barracks)
+                if check == 1:
+                    self.lstUnitWaiting.append("swordsman")
+            ration_sworsman = cpt_swordsman + 1 // len(self.cplayer.player.units) + len(self.lstUnitWaiting)
+        
+        while ration_archer < 0.34:
+            archery = self.findBuildings(ArcheryRange)
+            if archery is not None:
+                check = self.cplayer.trainArcher(archery)
+                if check == 1:
+                    self.lstUnitWaiting.append("archer")
+            ration_archer = cpt_archer + 1 // len(self.cplayer.player.units) + len(self.lstUnitWaiting)
+
+        while ration_horseman < 0.34:
+            stable = self.findBuildings(Stable)
+            if stable is not None:
+                check = self.cplayer.trainHorseman(stable)
+                if check == 1:
+                    self.lstUnitWaiting.append("horseman")
+            ration_horseman = cpt_horseman + 1 // len(self.cplayer.player.units) + len(self.lstUnitWaiting)
+
+        costGoldKeep = Keep().costGold
+        costWoodKeep = Keep().costWood
+
+        cpt = 0
+
+        while self.cplayer.player.gold > costGoldKeep and self.cplayer.player.wood > costWoodKeep and cpt < 10:
+            keep = Keep()
+            if self.cplayer.player.canAffordBuilding(keep):
+                position = self.findPlaceForBuildings(keep)
+                if position is not None:
+                    check = self.cplayer.addBuilding(keep, position[0], position[1])
+                    if check == 2:
+                        self.lstBuildingWaiting.append(keep)
+            cpt += 1
+
+    def choose_strategie(self, lstcPlayer):
+
+        ''' Choix de la stratégie de l'IA '''
+        ''' On choisit une stratégie en fonction de la situation de l'IA '''
+
+        if self.cplayer.player.gold < 300 and self.cplayer.player.wood < 300:
+            self.collect_strategie()
+
+        elif self.cplayer.player.food < 300 and len(self.cplayer.player.units) < 30:
+            self.expansion_strategie()
+
+        elif self.cplayer.player.food > 1000 and self.cplayer.player.gold > 1000 and self.cplayer.player.wood > 1000:
+            self.reforcement_strategie()
+
+        lstNbUnitPerPlayer = []
+        for cPlayer in lstcPlayer:
+            lstNbUnitPerPlayer.append(len(cPlayer.player.units))
+        
+        minUnit = min(lstNbUnitPerPlayer)
+
+        if len(self.cplayer.player.units) > minUnit:
+            self.attack_strategie()
+    
+    def update(self):
+        self.verifBuilding()
+        self.verifCollectVillager()
+        self.verifUnit()

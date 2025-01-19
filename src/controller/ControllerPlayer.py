@@ -226,6 +226,15 @@ class ControllerPlayer():
         building.setX(x)
         building.setY(y)
 
+
+    '''Fonction pour contruire un batiment
+    Paramètres : le batiment à construire, les coordonnées x et y
+    Renvoie : 
+            0 si le batiment est construit
+            1 si le joueur n'a pas assez de ressources
+            -1 si le batiment est trop grand
+            2 si le joueur n'a pas de villageois disponibles'''
+    
     def addBuilding(self, building,x,y):
 
         if self.player.canAffordBuilding(building):
@@ -248,8 +257,8 @@ class ControllerPlayer():
                             lstVillager.append(villager)
                             villager.action = "build"
                     if cpt == 0:
-                        #logs(self.player.name + " : No villager available", level=logging.INFO)
-                        return -1
+                        logs(self.player.name + " : No villager available", level=logging.INFO)
+                        return 2
                     elif cpt == 1:
                         buildingTime = building.getBuildingTime()
                     elif cpt > 1:
@@ -260,8 +269,10 @@ class ControllerPlayer():
                     self.player.getBuildingQueue().append({"building": building, "player": self.player, "start_time": time.time(), "buildingTime": buildingTime, 'lstVillagers': lstVillager, "x": x, "y": y})
                     return 0
             else:
-                #logs(self.player.name + " : Building is too big", level=logging.INFO)
+                logs(self.player.name + " : Building is too big", level=logging.INFO)
                 return -1    
+        else:
+            return 1
 
     def update_building(self):
         current_time = time.time()
