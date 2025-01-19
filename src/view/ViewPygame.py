@@ -79,7 +79,7 @@ class ViewPygame:
             "gold": os.path.join(project_root, "Sprite_aoe/gold/GoldMine002.png"),
             "archeryrange": os.path.join(project_root, "Sprite_aoe/buildings/archery_range.png"),
             "stable": os.path.join(project_root, "Sprite_aoe/buildings/Stable.png"),
-            "farm": os.path.join(project_root, "Sprite_aoe/buildings/farm.png"),
+            "farm": os.path.join(project_root, "Sprite_aoe/buildings/farm1.png"),
             "villager": os.path.join(project_root, "Sprite_aoe/villager/standard_male/StandGround/Villagerstand001.png"),
             "house": os.path.join(project_root,"Sprite_aoe/buildings/house.png"),
             "camp": os.path.join(project_root, "Sprite_aoe/buildings/lumber_camp.png"),
@@ -112,7 +112,7 @@ class ViewPygame:
             ),
             'farm': pygame.transform.scale(
                 self.tiles["farm"],
-                (5 * self.TILE_SIZE, 5 * self.TILE_SIZE)
+                (5 * self.TILE_SIZE, 3 * self.TILE_SIZE)
             ),
             'villager': pygame.transform.scale(
                 self.tiles["villager"],
