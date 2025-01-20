@@ -17,6 +17,7 @@ class Units():
         self.action = None
         self.x = None
         self.y = None
+        self.player = None
 
     def __repr__(self):
         return "Units(%r, %r, %r, %r, %r)" % (self.health, self.attack, self.speedAtack, self.speed, self.range)
@@ -33,12 +34,15 @@ class Units():
 
 
     #Parameters target: Units
-    def attack(self, target):
+    def Attack(self, target):
         target.health -= self.attack
 
     #Parameters target: Building
     def attackBuildings(self, target):
-        target.health -= self.attack
+        target.hp -= self.attack
+
+    def getHp(self):
+        return self.health
     
     def getLetter(self):
         return self.letter
@@ -52,6 +56,9 @@ class Units():
     def getCostW(self):
         return self.costW
     
+    def getRange(self):
+        return self.range
+    
     def setPosition(self, x, y):
         self.x = x
         self.y = y
@@ -60,3 +67,9 @@ class Units():
         if self.x == None or self.y == None:
             return None
         return self.x, self.y
+    
+    def getX(self):
+        return self.x
+    
+    def getY(self):
+        return self.y

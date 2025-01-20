@@ -21,6 +21,7 @@ from model.Wood import Wood
 from logs.logger import logs
 from model.Buildings import Buildings
 from model.House import House
+from model.Units import Units
 
 class ControllerPlayer():
     
@@ -29,6 +30,7 @@ class ControllerPlayer():
         self.cmap = cmap
         self.queueCollect = []
         self.queueMoving = []
+        self.queueAttack = []
     
     @classmethod
     def from_saved(cls,player,cmap):
@@ -589,6 +591,96 @@ class ControllerPlayer():
         
         else :
             logs(self.player.name + " : Villager is too far to deposit resources", level=logging.INFO)
+
+    def get_positions_around_building(self, building_x, building_y, size, range_value):
+
+        valid_positions = []
+
+        # Parcourir toutes les cases dans le la carre du bat + le range
+        for x in range(building_x - range_value, building_x + size + range_value + 1):
+            for y in range(building_y - range_value, building_y + size + range_value + 1):
+                # Vérifier si la position est dans la portée
+                if (
+                    building_x - range_value <= x <= building_x + size + range_value - 1
+                    and building_y - range_value <= y <= building_y + size + range_value - 1
+                ):
+                    # Exclure les cases du bât
+                    if not (building_x <= x < building_x + size and building_y <= y < building_y + size):
+                        valid_positions.append((x, y))
+
+        for adj_x, adj_y in valid_positions:
+            if (
+                0 <= adj_x < self.cmap.map.size_map_x and
+                0 <= adj_y < self.cmap.map.size_map_y and
+                self.cmap.map.map[adj_x][adj_y] != " "  # Vérifie que la case est libre
+            ):
+                valid_positions.remove((adj_x, adj_y))
+
+        if  not valid_positions:
+            return None
+        
+        return valid_positions
+
+    def update_Attack(self):
+        current_time = time.time()
+        for item in self.queueAttack[:]:
+            unit = item["unit"]
+            start_time = item["start_time"]
+            target = item["target"]
+            target_type = item["target_type"]
+            if  current_time - start_time >= 1:
+                if target is not None:
+                    unit.Attack(target)
+                    item["start_time"] = time.time()
+                    logs("unit hp: "+ str(unit.getHp()), level=logging.INFO)
+                    if unit.getHp() <= 0:
+                        self.queueAttack.remove(item)
+                    if target.getHp() <= 0:
+                        self.queueAttack.remove(item)
+                        unit.action == None
+
+                        if isinstance(target, Buildings):
+                            logs(self.player.name + " : Target has been destroyed", level=logging.INFO)
+                            self.cmap.map.rmBuilding(target)
+                            target.player.rmBuilding(target)
+                            
+                        if isinstance(target, Units):
+                            logs(self.player.name + " : Target is dead", level=logging.INFO)
+                            self.cmap.map.rmUnit(target)
+                            target.player.rmUnit(target)
+
+    def attack(self, unit, target):
+        unit_x, unit_y = unit.getPosition()
+        target_x, target_y = target.getPosition()
+        range_unit = unit.range
+        in_range = False
+
+        # Calcul des distances en X et Y
+
+        #pour les unités
+        if isinstance(target, Units):
+            target_type = "Unit"
+            distance_x = abs(target_x - unit_x)
+            distance_y = abs(target_y - unit_y)
+            if distance_x <= range_unit and distance_y <= range_unit:
+                in_range = True
+
+        #pour les batiments
+        elif isinstance(target, Buildings):
+            target_type = "Building"
+            valid_positions = self.get_positions_around_building(target_x, target_y, target.getSizeMap(), range_unit)
+            if (unit_x, unit_y) in valid_positions:
+                in_range = True
+            
+        if in_range:
+            if unit.action == None:
+                logs(self.player.name + " : unit is attacking target", level=logging.INFO)
+                start_time = time.time()
+                unit.action = "attack"
+                self.queueAttack.append({"unit": unit, "start_time": start_time, "target": target, "target_type": target_type})                              
+                logs(self.player.name + " : Unit is attacking target", level=logging.INFO)
+        else:
+            logs(self.player.name + " : Unit is too far to attack target", level=logging.INFO)
 
     def getPlayer(self):
         return self.player

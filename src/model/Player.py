@@ -45,8 +45,14 @@ class Player():
     def addUnit(self, unit):
         self.units.append(unit)
 
+    def rmUnit(self, unit):
+        self.units.remove(unit)
+
     def addBuilding(self, building):
         self.buildings.append(building)
+
+    def rmBuilding(self, building):
+        self.buildings.remove(building)
         
     def addFood(self, Food):
         self.food += Food
@@ -95,3 +101,6 @@ class Player():
 
     def getColor(self):
         return self.color
+    
+    def getName(self):
+        return self.name

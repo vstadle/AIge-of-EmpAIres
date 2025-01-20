@@ -7,7 +7,7 @@ logger = logging.getLogger('my_logger')
 logger.setLevel(logging.DEBUG)
 
 # Ajouter un FileHandler pour écrire les logs dans un fichier .log
-file_handler = logging.FileHandler('logs/log.log')  # Le fichier de logs (application.log)
+file_handler = logging.FileHandler('src/logs/log.log')  # Le fichier de logs (application.log)
 formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
 file_handler.setFormatter(formatter)
 

@@ -115,6 +115,7 @@ class Map():
         building.setX(x)
         building.setY(y)
         cpt = 0
+        building.player = player
         for i in range(building.sizeMap):
             cpt += 1
             for j in range(building.sizeMap):
@@ -127,6 +128,7 @@ class Map():
     def addBuildingTemp(self, building, x, y):
         building.setX(x)
         building.setY(y)
+        building.player = None
         for i in range(building.sizeMap):
             for j in range(building.sizeMap):
                 self.map[x + i][y + j] = building.letter
@@ -137,6 +139,7 @@ class Map():
         self.map[x][y] = units.letter
         self.lstColor[x][y] = player.getColor()
         units.setPosition(x, y)
+        units.player = player
 
     def generateForest(self):
         max_percentage_wood = 0.1 

@@ -5,6 +5,7 @@ import os
 import datetime
 import logging
 
+from ai.ai import AI
 from controller.ControllerMap import ControllerMap
 from controller.ControllerPlayer import ControllerPlayer
 from model.Map import MapType
@@ -13,6 +14,7 @@ from model.Farm import Farm
 from model.Villager import Villager
 from model.Game import Game
 from model.Player import Player
+from model.Swordsman import Swordsman
 from controller.ControllerGame import ControllerGame
 from logs.logger import logs
 
@@ -24,7 +26,6 @@ class UIHandler():
         self.controllerMap = ControllerMap(120,120)
         self.lstPlayers = []
         self.controllerGame = None
-
         self.isSaved = False
         self.nameFile = ""
 
@@ -36,9 +37,9 @@ class UIHandler():
         pygame.display.set_caption("Menu Principal")
         
         # Charger les ressources
-        background = pygame.image.load(f"../data/img/menu_background.png")  # Remplacez par une image de style médiéval
-        button_image = pygame.image.load(f"../data/img/button.png")  # Remplacez par une texture de bouton médiéval
-        font = pygame.font.Font(f"../data/font/CinzelDecorative-Regular.ttf", 36)  # Remplacez par une police médiévale
+        #background = pygame.image.load('AIge-of-EmpAIres/data/img/menu_background.png')  # Remplacez par une image de style médiéval
+        #button_image = pygame.image.load(f"../data/img/button.png")  # Remplacez par une texture de bouton médiéval
+        #font = pygame.font.Font(f"../data/font/CinzelDecorative-Regular.ttf", 36)  # Remplacez par une police médiévale
         
         buttons = [
             ("Nouvelle Partie", self.start_new_game),
@@ -52,7 +53,7 @@ class UIHandler():
             screen.fill((0, 0, 0))
             
             # Ajuster l'image de fond à la taille de l'écran
-            screen.blit(pygame.transform.scale(background, screen.get_size()), (0, 0))
+            #screen.blit(pygame.transform.scale(, screen.get_size()), (0, 0))
             
             # Obtenir la taille actuelle de l'écran
             screen_width, screen_height = screen.get_size()
@@ -73,12 +74,12 @@ class UIHandler():
                 
                 # Dessiner le bouton
                 pygame.draw.rect(screen, button_color, button_rect)
-                screen.blit(pygame.transform.scale(button_image, button_rect.size), button_rect.topleft)
+                #screen.blit(pygame.transform.scale(button_image, button_rect.size), button_rect.topleft)
                 
                 # Ajouter le texte centré sur le bouton
-                label = font.render(text, True, (255, 255, 255))
-                label_rect = label.get_rect(center=button_rect.center)
-                screen.blit(label, label_rect.topleft)
+                #label = font.render(text, True, (255, 255, 255))
+                #label_rect = label.get_rect(center=button_rect.center)
+                #screen.blit(label, label_rect.topleft)
             
             # Rafraîchir l'écran
             pygame.display.flip()
@@ -227,10 +228,19 @@ class UIHandler():
                 self.lstPlayers.append(ControllerPlayer.from_new("Player "+str(i), 50, 200, 50, self.controllerMap))
         
             self.controllerMap.placementTownCenter(len(self.lstPlayers), self.lstPlayers)
-            
+            '''
             for cplayer in self.lstPlayers:
-                for j in range(3):
-                    cplayer.addUnitInitialize(Villager(), cplayer.getPlayer().getBuildings()[0])
+                    cplayer.addUnitInitialize(Villager(), cplayer.getPlayer().getBuildings()[0])'''
+            
+            cplayer0 = self.lstPlayers[0]
+            cplayer1 = self.lstPlayers[1]
+            
+            villageois = Villager()
+            swordsman = Swordsman()
+            cplayer0.player.addUnit(villageois)
+            cplayer0.cmap.map.addUnits(villageois, 0, 1, cplayer0.player)
+            cplayer1.player.addUnit(swordsman)
+            cplayer1.cmap.map.addUnits(swordsman, 0, 2, cplayer1.player)
                     
         elif(typeGame == "MEAN"):
             

@@ -9,6 +9,7 @@ class Buildings():
         self.letter = letter
         self.x = 0
         self.y = 0
+        self.player = None
 
     def __repr__(self):
         return "Buildings(HP: %r, x: %r, y: %r)" % (self.hp, self.x, self.y)

@@ -145,6 +145,7 @@ class ControllerGame():
                     cplayer.update_building()
                     cplayer.updating_collect()
                     cplayer.updating_moving()
+                    cplayer.update_Attack()
 
                 self.viewTerminal.draw_map(stdscr, pos_x, pos_y)
         
@@ -199,7 +200,7 @@ class ControllerGame():
                         cplayer.update_building()
                         cplayer.updating_collect()
                         cplayer.updating_moving()
-                    
+                        cplayer.update_Attack()
                     clock.tick(60)
 
     def toggle_pause(self):

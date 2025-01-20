@@ -7,9 +7,9 @@ from model.Camp import Camp
 from model.ArcheryRange import ArcheryRange
 from model.Stable import Stable
 from model.Barracks import Barracks
-
+from model.Buildings import Buildings
 from model.Villager import Villager
-
+from model.Units import Units 
 from model.Gold import Gold
 from model.Wood import Wood
 from model.House import House
@@ -18,6 +18,8 @@ from model.Swordsman import Swordsman
 from model.Horseman import Horseman
 from model.Archer import Archer
 from model.Keep import Keep
+from model.Player import Player
+from controller.ControllerPlayer import ControllerPlayer
 
 from controller import A_Star
 
@@ -32,13 +34,20 @@ class AI:
         self.lstActionWaiting = []
         self.lstVillagerCollecting = []
         self.lstVillagerCollect = []
-    
         self.lstBuildingWaiting = []
+        self.lstUnitAttacking = []
     
     def villager_is_available(self):
         for unit in self.cplayer.player.units:
             if isinstance(unit, Villager) and unit.action is None:
                 #logs(self.cplayer.player.name + " : Villager found", logging.INFO)
+                return unit
+        return None
+    
+    def unit_is_available(self):
+        for unit in self.cplayer.player.units:
+            if unit.action is None:
+                logs(self.cplayer.player.name + " : Unit found", logging.INFO)
                 return unit
         return None
 
@@ -106,8 +115,8 @@ class AI:
                 # Récupère les coordonnées des cases adjacentes autour du bâtiment (en fonction de sa taille)
                 adjacent_positions = []
                 for dx in range(-1, building.sizeMap + 1):
-                    adjacent_positions.append((building.x + dx, building.y - 1))  # Haut
-                    adjacent_positions.append((building.x + dx, building.y + building.sizeMap))  # Bas
+                    adjacent_positions.append((building.x + dx, building.y - 1))  # bas
+                    adjacent_positions.append((building.x + dx, building.y + building.sizeMap))  # Haut
                 for dy in range(-1, building.sizeMap + 1):
                     adjacent_positions.append((building.x - 1, building.y + dy))  # Gauche
                     adjacent_positions.append((building.x + building.sizeMap, building.y + dy))  # Droite
@@ -127,8 +136,7 @@ class AI:
         # Aucun dépôt accessible trouvé
         logs("Aucun bâtiment de dépôt valide trouvé pour ce joueur.", logging.WARNING)
         return None
-
-
+    
     def collectGold(self):
         logs(self.cplayer.player.name + " :  Collect Gold stratégie", logging.INFO)
         villager = self.villager_is_available()
@@ -374,8 +382,14 @@ class AI:
                 return building
 
     def start_strategie(self):
+
+        logs(self.cplayer.player.name + " :  Start strategie", logging.INFO)
+        villager = self.unit_is_available()
+        if villager is not None:
+            self.attackTarget()
+            self.verifUnitsAttacking()
         
-        townCenter = self.findBuildings(TownCenter)
+        '''townCenter = self.findBuildings(TownCenter)
         
         for i in range(0, 2):
             self.cplayer.trainVillager(townCenter)
@@ -399,7 +413,7 @@ class AI:
         self.lstBuildingWaiting.append(Barracks())
         self.lstBuildingWaiting.append(ArcheryRange())
         self.lstBuildingWaiting.append(Stable())
-        self.lstBuildingWaiting.append(Camp())
+        self.lstBuildingWaiting.append(Camp()'''
         
     def count_Unit(self):
         cpt_villager = 0
@@ -427,9 +441,10 @@ class AI:
         return cpt
 
     def choose_strategie(self):
+        self.verifUnitsAttacking()
+        self.verifCollectVillager()
 
         ''' On vérifier les villageois qui collectent des ressources '''
-        self.verifCollectVillager()
 
         '''Vérification constructions des batiments'''
         '''for building in self.lstBuildingWaiting:
@@ -441,7 +456,7 @@ class AI:
                     if check == 0:
                         self.lstBuildingWaiting.remove(building)
                     break'''
-
+        '''
         if self.cplayer.player.food < 200:
             farm = Farm()
             if self.cplayer.player.canAffordBuilding(farm):
@@ -460,7 +475,7 @@ class AI:
         
                     
         else:
-            '''Vérification entrainement des unités'''
+            
             cpt_villager, cpt_swordsman, cpt_archer, cpt_horseman = self.count_Unit()
             ratio_villager = cpt_villager // len(self.cplayer.player.units)
             ration_sworsman = cpt_swordsman // len(self.cplayer.player.units)
@@ -515,4 +530,168 @@ class AI:
                 if cpt_villager > 0:
                     for i in range(0, cpt_villager//4):
                         self.collectGold()
-                        self.collectWood()
+                        self.collectWood()'''
+
+    def find_adjacent_tiles_for_units(self, unit_x, unit_y, range_value):
+        
+        abjacent_positions = []
+
+        for x in range(unit_x - range_value, unit_x + range_value + 1):
+            for y in range(unit_y - range_value, unit_y + range_value + 1):
+
+                if max(abs(x - unit_x), abs(y - unit_y)) <= range_value:
+                    abjacent_positions.append((x, y))
+
+        for x, y in abjacent_positions:
+            if 0 <= x < self.cplayer.cmap.map.size_map_x and 0 <= y < self.cplayer.cmap.map.size_map_y:
+                if self.cplayer.cmap.map.map[x][y] == " ":  
+                    return (x, y)
+        return None
+
+    def find_adjacent_tiles_for_building(self, building_x, building_y, size, range_value):
+
+        valid_positions = []
+
+        # Parcourir toutes les cases dans le la carre du bat + le range
+        for x in range(building_x - range_value, building_x + size + range_value + 1):
+            for y in range(building_y - range_value, building_y + size + range_value + 1):
+                # Vérifier si la position est dans la portée
+                if (
+                    building_x - range_value <= x <= building_x + size + range_value - 1
+                    and building_y - range_value <= y <= building_y + size + range_value - 1
+                ):
+                    # Exclure les cases du bât
+                    if not (building_x <= x < building_x + size and building_y <= y < building_y + size):
+                        valid_positions.append((x, y))
+
+        for adj_x, adj_y in valid_positions:
+            if (
+                0 <= adj_x < self.cplayer.cmap.map.size_map_x and
+                0 <= adj_y < self.cplayer.cmap.map.size_map_y and
+                self.cplayer.cmap.map.map[adj_x][adj_y] != " "  # Vérifie que la case est libre
+            ):
+                return (adj_x, adj_y)
+                
+        return None
+    
+    def findAttackingTarget(self, unit):
+        unit_x = unit.x
+        unit_y = unit.y
+        unit_range = unit.getRange()
+        radius = 1
+
+        target = None
+
+        while radius <= max(self.cplayer.cmap.map.size_map_x, self.cplayer.cmap.map.size_map_y):
+            for x in range(unit_x - radius, unit_y + radius + 1):
+                for y in range(unit_y - radius, unit_y + radius + 1):
+                    if 0 <= x < self.cplayer.cmap.map.size_map_x and 0 <= y < self.cplayer.cmap.map.size_map_y:
+                        Enemy = self.cplayer.cmap.map.map[x][y]
+                        EnemyUnit = self.cplayer.cmap.map.mapUnits[x][y]
+                        EnemyBuilding = self.cplayer.cmap.map.mapBuildings[x][y]
+
+                        #si le target est une unité
+
+                        if (Enemy in  ("a", "s", "v", "h")) and EnemyUnit not in self.cplayer.player.units :
+                            adjacent_tile = self.find_adjacent_tiles_for_units(unit_x, unit_y, unit_range)
+                            if adjacent_tile is not None:
+                                adjacent_tile_x, adjacent_tile_y = adjacent_tile
+                                logs(self.cplayer.player.name + " : unit target found", logging.INFO)
+                                logs(self.cplayer.player.name + " : found at " + str((x,y)), logging.INFO)
+                                target = EnemyUnit, adjacent_tile_x, adjacent_tile_y
+                                logs(self.cplayer.player.name + " : going to " + str(adjacent_tile), logging.INFO)
+                                break
+                            else:
+                                break
+
+                        #si le target est un batiment
+
+                        if (Enemy in  ("A", "B", "C", "F", "H", "K", "S", "T")) and EnemyBuilding not in self.cplayer.player.buildings:
+                            if EnemyBuilding is not None:
+                                building_x = EnemyBuilding.getX()
+                                building_y = EnemyBuilding.getY()
+                                size = EnemyBuilding.getSizeMap()
+
+                                adjacent_tile = self.find_adjacent_tiles_for_building(building_x, building_y, size, unit_range)
+
+                                if adjacent_tile is not None:
+                                    adjacent_tile_x, adjacent_tile_y = adjacent_tile
+                                    logs(self.cplayer.player.name + " : building target found", logging.INFO)
+                                    logs(self.cplayer.player.name + " : found at " + str((building_x, building_y)), logging.INFO)
+                                    target = EnemyBuilding, adjacent_tile_x, adjacent_tile_y
+                                    logs(self.cplayer.player.name + " : going to " + str(adjacent_tile), logging.INFO)
+                                    break
+                            else: 
+                                break
+
+                        if target is not None:
+                            break 
+                if target is not None:
+                    break
+            if target is not None:
+                break
+            radius += 1
+        return target
+
+    def attackTarget(self):
+        logs(self.cplayer.getPlayer().getName() + " :   is Attacking", logging.INFO)
+        unit = self.unit_is_available()
+        can_attack = False
+
+        if unit is not None:
+            unit_range = unit.getRange()
+            target_type = None
+            target = self.findAttackingTarget(unit)
+            if target is not None:
+                target_position = target[1], target[2]
+                target = target[0]
+                if isinstance(target, Buildings):
+                    target_type = "Building"
+                if isinstance(target, Units):
+                    target_type = "Unit"
+
+                if target_position is not None:
+                    target_x, target_y = target_position
+                    
+                    
+                    if isinstance(target, Units):
+                        distance_x = abs(target.getX() - unit.x)
+                        distance_y = abs(target.getY() - unit.y)
+                        if distance_x <= unit_range and distance_y <= unit_range:
+                            can_attack = True
+                            self.lstUnitAttacking.append({"unit": unit, "target": target, "target_position": target_position, "target_type": target_type })
+                    
+
+                    elif isinstance(target, Buildings):
+                        valid_positions = self.cplayer.get_positions_around_building(target_x, target_y, target.getSizeMap(), unit_range)
+                        if (unit.x, unit.y) in valid_positions:
+                            can_attack = True
+                            self.lstUnitAttacking.append({"unit": unit, "target": target, "target_position": target_position, "target_type": target_type })
+                    
+
+                    if can_attack:
+                        logs( "in range and can attack", logging.INFO)
+                        self.cplayer.attack(unit, target)
+                    else:
+                        logs( "is moving to attack", logging.INFO)
+                        self.cplayer.move(unit, target_x, target_y)
+    
+    #mode  agressif? 
+    def verifUnitsAttacking(self):
+        for item in self.lstUnitAttacking:
+            unit = item["unit"]
+
+            if unit.action is not None:
+                pass
+
+            target = item["target"]
+            target_position = item["target_position"]
+
+            if unit.action is None and target is None:
+                self.lstUnitAttacking.remove(item)
+                self.attackTarget()
+            if unit.action is None and (unit.x, unit.y == target_position) and target is not None:
+                self.cplayer.attack(unit, target)
+                
+                
+    
