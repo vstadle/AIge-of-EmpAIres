@@ -36,6 +36,8 @@ class AI:
         self.lstBuildingWaiting = []
         self.lstUnitWaiting = []
 
+        self.RessourceCollecting = [] #ressource + case adjacente
+
     def villager_is_available(self):
         for unit in self.cplayer.player.units:
             if isinstance(unit, Villager) and unit.action is None:
@@ -47,38 +49,51 @@ class AI:
         villager_x = villager.x
         villager_y = villager.y
 
-        radius = 1
-
+        radius = 1  # Rayon initial de la recherche
         target = None
 
-        while radius <= max(self.game.map.size_map_x, self.game.map.size_map_y):
-            for x in range(villager_x - radius, villager_y + radius + 1):
-                for y in range(villager_y - radius, villager_y + radius + 1):
-                    if 0 <= x < self.game.map.size_map_x and 0 <= y < self.game.map.size_map_y:
-                        ressource = self.game.map.mapRessources[x][y]
-                        if ressource is not None and self.game.map.map[x][y] == "G":
-                            
-                            adjacent_positions = [
-                                (ressource.x - 1, ressource.y),
-                                (ressource.x + 1, ressource.y),
-                                (ressource.x, ressource.y - 1),
-                                (ressource.x, ressource.y + 1),
-                            ]
+        max_radius = max(self.game.map.size_map_x, self.game.map.size_map_y)
 
-                            for x, y in adjacent_positions:
-                                if 0 <= x < self.game.map.size_map_x and 0 <= y < self.game.map.size_map_y:
-                                    if self.game.map.map[x][y] == " ":
-                                        logs(self.cplayer.player.name + " :  Gold found", logging.INFO)
-                                        target = ressource, x, y
-                                        break
-                            if target is not None:
-                                break
-                if target is not None:
-                    break
+        while radius <= max_radius:
+            # Parcourt les points dans un carré englobant le cercle
+            for x in range(villager_x - radius, villager_x + radius + 1):
+                for y in range(villager_y - radius, villager_y + radius + 1):
+                    # Vérifie si le point est dans le cercle
+                    if (x - villager_x) ** 2 + (y - villager_y) ** 2 <= radius ** 2:
+                        # Vérifie si la position est dans les limites de la carte
+                        if 0 <= x < self.game.map.size_map_x and 0 <= y < self.game.map.size_map_y:
+                            ressource = self.game.map.mapRessources[x][y]
+                            if ressource is not None and self.game.map.map[x][y] == "G":
+                                # Vérifie les cases adjacentes libres
+                                adjacent_positions = [
+                                    (ressource.x - 1, ressource.y - 1),
+                                    (ressource.x, ressource.y - 1),
+                                    (ressource.x + 1, ressource.y - 1),
+                                    (ressource.x + 1, ressource.y),
+                                    (ressource.x + 1, ressource.y + 1),
+                                    (ressource.x, ressource.y + 1),
+                                    (ressource.x - 1, ressource.y + 1),
+                                    (ressource.x - 1, ressource.y),
+                                ]
+
+                                for adj_x, adj_y in adjacent_positions:
+                                    if 0 <= adj_x < self.game.map.size_map_x and 0 <= adj_y < self.game.map.size_map_y:
+                                        if self.game.map.map[adj_x][adj_y] == " " and (adj_x, adj_y) not in self.RessourceCollecting:
+                                            chemin = A_Star.a_star(self.game.map, (villager.x, villager.y), (adj_x, adj_y))
+                                            if chemin is not None:
+                                                logs(self.cplayer.player.name + " : Gold found", logging.INFO)
+                                                target = ressource, adj_x, adj_y
+                                                break
+                                if target is not None:
+                                    break
+                    if target is not None:
+                        break
             if target is not None:
                 break
             radius += 1
+
         return target
+
 
     def find_deposit(self, villager, ressource):
 
@@ -132,30 +147,28 @@ class AI:
 
     def collectGold(self):
         logs(self.cplayer.player.name + " :  Collect Gold stratégie", logging.INFO)
+
+        #On cherche un villageois disponible
         villager = self.villager_is_available()
 
+        #Si on a trouvé un villageois
         if villager is not None:
+                #On cherche une ressource d'or la plus proche du villageois
                 gold = self.find_gold(villager)
+                #Si on a trouvé une ressource d'or
                 if gold is not None:
                     # Cherche une case libre adjacente à la ressource
                     target_position = gold[1], gold[2]
                     gold = gold[0]
+
+                    #On vérifie que la case dans laquelle on veut aller existe bien
                     if target_position:
                         target_x, target_y = target_position
                         distance_x = abs(gold.getX() - villager.x)
                         distance_y = abs(gold.getY() - villager.y)
 
-                        deposit = self.find_deposit(villager, gold)
-                        if deposit is None:
-                            logs(self.cplayer.player.name + " : No deposit found", logging.ERROR)
-                            return -1
-
-                        temp_x = deposit[1]
-                        temp_y = deposit[2]
-
-                        target_deposit = temp_x, temp_y
-
-                        self.lstVillagerCollect.append({"unit": villager, "ressource": gold, "target": target_position, "deposit": deposit[0], "target_deposit": target_deposit})
+                        self.lstVillagerCollect.append({"unit": villager, "ressource": gold, "target": target_position, "deposit" : None, "target_deposit" : None})
+                        self.RessourceCollecting.append(target_position)
                         if distance_x <= 1 and distance_y <= 1:
                             self.cplayer.collectResources(villager, gold)
                         else:
@@ -166,74 +179,86 @@ class AI:
 
     def collectWood(self):
         logs(self.cplayer.player.name + " :  Collect Wood", logging.INFO)
+        
+        #On chercher un villageois disponible
         villager = self.villager_is_available()
 
+        #Si on a trouvé un villageois
         if villager is not None:
+            #On cherche une ressource de bois la plus proche du villageois
             wood = self.find_wood(villager)
+            #Si on a trouvé une ressource de bois
             if wood is not None:
+                # Cherche une case libre adjacente à la ressource
                 target_position = wood[1], wood[2]
                 wood = wood[0]
                 
-                distance_x = abs(wood.x - villager.x)
-                distance_y = abs(wood.y - villager.y)
-                
-                deposit = self.find_deposit(villager, wood)
-                if deposit is None:
-                    logs(self.cplayer.player.name + " : No deposit found", logging.ERROR)
-                    return -1
+                #On vérifie que la case dans laquelle on veut aller existe bien
+                if target_position:
+                    target_x, target_y = target_position
+                    distance_x = abs(wood.getX() - villager.x)
+                    distance_y = abs(wood.getY() - villager.y)
 
-                temp_x = deposit[1]
-                temp_y = deposit[2]
-
-                target_deposit = temp_x, temp_y
-
-                self.lstVillagerCollect.append({"unit": villager, "ressource": wood, "target": target_position, "deposit": deposit[0], "target_deposit": target_deposit})
-                if distance_x <= 1 and distance_y <= 1:
-                    self.cplayer.collectResources(villager, wood)
-                else:
-                    self.cplayer.move(villager, target_position[0], target_position[1])
-
-        return 0
+                    self.lstVillagerCollect.append({"unit": villager, "ressource": wood, "target": target_position, "deposit" : None, "target_deposit" : None})
+                    self.RessourceCollecting.append(target_position)
+                    if distance_x <= 1 and distance_y <= 1:
+                        self.cplayer.collectResources(villager, wood)
+                    else:
+                        self.cplayer.move(villager, target_x, target_y)
 
     def find_wood(self, villager):
         villager_x = villager.x
         villager_y = villager.y
 
-        radius = 1
-
+        radius = 1  # Rayon initial de la recherche
         target = None
 
-        while radius <= max(self.game.map.size_map_x, self.game.map.size_map_y):
-            for x in range(villager_x - radius, villager_y + radius + 1):
-                for y in range(villager_y - radius, villager_y + radius + 1):
-                    if 0 <= x < self.game.map.size_map_x and 0 <= y < self.game.map.size_map_y:
-                        ressource = self.game.map.mapRessources[x][y]
-                        if ressource is not None and self.game.map.map[x][y] == "W" and ressource not in self.lstVillagerCollecting:
-                            
-                            adjacent_positions = [
-                                (ressource.x - 1, ressource.y),
-                                (ressource.x + 1, ressource.y),
-                                (ressource.x, ressource.y - 1),
-                                (ressource.x, ressource.y + 1),
-                            ]
+        max_radius = max(self.game.map.size_map_x, self.game.map.size_map_y)
 
-                            for x, y in adjacent_positions:
-                                if 0 <= x < self.game.map.size_map_x and 0 <= y < self.game.map.size_map_y:
-                                    if self.game.map.map[x][y] == " ":
-                                        logs(self.cplayer.player.name + " :  Wood found", logging.INFO)
-                                        target = ressource, x, y
-                                        break
-                            if target is not None:
-                                break
-                if target is not None:
-                    break
+        while radius <= max_radius:
+            # Parcourt les points dans un carré englobant le cercle
+            for x in range(villager_x - radius, villager_x + radius + 1):
+                for y in range(villager_y - radius, villager_y + radius + 1):
+                    # Vérifie si le point est dans le cercle
+                    if (x - villager_x) ** 2 + (y - villager_y) ** 2 <= radius ** 2:
+                        # Vérifie si la position est dans les limites de la carte
+                        if 0 <= x < self.game.map.size_map_x and 0 <= y < self.game.map.size_map_y:
+                            ressource = self.game.map.mapRessources[x][y]
+                            if ressource is not None and self.game.map.map[x][y] == "W":
+                                # Vérifie les cases adjacentes libres
+                                adjacent_positions = [
+                                    (ressource.x - 1, ressource.y - 1),
+                                    (ressource.x, ressource.y - 1),
+                                    (ressource.x + 1, ressource.y - 1),
+                                    (ressource.x + 1, ressource.y),
+                                    (ressource.x + 1, ressource.y + 1),
+                                    (ressource.x, ressource.y + 1),
+                                    (ressource.x - 1, ressource.y + 1),
+                                    (ressource.x - 1, ressource.y),
+                                ]
+
+                                for adj_x, adj_y in adjacent_positions:
+                                    if 0 <= adj_x < self.game.map.size_map_x and 0 <= adj_y < self.game.map.size_map_y:
+                                        if self.game.map.map[adj_x][adj_y] == " " and (adj_x, adj_y) not in self.RessourceCollecting:
+                                            chemin = A_Star.a_star(self.game.map, (villager.x, villager.y), (adj_x, adj_y))
+                                            if chemin is not None:
+                                                logs(self.cplayer.player.name + " : Wood found", logging.INFO)
+                                                target = ressource, adj_x, adj_y
+                                                break
+                                if target is not None:
+                                    break
+                    if target is not None:
+                        break
             if target is not None:
                 break
             radius += 1
+
         return target
 
     def verifCollectVillager(self):
+
         for item in self.lstVillagerCollect:
+
             unit = item["unit"]
 
             if unit.action is not None:
@@ -241,30 +266,33 @@ class AI:
 
             ressource = item["ressource"]
             target = item["target"]
-            deposit = item["deposit"]
-            target_deposit = item["target_deposit"]
 
-            if unit.action is None and unit.x == target_deposit[0] and unit.y == target_deposit[1]:
-                self.cplayer.depositResources(unit, target_deposit)
+            #Si le villageois n'est pas à coté de la ressource et qu'il ne transporte rien
+            #Alors on le déplace
+            if unit.action is None and unit.x != target[0] and unit.y != target[1] and unit.carrying == 0:
                 self.cplayer.move(unit, target[0], target[1])
-            elif unit.action is None and (ressource.capacity == 0 or unit.carrying == 20):
-                logs(self.cplayer.player.name + " : villager return to town center", logging.INFO)
-                self.cplayer.move(unit, target_deposit[0], target_deposit[1])
-                if ressource.capacity == 0:
-                    self.lstVillagerCollect.remove(item)
-                    if isinstance(ressource, Gold):
-                        self.collectGold()
-                    elif isinstance(ressource, Wood):
-                        self.collectWood()
-            elif unit.action is None and unit.x == target[0] and unit.y == target[1]:
+
+            #Sinon si le villageois est à coté de la ressource et qu'il ne transporte rien
+            #Alors on le fait collecter la ressource
+            elif unit.action is None and unit.x == target[0] and unit.y == target[1] and unit.carrying == 0:
                 self.cplayer.collectResources(unit, ressource)
             
-            elif unit.action is None and unit.x != target[0] and unit.y != target[1]:
-                if ressource.capacity != 0:
-                    deposit_temp = self.find_deposit(unit, ressource)
-                    self.cplayer.move(unit, deposit_temp[1], deposit_temp[2])
-                else:
+            #Sinon si le villageois ne fait rien et qu'il est plein ou que la ressource est vide
+            #Alors on l'envoi au dépôt
+            elif unit.action is None and (ressource.capacity == 0 or unit.carrying == 20) and unit.x == target[0] and unit.y == target[1]:
+                deposit = self.find_deposit(unit, ressource)
+                if deposit[0] is not None and deposit[1] is not None and deposit[2] is not None:
+                    item["deposit"] = deposit[0]
+                    item["target_deposit"] = deposit[1], deposit[2]
+                    self.cplayer.move(unit, item["target_deposit"][0], item["target_deposit"][1])
+            
+            #Sinon si le villageois ne fait rien et qu'il est à coté du dépôt
+            #On le fait déposer les ressources
+            elif unit.action is None and item["deposit"] is not None and item["target_deposit"] is not None:
+                self.cplayer.depositResources(unit, item["target_deposit"])
+                if ressource.capacity == 0:
                     self.lstVillagerCollect.remove(item)
+                    self.RessourceCollecting.remove(item["target"])
 
     def verifBuilding(self):
             for building in self.lstBuildingWaiting:
