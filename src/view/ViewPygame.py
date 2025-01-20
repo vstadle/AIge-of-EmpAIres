@@ -34,9 +34,11 @@ class ViewPygame:
         self.camera = Camera(self.width, self.height, self.grid_length_x, self.grid_length_y)
         self.fps_font = pygame.font.SysFont(None, 25)
         # Créer la surface de fond une seule fois
+        iso_height = (grid_length_x + grid_length_y) * self.TILE_SIZE / 2
         self.grass_tiles = pygame.Surface(
-            (grid_length_x * self.TILE_SIZE * 2, (grid_length_y+2) * self.TILE_SIZE)
+            (grid_length_x * self.TILE_SIZE * 4, iso_height + 2*self.TILE_SIZE) # Ajout de TILE_SIZE pour le bas
         ).convert_alpha()
+        
         
         # Charger et mettre en cache tous les sprites au démarrage
         self.tiles = self._load_images()
@@ -148,7 +150,7 @@ class ViewPygame:
                 world_tile = self.grid_to_world(grid_x, grid_y)
                 world[grid_x].append(world_tile)
                 
-                # Dessiner l'herbe de base
+                # Dessiner l'herbe de base, pas besoin de TILE_SIZE vu qu'il est pris en compte dans la taille de la surface
                 render_pos = world_tile["render_pos"]
                 self.grass_tiles.blit(
                     self.tiles["block"],
@@ -173,18 +175,14 @@ class ViewPygame:
         
         # Liste pour le tri en Z
         render_list = []
-        tree_positions = [] #liste pour regrouper les positions des arbres
+        
         # Optimisation : pré-charger les maps
         game_map = self.map.getMap()
         buildings_map = self.map.get_map_buildings()
         
         # Optimisation : stocker la largeur de la grass_tiles
         grass_width_half = self.grass_tiles.get_width()/2
-        camera_scroll_x = self.camera.scroll.x
-        camera_scroll_y = self.camera.scroll.y
-        tree = self.tiles["tree"]
-        tree_height = tree.get_height()
-    
+        
         for x in range(self.grid_length_x):
             for y in range(self.grid_length_y):
                 render_pos = self.world[x][y]["render_pos"]
@@ -195,13 +193,14 @@ class ViewPygame:
                 if (-margin_x <= screen_x <= self.width + margin_x and 
                     -margin_y <= screen_y <= self.height + margin_y):
                     
-                    cell_content = game_map[y][x]
-                    building = buildings_map[y][x]
+                    cell_content = game_map[x][y]
+                    building = buildings_map[x][y]
                     
                     # Ajouter les éléments visibles à la liste de rendu
                     if cell_content == 'W':
                         tree = self.tiles["tree"]
-                        tree_positions.append((
+                        # On utilise le screen_y pour trier correctement les arbres par rapport au reste
+                        render_list.append((
                             screen_y,
                             (tree, 
                             (screen_x, screen_y - tree.get_height() + self.TILE_SIZE - 20))
@@ -214,22 +213,23 @@ class ViewPygame:
                             (screen_x, screen_y - (gold.get_height() - self.TILE_SIZE) / 2))
                         ))
                     elif cell_content == 'v':
+                        # On utilise le screen_y + la moitié de la taille de la tuile pour trier les unités au niveau du sol
                         render_list.append((
-                            screen_y + self.TILE_SIZE,
+                            screen_y + self.TILE_SIZE//2,
                             (self.cached_sprites['villager'],
                             (screen_x - self.TILE_SIZE//2 + self.TILE_SIZE, 
                             screen_y - self.TILE_SIZE//2 + 10))
                         ))
                     elif cell_content == 'h':
                         render_list.append((
-                            screen_y + self.TILE_SIZE,
+                            screen_y + self.TILE_SIZE//2,
                             (self.cached_sprites['horseman'],
                             (screen_x - self.TILE_SIZE//2 + 0.5  * self.TILE_SIZE, 
                             screen_y - self.TILE_SIZE//2 - self.TILE_SIZE))
                         ))
                     elif cell_content == 'a':
-                        render_list.append((
-                            screen_y + self.TILE_SIZE,
+                         render_list.append((
+                            screen_y + self.TILE_SIZE//2,
                             (self.cached_sprites['archer'],
                             (screen_x - self.TILE_SIZE//2 + 0.5  * self.TILE_SIZE, 
                             screen_y - self.TILE_SIZE//2 - self.TILE_SIZE))
@@ -240,13 +240,7 @@ class ViewPygame:
                         self._add_building_to_render_list(
                             building, x, y, screen_x, screen_y, render_list
                         )
-        tree_positions.sort(key=lambda x: x[0])
-    
-        
-        # Dessiner tous les arbres en une seule opération
-        if tree_positions:
-            for _, (tree, pos) in sorted(tree_positions, key=lambda x: x[0]):
-                self.screen.blit(tree, pos)
+
         # Trier et dessiner les éléments
         if render_list:
             for _, (sprite, pos) in sorted(render_list, key=lambda x: x[0]):
@@ -257,7 +251,6 @@ class ViewPygame:
         self.draw_player_info()
         self._update_fps_display()
         self.screen.blit(self.fps_surface, (10, 10))
-
 
     def _update_fps_display(self):
         current_time = pygame.time.get_ticks()
@@ -285,9 +278,10 @@ class ViewPygame:
             )
     def _add_building_to_render_list(self, building, x, y, screen_x, screen_y, render_list):
         #Méthode auxiliaire pour ajouter les bâtiments à la liste de rendu
+        
         if isinstance(building, TownCenter):
-            if (y == 0 or not isinstance(self.map.get_map_buildings()[y - 1][x], TownCenter)) and \
-               (x == 0 or not isinstance(self.map.get_map_buildings()[y][x - 1], TownCenter)):
+            if (y == 0 or not isinstance(self.map.get_map_buildings()[x - 1][y], TownCenter)) and \
+               (x == 0 or not isinstance(self.map.get_map_buildings()[x][y - 1], TownCenter)):
                 sprite_x = screen_x - self.cached_sprites['towncenter'].get_width()//2 + 1.5*self.TILE_SIZE
                 sprite_y = screen_y - self.cached_sprites['towncenter'].get_height() + 2.7 * self.TILE_SIZE
                 render_list.append((
@@ -295,8 +289,8 @@ class ViewPygame:
                     (self.cached_sprites['towncenter'], (sprite_x, sprite_y))
                 ))
         elif isinstance(building, Barracks):
-            if (y == 0 or not isinstance(self.map.get_map_buildings()[y - 1][x], Barracks)) and \
-               (x == 0 or not isinstance(self.map.get_map_buildings()[y][x - 1], Barracks)):
+            if (x == 0 or not isinstance(self.map.get_map_buildings()[x - 1][y], Barracks)) and \
+               (y == 0 or not isinstance(self.map.get_map_buildings()[x][y - 1], Barracks)):
                 sprite_x = screen_x - self.cached_sprites['barracks'].get_width()//2 + self.TILE_SIZE
                 sprite_y = screen_y - self.cached_sprites['barracks'].get_height()//2 +0.5*self.TILE_SIZE
                 render_list.append((
@@ -304,8 +298,8 @@ class ViewPygame:
                     (self.cached_sprites['barracks'], (sprite_x, sprite_y))
                 ))
         elif isinstance(building, ArcheryRange):
-            if (y == 0 or not isinstance(self.map.get_map_buildings()[y - 1][x], ArcheryRange)) and \
-            (x == 0 or not isinstance(self.map.get_map_buildings()[y][x - 1], ArcheryRange)):  # Corrigé la vérification
+            if (x == 0 or not isinstance(self.map.get_map_buildings()[x - 1][y], ArcheryRange)) and \
+            (y == 0 or not isinstance(self.map.get_map_buildings()[x][y - 1], ArcheryRange)):
                 sprite_x = screen_x - self.cached_sprites['archeryrange'].get_width()//2 + 1.5*self.TILE_SIZE
                 sprite_y = screen_y - self.cached_sprites['archeryrange'].get_height()//2+0.5*self.TILE_SIZE
                 render_list.append((
@@ -313,8 +307,8 @@ class ViewPygame:
                     (self.cached_sprites['archeryrange'], (sprite_x, sprite_y))
                 ))
         elif isinstance(building, Stable):
-            if (y == 0 or not isinstance(self.map.get_map_buildings()[y - 1][x], Stable)) and \
-            (x == 0 or not isinstance(self.map.get_map_buildings()[y][x - 1], Stable)):
+            if (y == 0 or not isinstance(self.map.get_map_buildings()[x - 1][y], Stable)) and \
+            (x == 0 or not isinstance(self.map.get_map_buildings()[x][y - 1], Stable)):
                 sprite_x = screen_x - self.cached_sprites['stable'].get_width()//2 + self.TILE_SIZE
                 sprite_y = screen_y - self.cached_sprites['stable'].get_height()//2 + 0.5*self.TILE_SIZE
                 render_list.append((
@@ -322,8 +316,8 @@ class ViewPygame:
                     (self.cached_sprites['stable'], (sprite_x, sprite_y))
                 ))
         elif isinstance(building, Farm):  # Ajout de la condition pour la ferme
-            if (y == 0 or not isinstance(self.map.get_map_buildings()[y - 1][x], Farm)) and \
-            (x == 0 or not isinstance(self.map.get_map_buildings()[y][x - 1], Farm)):
+            if (y == 0 or not isinstance(self.map.get_map_buildings()[x - 1][y], Farm)) and \
+            (x == 0 or not isinstance(self.map.get_map_buildings()[x][y - 1], Farm)):
                 sprite_x = screen_x - self.cached_sprites['farm'].get_width()//2 + self.TILE_SIZE
                 sprite_y = screen_y - self.cached_sprites['farm'].get_height()//2 + 1.5*self.TILE_SIZE
                 render_list.append((
@@ -331,8 +325,8 @@ class ViewPygame:
                     (self.cached_sprites['farm'], (sprite_x, sprite_y))
                 ))
         elif isinstance(building, House):
-            if (y == 0 or not isinstance(self.map.get_map_buildings()[y - 1][x], House)) and \
-            (x == 0 or not isinstance(self.map.get_map_buildings()[y][x - 1], House)):
+            if (y == 0 or not isinstance(self.map.get_map_buildings()[x - 1][y], House)) and \
+            (x == 0 or not isinstance(self.map.get_map_buildings()[x][y - 1], House)):
                 sprite_x = screen_x - self.cached_sprites['house'].get_width()//2 + self.TILE_SIZE
                 sprite_y = screen_y - self.cached_sprites['house'].get_height()//2 + self.TILE_SIZE//2
                 render_list.append((
@@ -340,8 +334,8 @@ class ViewPygame:
                     (self.cached_sprites['house'], (sprite_x, sprite_y))
                 ))
         elif isinstance(building, Camp):
-            if (y == 0 or not isinstance(self.map.get_map_buildings()[y - 1][x], Camp)) and \
-            (x == 0 or not isinstance(self.map.get_map_buildings()[y][x - 1], Camp)):
+            if (y == 0 or not isinstance(self.map.get_map_buildings()[x - 1][y], Camp)) and \
+            (x == 0 or not isinstance(self.map.get_map_buildings()[x][y - 1], Camp)):
                 sprite_x = screen_x - self.cached_sprites['camp'].get_width()//2 + self.TILE_SIZE
                 sprite_y = screen_y - self.cached_sprites['camp'].get_height()//2 + self.TILE_SIZE//2
                 render_list.append((
@@ -349,15 +343,14 @@ class ViewPygame:
                     (self.cached_sprites['camp'], (sprite_x, sprite_y))
                 ))
         elif isinstance(building, Keep):
-            if (y == 0 or not isinstance(self.map.get_map_buildings()[y - 1][x], Keep)) and \
-            (x == 0 or not isinstance(self.map.get_map_buildings()[y][x - 1], Keep)):
+            if (y == 0 or not isinstance(self.map.get_map_buildings()[x - 1][y], Keep)) and \
+            (x == 0 or not isinstance(self.map.get_map_buildings()[x][y - 1], Keep)):
                 sprite_x = screen_x - self.cached_sprites['keep'].get_width()//2 + self.TILE_SIZE
                 sprite_y = screen_y - self.cached_sprites['keep'].get_height()//2 - 0.5 * self.TILE_SIZE + 10
                 render_list.append((
                     screen_y + self.TILE_SIZE * 2,
                     (self.cached_sprites['keep'], (sprite_x, sprite_y))
                 ))
-
 
     def grid_to_world(self, grid_x, grid_y):
         # Calculer les coordonnées cartésiennes de la tuile
@@ -447,8 +440,8 @@ class ViewPygame:
                 screen_x = center_x + iso_x
                 screen_y = center_y + iso_y
                 
-                cell_content = self.map.getMap()[y][x]
-                building = self.map.get_map_buildings()[y][x]
+                cell_content = self.map.getMap()[x][y]
+                building = self.map.get_map_buildings()[x][y]
                 
                 color = (0, 128, 0)  # Couleur par défaut
                 if cell_content == 'W':
@@ -488,19 +481,36 @@ class ViewPygame:
         minimap_x = self.width - self.minimap_base.get_width() - 10
         minimap_y = 10
         
-        # Calculer la position du viewport
-        viewport_scale_x = self.minimap_base.get_width() / self.grass_tiles.get_width()
-        viewport_scale_y = self.minimap_base.get_height() / self.grass_tiles.get_height()
+        # Calcul de la taille totale du monde isométrique
+        world_iso_width = (self.grid_length_x + self.grid_length_y) * self.TILE_SIZE
+        world_iso_height = (self.grid_length_x + self.grid_length_y) * self.TILE_SIZE / 2
         
-        viewport_x = minimap_x + (-self.camera.scroll.x * viewport_scale_x)
-        viewport_y = minimap_y + (-self.camera.scroll.y * viewport_scale_y)
-        viewport_width = self.width * viewport_scale_x
-        viewport_height = self.height * viewport_scale_y
+        # Obtenir les dimensions de la minimap
+        minimap_width = self.minimap_base.get_width()
+        minimap_height = self.minimap_base.get_height()
+        
+        # Calculer les échelles
+        scale_x = minimap_width / world_iso_width
+        scale_y = minimap_height / world_iso_height
+        
+        # Calculer le décalage initial du monde isométrique
+        # La moitié de la grass_tiles est toujours visible au début
+        initial_offset_x = self.grass_tiles.get_width() / 4
+        
+        # Calculer la position du viewport sur la minimap en tenant compte du décalage initial
+        viewport_x = minimap_x + (-self.camera.scroll.x * scale_x) - (initial_offset_x * scale_x)
+        viewport_y = minimap_y + (-self.camera.scroll.y * scale_y)
+        
+        # Calculer les dimensions du viewport
+        viewport_width = self.width * scale_x
+        viewport_height = self.height * scale_y
+        
+        # S'assurer que le viewport reste dans les limites de la minimap
+        viewport_x = max(minimap_x, min(viewport_x, minimap_x + minimap_width - viewport_width))
+        viewport_y = max(minimap_y, min(viewport_y, minimap_y + minimap_height - viewport_height))
         
         # Créer le rectangle de la minimap pour la détection des clics
-        minimap_rect = pygame.Rect(minimap_x, minimap_y, 
-                                 self.minimap_base.get_width(), 
-                                 self.minimap_base.get_height())
+        minimap_rect = pygame.Rect(minimap_x, minimap_y, minimap_width, minimap_height)
         
         # Afficher la minimap pré-rendue
         self.screen.blit(self.minimap_base, (minimap_x, minimap_y))
@@ -512,15 +522,13 @@ class ViewPygame:
         # Cadre de la minimap
         pygame.draw.rect(self.screen, (255, 255, 255), 
                         (minimap_x-1, minimap_y-1, 
-                         self.minimap_base.get_width()+2, 
-                         self.minimap_base.get_height()+2), 1)
+                        minimap_width+2, 
+                        minimap_height+2), 1)
         
         # Gérer la navigation via la minimap
         mouse_pos = pygame.mouse.get_pos()
         grass_tiles_size = (self.grass_tiles.get_width(), self.grass_tiles.get_height())
         self.camera.handle_minimap_navigation(mouse_pos, minimap_rect, grass_tiles_size)
-    
-
     def initialize_player_panel(self):
         minimap_size = min(self.width, self.height) // 5
         panel_width = minimap_size * 2
