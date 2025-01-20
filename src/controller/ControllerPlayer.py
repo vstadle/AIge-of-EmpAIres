@@ -263,10 +263,35 @@ class ControllerPlayer():
                         buildingTime = building.getBuildingTime()
                     elif cpt > 1:
                         buildingTime = (3*building.getBuildingTime()) / (cpt + 2)
+
+                    # Determine available tiles around the building
+                    available_tiles = []
+                    for dx in range(-1, building.getSizeMap() + 1):
+                        for dy in range(-1, building.getSizeMap() + 1):
+                            nx, ny = x + dx, y + dy
+                            if self.cmap.is_free(nx, ny):
+                                available_tiles.append((nx, ny))
+                    
+                    tempLstVillager = lstVillager.copy()
+
+                    for i in range(1, min(len(lstVillager), len(available_tiles))):
+                        villager = lstVillager[i]
+                        check = self.move(villager, available_tiles[i][0], available_tiles[i][1])
+                        if check == -1:
+                            tempLstVillager.remove(villager)
+
+                    if len(tempLstVillager) == 0:
+                        logs(self.player.name + " : No villager can move", level=logging.INFO)
+                        return 2
+                    
+                    else:
+                        lstVillager = tempLstVillager
+
                     logs(self.player.name + " : " + building.__str__() + " add to building queue buildingTime = " + str(buildingTime), level=logging.INFO)
                     self.player.removeResourcesForBuilding(building)
                     self.cmap.map.addBuildingTemp(building, x, y)
                     self.player.getBuildingQueue().append({"building": building, "player": self.player, "start_time": time.time(), "buildingTime": buildingTime, 'lstVillagers': lstVillager, "x": x, "y": y})
+
                     return 0
             else:
                 logs(self.player.name + " : Building is too big", level=logging.INFO)
@@ -286,6 +311,10 @@ class ControllerPlayer():
             building = item["building"]
             x = item["x"]
             y = item["y"]
+
+            if lstVillagers[0].action is None:
+                for villager in lstVillagers:
+                    villager.action = "build"
 
             if current_time - start_time >= buildingTime:
 
@@ -524,6 +553,7 @@ class ControllerPlayer():
             start_time = time.time()
             self.queueMoving.append({"unit": unit, "start_time": start_time, "chemin": chemin})
             return 0
+
 
     def updating_moving(self):
         current_time = time.time()
