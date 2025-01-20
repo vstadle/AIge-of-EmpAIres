@@ -39,6 +39,7 @@ class ViewPygame:
             (grid_length_x * self.TILE_SIZE * 4, iso_height + 2*self.TILE_SIZE) # Ajout de TILE_SIZE pour le bas
         ).convert_alpha()
         
+        
         # Charger et mettre en cache tous les sprites au démarrage
         self.tiles = self._load_images()
         self.cached_sprites = self._precache_all_sprites()
@@ -174,18 +175,14 @@ class ViewPygame:
         
         # Liste pour le tri en Z
         render_list = []
-        tree_positions = [] #liste pour regrouper les positions des arbres
+        
         # Optimisation : pré-charger les maps
         game_map = self.map.getMap()
         buildings_map = self.map.get_map_buildings()
         
         # Optimisation : stocker la largeur de la grass_tiles
         grass_width_half = self.grass_tiles.get_width()/2
-        camera_scroll_x = self.camera.scroll.x
-        camera_scroll_y = self.camera.scroll.y
-        tree = self.tiles["tree"]
-        tree_height = tree.get_height()
-    
+        
         for x in range(self.grid_length_x):
             for y in range(self.grid_length_y):
                 render_pos = self.world[x][y]["render_pos"]
@@ -202,7 +199,8 @@ class ViewPygame:
                     # Ajouter les éléments visibles à la liste de rendu
                     if cell_content == 'W':
                         tree = self.tiles["tree"]
-                        tree_positions.append((
+                        # On utilise le screen_y pour trier correctement les arbres par rapport au reste
+                        render_list.append((
                             screen_y,
                             (tree, 
                             (screen_x, screen_y - tree.get_height() + self.TILE_SIZE - 20))
@@ -215,22 +213,23 @@ class ViewPygame:
                             (screen_x, screen_y - (gold.get_height() - self.TILE_SIZE) / 2))
                         ))
                     elif cell_content == 'v':
+                        # On utilise le screen_y + la moitié de la taille de la tuile pour trier les unités au niveau du sol
                         render_list.append((
-                            screen_y + self.TILE_SIZE,
+                            screen_y + self.TILE_SIZE//2,
                             (self.cached_sprites['villager'],
                             (screen_x - self.TILE_SIZE//2 + self.TILE_SIZE, 
                             screen_y - self.TILE_SIZE//2 + 10))
                         ))
                     elif cell_content == 'h':
                         render_list.append((
-                            screen_y + self.TILE_SIZE,
+                            screen_y + self.TILE_SIZE//2,
                             (self.cached_sprites['horseman'],
                             (screen_x - self.TILE_SIZE//2 + 0.5  * self.TILE_SIZE, 
                             screen_y - self.TILE_SIZE//2 - self.TILE_SIZE))
                         ))
                     elif cell_content == 'a':
-                        render_list.append((
-                            screen_y + self.TILE_SIZE,
+                         render_list.append((
+                            screen_y + self.TILE_SIZE//2,
                             (self.cached_sprites['archer'],
                             (screen_x - self.TILE_SIZE//2 + 0.5  * self.TILE_SIZE, 
                             screen_y - self.TILE_SIZE//2 - self.TILE_SIZE))
@@ -241,13 +240,7 @@ class ViewPygame:
                         self._add_building_to_render_list(
                             building, x, y, screen_x, screen_y, render_list
                         )
-        tree_positions.sort(key=lambda x: x[0])
-    
-        
-        # Dessiner tous les arbres en une seule opération
-        if tree_positions:
-            for _, (tree, pos) in sorted(tree_positions, key=lambda x: x[0]):
-                self.screen.blit(tree, pos)
+
         # Trier et dessiner les éléments
         if render_list:
             for _, (sprite, pos) in sorted(render_list, key=lambda x: x[0]):
@@ -258,7 +251,6 @@ class ViewPygame:
         self.draw_player_info()
         self._update_fps_display()
         self.screen.blit(self.fps_surface, (10, 10))
-
 
     def _update_fps_display(self):
         current_time = pygame.time.get_ticks()
@@ -359,7 +351,6 @@ class ViewPygame:
                     screen_y + self.TILE_SIZE * 2,
                     (self.cached_sprites['keep'], (sprite_x, sprite_y))
                 ))
-
 
     def grid_to_world(self, grid_x, grid_y):
         # Calculer les coordonnées cartésiennes de la tuile
