@@ -552,6 +552,7 @@ class AI:
                 check = self.cplayer.trainVillager(towncenter)
                 if check == 1:
                     self.lstUnitWaiting.append("villager")
+            cpt_villager += 1
             ratio_villager = cpt_villager + 1 // len(self.cplayer.player.units) + len(self.lstUnitWaiting)
 
         while ration_sworsman < 0.25:
@@ -565,6 +566,7 @@ class AI:
                 check = self.cplayer.trainSwordsman(barracks)
                 if check == 1:
                     self.lstUnitWaiting.append("swordsman")
+            cpt_swordsman += 1
             ration_sworsman = cpt_swordsman + 1 // len(self.cplayer.player.units) + len(self.lstUnitWaiting)
         
         while ration_archer < 0.25:
@@ -578,6 +580,7 @@ class AI:
                 check = self.cplayer.trainArcher(archery)
                 if check == 1:
                     self.lstUnitWaiting.append("archer")
+            cpt_archer += 1
             ration_archer = cpt_archer + 1 // len(self.cplayer.player.units) + len(self.lstUnitWaiting)
 
         while ration_horseman < 0.25:
@@ -591,6 +594,7 @@ class AI:
                 check = self.cplayer.trainHorseman(stable)
                 if check == 1:
                     self.lstUnitWaiting.append("horseman")
+            cpt_horseman += 1
             ration_horseman = cpt_horseman + 1 // len(self.cplayer.player.units) + len(self.lstUnitWaiting)
 
     def collect_strategie(self):
@@ -630,32 +634,41 @@ class AI:
         ration_archer = cpt_archer // len(self.cplayer.player.units)
         ration_horseman = cpt_horseman // len(self.cplayer.player.units)
 
+        barracks = self.findBuildings(Barracks)
         while ration_sworsman < 0.34:
-            barracks = self.findBuildings(Barracks)
+            if barracks is None:
+                break
             if barracks is not None:
                 check = self.cplayer.trainSwordsman(barracks)
                 if check == 1:
                     self.lstUnitWaiting.append("swordsman")
-            ration_sworsman = cpt_swordsman + 1 // len(self.cplayer.player.units) + len(self.lstUnitWaiting)
+            cpt_swordsman += 1
+            ration_sworsman = cpt_swordsman / len(self.cplayer.player.units) + len(self.lstUnitWaiting)
         
         while ration_archer < 0.34:
             archery = self.findBuildings(ArcheryRange)
+            if archery is None:
+                break
             if archery is not None:
                 check = self.cplayer.trainArcher(archery)
                 if check == 1:
                     self.lstUnitWaiting.append("archer")
-            ration_archer = cpt_archer + 1 // len(self.cplayer.player.units) + len(self.lstUnitWaiting)
+            cpt_archer += 1
+            ration_archer = cpt_archer / len(self.cplayer.player.units) + len(self.lstUnitWaiting)
 
         while ration_horseman < 0.34:
             stable = self.findBuildings(Stable)
+            if stable is None:
+                break
             if stable is not None:
                 check = self.cplayer.trainHorseman(stable)
                 if check == 1:
                     self.lstUnitWaiting.append("horseman")
-            ration_horseman = cpt_horseman + 1 // len(self.cplayer.player.units) + len(self.lstUnitWaiting)
+            cpt_horseman += 1
+            ration_horseman = cpt_horseman + 1 / len(self.cplayer.player.units) + len(self.lstUnitWaiting)
 
-        costGoldKeep = Keep().costGold
-        costWoodKeep = Keep().costWood
+        costGoldKeep = Keep().costG
+        costWoodKeep = Keep().costW
 
         cpt = 0
 
