@@ -49,11 +49,8 @@ class Map():
     
     def generateGenerousResources(self):
         max_percentage_gold = 0.01
-        max_percentage_food = 0.01
         total_cells = self.size_map_x*self.size_map_y
         max_gold = max_percentage_gold * total_cells
-        max_food = max_percentage_food * total_cells
-        food_planted = 0
         gold_planted = 0
         while (gold_planted < max_gold):
             x = random.randint(0,self.size_map_x-1)
@@ -61,13 +58,6 @@ class Map():
             if(self.map[x][y]== " "):
                 self.addRessources(Gold(), x, y)
                 gold_planted+=1
-        while (food_planted < max_food):
-            x = random.randint(0,self.size_map_x-1)
-            y = random.randint(0,self.size_map_y-1)
-            if(self.map[x][y]== " "):
-                self.addRessources(Food(), x, y)
-                food_planted+=1
-
 
 
 
