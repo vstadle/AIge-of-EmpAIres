@@ -477,7 +477,7 @@ class ViewPygame:
                 pygame.draw.polygon(self.minimap_base, color, points, 3)
 
     def draw_minimap(self):
-        """Dessine la minimap avec interaction"""
+        """Dessine la minimap avec interaction pour les cartes rectangulaires"""
         minimap_x = self.width - self.minimap_base.get_width() - 10
         minimap_y = 10
         
@@ -494,12 +494,28 @@ class ViewPygame:
         scale_y = minimap_height / world_iso_height
         
         # Calculer le décalage initial du monde isométrique
-        # La moitié de la grass_tiles est toujours visible au début
-        initial_offset_x = self.grass_tiles.get_width() / 4
+        # Ajuster le décalage en fonction des dimensions de la grille
+        if self.grid_length_x > self.grid_length_y:
+            # Pour une grille plus large que haute
+            initial_offset_x = self.grass_tiles.get_width() / 4 + (self.grid_length_x - self.grid_length_y) * self.TILE_SIZE / 2
+        elif self.grid_length_x < self.grid_length_y:
+            # Pour une grille plus haute que large
+            initial_offset_x = self.grass_tiles.get_width() / 4 - (self.grid_length_y - self.grid_length_x) * self.TILE_SIZE / 2
+        else:
+            # Pour une grille carrée (cas original)
+            initial_offset_x = self.grass_tiles.get_width() / 4
         
-        # Calculer la position du viewport sur la minimap en tenant compte du décalage initial
+        # Calculer la position du viewport sur la minimap
         viewport_x = minimap_x + (-self.camera.scroll.x * scale_x) - (initial_offset_x * scale_x)
         viewport_y = minimap_y + (-self.camera.scroll.y * scale_y)
+        
+        # Ajustement du viewport en fonction du ratio de la grille
+        if self.grid_length_x != self.grid_length_y:
+            viewport_offset = (abs(self.grid_length_x - self.grid_length_y) * self.TILE_SIZE * scale_x) / 2
+            if self.grid_length_x > self.grid_length_y:
+                viewport_x -= viewport_offset
+            else:
+                viewport_x += viewport_offset
         
         # Calculer les dimensions du viewport
         viewport_width = self.width * scale_x
