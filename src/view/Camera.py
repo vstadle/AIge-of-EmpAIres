@@ -12,8 +12,8 @@ class Camera:
         self.grid_length_y = grid_length_y
         
         # Pre-calculate max scroll boundaries
-        self.max_scroll_x = grid_length_x * self.TILE_SIZE * 2 - width + 10000
-        self.max_scroll_y = grid_length_y * self.TILE_SIZE + self.TILE_SIZE + 15 - height + 10000
+        self.max_scroll_x = grid_length_x * self.TILE_SIZE * 2 - width + 100000
+        self.max_scroll_y = grid_length_y * self.TILE_SIZE + self.TILE_SIZE + 15 - height + 100000
 
     def handle_input(self):
         keys = pygame.key.get_pressed()
