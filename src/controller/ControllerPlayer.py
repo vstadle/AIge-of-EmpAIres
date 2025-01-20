@@ -41,178 +41,31 @@ class ControllerPlayer():
     def initializeTownCenter(self, nb):
 
         for i in range(nb):
-            check = False
-            while(not check):
-                towncenter = self.player.getBuildings()[0]
-                posx = towncenter.getX()
-                posy = towncenter.getY()
-                sizeMap = towncenter.getSizeMap()
+            #Placement du TownCenter
+            position = self.findPlaceForBuildings(TownCenter())
+            if position is not None:
+                self.addBuildingInitialize(TownCenter(), position[0], position[1])
 
-                rx = random.randint(-5, 5)
-                ry = random.randint(-5, 5)
-
-                if rx == 0:
-                    rx = rx + sizeMap + 2
-                elif rx > 0:
-                    rx = rx + sizeMap
-
-                if ry == 0:
-                    ry = ry - sizeMap - 2
-                elif ry < 0:
-                    ry = ry - sizeMap
-
-                posx = posx + rx
-                posy = posy + ry
-
-                is_free = True
-                for k in range(sizeMap):
-                    for l in range(sizeMap):
-                        if(not self.cmap.is_free(posx+k, posy+l)):
-                            is_free = False
-                            break
-                    if(not is_free):
-                        break
-                if(is_free):
-                    self.addBuildingInitialize(TownCenter(), posx, posy)
-                    check = True
+        position = None
 
         #Placement des Barracks
         for i in range(nb):
-            check = False
-            while(not check):
-                
-                posx = towncenter.getX()
-                posy = towncenter.getY()
-                sizeMap = towncenter.getSizeMap()
+            position = self.findPlaceForBuildings(Barracks())
+            if position is not None:
+                self.addBuildingInitialize(Barracks(), position[0], position[1])
 
-                rx1 = random.randint(-8, 0)
-                rx2 = random.randint(0, 8)
-                rx = random.choice([rx1, rx2])
-
-                ry1 = random.randint(-8, 0)
-                ry2 = random.randint(0, 8)
-                ry = random.choice([ry1, ry2])
-
-                if rx == 0:
-                    rx = rx + sizeMap + 2
-                elif rx > 0:
-                    rx = rx + sizeMap
-
-                if ry == 0:
-                    ry = ry - sizeMap - 2
-                elif ry < 0:
-                    ry = ry - sizeMap
-
-                posx = posx + rx
-                posy = posy + ry
-
-                is_free = True
-                farm = Barracks()
-                sizeMap = farm.getSizeMap()
-                if(posx + sizeMap) > 120 or (posy + sizeMap) > 120:
-                    continue
-                for k in range(sizeMap):
-                    for l in range(sizeMap):
-                        if(not self.cmap.is_free(posx+k, posy+l)):
-                            is_free = False
-                            break
-                    if(not is_free):
-                        break
-                if(is_free):
-                    self.addBuildingInitialize(farm, posx, posy)
-                    check = True
 
         #Placement des Stable
         for i in range(nb):
-            check = False
-            while(not check):
-                
-                posx = towncenter.getX()
-                posy = towncenter.getY()
-                sizeMap = towncenter.getSizeMap()
-
-                rx1 = random.randint(-8, 0)
-                rx2 = random.randint(0, 8)
-                rx = random.choice([rx1, rx2])
-
-                ry1 = random.randint(-8, 0)
-                ry2 = random.randint(0, 8)
-                ry = random.choice([ry1, ry2])
-
-                if rx == 0:
-                    rx = rx + sizeMap + 2
-                elif rx > 0:
-                    rx = rx + sizeMap
-
-                if ry == 0:
-                    ry = ry - sizeMap - 2
-                elif ry < 0:
-                    ry = ry - sizeMap
-
-                posx = posx + rx
-                posy = posy + ry
-
-                is_free = True
-                stable = Stable()
-                sizeMap = farm.getSizeMap()
-                if(posx + sizeMap) > 120 or (posy + sizeMap) > 120:
-                    continue
-                for k in range(sizeMap):
-                    for l in range(sizeMap):
-                        if(not self.cmap.is_free(posx+k, posy+l)):
-                            is_free = False
-                            break
-                    if(not is_free):
-                        break
-                if(is_free):
-                    self.addBuildingInitialize(stable, posx, posy)
-                    check = True
+            position = self.findPlaceForBuildings(Stable())
+            if position is not None:
+                self.addBuildingInitialize(Stable(), position[0], position[1])
         
         #Placement des ArcheryRange
         for i in range(nb):
-            check = False
-            while(not check):
-                
-                posx = towncenter.getX()
-                posy = towncenter.getY()
-                sizeMap = towncenter.getSizeMap()
-
-                rx1 = random.randint(-8, 0)
-                rx2 = random.randint(0, 8)
-                rx = random.choice([rx1, rx2])
-
-                ry1 = random.randint(-8, 0)
-                ry2 = random.randint(0, 8)
-                ry = random.choice([ry1, ry2])
-
-                if rx == 0:
-                    rx = rx + sizeMap + 2
-                elif rx > 0:
-                    rx = rx + sizeMap
-
-                if ry == 0:
-                    ry = ry - sizeMap - 2
-                elif ry < 0:
-                    ry = ry - sizeMap
-
-                posx = posx + rx
-                posy = posy + ry
-
-                is_free = True
-                archeryrange = ArcheryRange()
-                sizeMap = farm.getSizeMap()
-                if(posx + sizeMap) > 120 or (posy + sizeMap) > 120:
-                    continue
-                for k in range(sizeMap):
-                    for l in range(sizeMap):
-                        if(not self.cmap.is_free(posx+k, posy+l)):
-                            is_free = False
-                            break
-                    if(not is_free):
-                        break
-                if(is_free):
-                    self.addBuildingInitialize(archeryrange, posx, posy)
-                    check = True
+            position = self.findPlaceForBuildings(ArcheryRange())
+            if position is not None:
+                self.addBuildingInitialize(ArcheryRange(), position[0], position[1])
 
         '''
         logs(self.player.name, level=logging.INFO)
@@ -220,12 +73,95 @@ class ControllerPlayer():
             logs(building.__str__(), level=logging.INFO)
         '''
 
+    def findPlaceForBuildings(self, building):
+        """
+        Trouve une position libre pour placer un nouveau bâtiment avec une case d'écart minimum
+        de chaque côté par rapport aux autres bâtiments et en laissant un couloir autour du Town Center.
+
+        Args:
+            building (Building): Le bâtiment à placer.
+
+        Returns:
+            tuple: (x, y) coordonnées du coin supérieur gauche où placer le bâtiment,
+                ou None si aucun emplacement n'est trouvé.
+        """
+        main_building = None
+        if len(self.player.buildings) > 0:
+            main_building = self.player.buildings[0]  # On suppose que le premier bâtiment est le Town Center
+
+        if main_building is not None:
+            town_center_x = main_building.x
+            town_center_y = main_building.y
+            town_center_size = main_building.sizeMap
+            building_size = building.sizeMap
+            radius = 5
+
+            while radius <= max(self.cmap.map.size_map_x, self.cmap.map.size_map_y):
+                for i in range(town_center_x - radius, town_center_x + radius + 1):
+                    for j in range(town_center_y - radius, town_center_y + radius + 1):
+                        # Vérifie si les coordonnées sont dans les limites de la carte
+                        if 0 <= i < self.cmap.map.size_map_x and 0 <= j < self.cmap.map.size_map_y:
+                            # Vérifie si l'emplacement est libre pour le bâtiment
+                            is_free = True
+                            for k in range(-1, building_size + 1):  # Inclut une case autour du bâtiment
+                                for l in range(-1, building_size + 1):
+                                    check_x = i + k
+                                    check_y = j + l
+                                    if (
+                                        0 <= check_x < self.cmap.map.size_map_x
+                                        and 0 <= check_y < self.cmap.map.size_map_y
+                                    ):
+                                        # Vérifie qu'aucune case (y compris autour du bâtiment) n'est occupée
+                                        if self.cmap.map.map[check_x][check_y] != " ":
+                                            is_free = False
+                                            break
+                                    else:
+                                        is_free = False  # Si hors limites, emplacement invalide
+                                        break
+                                if not is_free:
+                                    break
+                            
+                            # Vérifie que le couloir autour du Town Center est respecté
+                            if is_free:
+                                for k in range(-1, town_center_size + 1):
+                                    for l in range(-1, town_center_size + 1):
+                                        # Vérifie les cases autour du Town Center
+                                        corridor_x = town_center_x + k
+                                        corridor_y = town_center_y + l
+                                        if (
+                                            0 <= corridor_x < self.cmap.map.size_map_x
+                                            and 0 <= corridor_y < self.cmap.map.size_map_y
+                                            and abs(corridor_x - (i + building_size // 2)) <= 1
+                                            and abs(corridor_y - (j + building_size // 2)) <= 1
+                                        ):
+                                            if self.cmap.map.map[corridor_x][corridor_y] != " ":
+                                                is_free = False
+                                                break
+                                    if not is_free:
+                                        break
+
+                            if is_free:
+                                return i, j  # Retourne les coordonnées du coin supérieur gauche
+
+                    radius += 1
+
+        return None  # Aucun emplacement trouvé
+
     def addBuildingInitialize(self, building, x, y):
         self.player.addBuilding(building)
         self.cmap.map.addBuilding(building, x, y, self.player)
         building.setX(x)
         building.setY(y)
 
+
+    '''Fonction pour contruire un batiment
+    Paramètres : le batiment à construire, les coordonnées x et y
+    Renvoie : 
+            0 si le batiment est construit
+            1 si le joueur n'a pas assez de ressources
+            -1 si le batiment est trop grand
+            2 si le joueur n'a pas de villageois disponibles'''
+    
     def addBuilding(self, building,x,y):
 
         if self.player.canAffordBuilding(building):
@@ -248,20 +184,47 @@ class ControllerPlayer():
                             lstVillager.append(villager)
                             villager.action = "build"
                     if cpt == 0:
-                        #logs(self.player.name + " : No villager available", level=logging.INFO)
-                        return -1
+                        logs(self.player.name + " : No villager available", level=logging.INFO)
+                        return 2
                     elif cpt == 1:
                         buildingTime = building.getBuildingTime()
                     elif cpt > 1:
                         buildingTime = (3*building.getBuildingTime()) / (cpt + 2)
+
+                    # Determine available tiles around the building
+                    available_tiles = []
+                    for dx in range(-1, building.getSizeMap() + 1):
+                        for dy in range(-1, building.getSizeMap() + 1):
+                            nx, ny = x + dx, y + dy
+                            if self.cmap.is_free(nx, ny):
+                                available_tiles.append((nx, ny))
+                    
+                    tempLstVillager = lstVillager.copy()
+
+                    for i in range(1, min(len(lstVillager), len(available_tiles))):
+                        villager = lstVillager[i]
+                        check = self.move(villager, available_tiles[i][0], available_tiles[i][1])
+                        if check == -1:
+                            tempLstVillager.remove(villager)
+
+                    if len(tempLstVillager) == 0:
+                        logs(self.player.name + " : No villager can move", level=logging.INFO)
+                        return 2
+                    
+                    else:
+                        lstVillager = tempLstVillager
+
                     logs(self.player.name + " : " + building.__str__() + " add to building queue buildingTime = " + str(buildingTime), level=logging.INFO)
                     self.player.removeResourcesForBuilding(building)
                     self.cmap.map.addBuildingTemp(building, x, y)
                     self.player.getBuildingQueue().append({"building": building, "player": self.player, "start_time": time.time(), "buildingTime": buildingTime, 'lstVillagers': lstVillager, "x": x, "y": y})
+
                     return 0
             else:
-                #logs(self.player.name + " : Building is too big", level=logging.INFO)
+                logs(self.player.name + " : Building is too big", level=logging.INFO)
                 return -1    
+        else:
+            return 1
 
     def update_building(self):
         current_time = time.time()
@@ -275,6 +238,10 @@ class ControllerPlayer():
             building = item["building"]
             x = item["x"]
             y = item["y"]
+
+            if lstVillagers[0].action is None:
+                for villager in lstVillagers:
+                    villager.action = "build"
 
             if current_time - start_time >= buildingTime:
 
@@ -514,6 +481,7 @@ class ControllerPlayer():
             self.queueMoving.append({"unit": unit, "start_time": start_time, "chemin": chemin})
             return 0
 
+
     def updating_moving(self):
         current_time = time.time()
         for item in self.queueMoving[:]:
@@ -554,21 +522,25 @@ class ControllerPlayer():
                         chemin.pop(0)
                         #logs("New path : " + chemin.__str__(), level=logging.INFO)
                         start_time = time.time()
-                        case = chemin[0]
-                        x = case[0]
-                        y = case[1]
-                        if len(chemin) == 1:
-                            logs(self.player.name + " : " + str(unit) + " is block", level=logging.ERROR)
-                            unit.action = None
+                        if len(chemin) > 0:
+                            case = chemin[0]
+                            x = case[0]
+                            y = case[1]
+                            if len(chemin) == 1:
+                                logs(self.player.name + " : " + str(unit) + " is block", level=logging.ERROR)
+                                unit.action = None
+                            else:
+                                if self.cmap.map.is_free(x,y) and self.cmap.map.map[x][y] == " ":
+                                    self.cmap.map.moveUnit(unit, x, y, self.player)
+                                    chemin.pop(0)
+                                    if len(chemin) > 0:
+                                        self.queueMoving.append({"unit": unit, "start_time": start_time, "chemin": chemin})
+                                    else:
+                                        logs(self.player.name + " : " + str(unit) + " is arrived", level=logging.INFO)
+                                        unit.action = None
                         else:
-                            if self.cmap.map.is_free(x,y) and self.cmap.map.map[x][y] == " ":
-                                self.cmap.map.moveUnit(unit, x, y, self.player)
-                                chemin.pop(0)
-                                if len(chemin) > 0:
-                                    self.queueMoving.append({"unit": unit, "start_time": start_time, "chemin": chemin})
-                                else:
-                                    logs(self.player.name + " : " + str(unit) + " is arrived", level=logging.INFO)
-                                    unit.action = None
+                            logs(self.player.name + " : " + str(unit) + " is arrived", level=logging.INFO)
+                            unit.action = None
 
     def depositResources(self, villager, target_deposit):
 

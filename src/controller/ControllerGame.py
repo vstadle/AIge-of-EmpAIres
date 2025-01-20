@@ -69,7 +69,7 @@ class ControllerGame():
 
         pos_x, pos_y = 0, 0
 
-        time_to_update = 0.5
+        time_to_update = 60
 
         start_time = time.time()
 
@@ -107,8 +107,13 @@ class ControllerGame():
 
         #self.lstcPlayers[0].move(self.lstcPlayers[0].player.units[0], 119, 1)
 
+
+        ''' On demande à chaque IA de choisir une stratégie au début de la partie '''
         for ai in self.lstAI:
-            ai.start_strategie()
+            lsttemp = self.lstcPlayers.copy()
+            lsttemp.remove(ai.cplayer)
+            ai.choose_strategie(lsttemp)
+
 
         while True:
             #stdscr.refresh()
@@ -152,18 +157,19 @@ class ControllerGame():
                     self.viewTerminal.camera.move(-1, 0, stdscr)
                 elif key == ord('d'):
                     self.viewTerminal.camera.move(1, 0, stdscr)
-                elif key == ord('p'):
-                    self.uiHandler.saveGame()
-                    stdscr.clear()
-                    sys.exit()
                 elif key == curses.KEY_F2 or key == curses.KEY_F9:
                     self.change_mode()
 
                 if current_time - start_time > time_to_update:
-                    start_time = current_time
+                    start_time = time.time()
                     for ai in self.lstAI:
-                        stdscr.clear()
-                        ai.choose_strategie()
+                        lsttemp = self.lstcPlayers.copy()
+                        lsttemp.remove(ai.cplayer)
+                        ai.choose_strategie(lsttemp)
+
+
+                for ai in self.lstAI:
+                        ai.update()
                 
                 for cplayer in self.lstcPlayers:
                     cplayer.update_training()
@@ -225,6 +231,7 @@ class ControllerGame():
                         tab_pressed = False
                     elif event.key == pygame.K_p:
                         p_pressed = False
+                        self.pause()
                 if event.type == pygame.MOUSEBUTTONDOWN:
                     if event.button == 4:  
                         self.zoom_level = round(min(3, self.zoom_level + 0.1), 1)
