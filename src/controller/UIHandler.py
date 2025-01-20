@@ -299,6 +299,9 @@ class UIHandler():
                         # Initialiser la carte avec les dimensions choisies
                         self.controllerMap = ControllerMap(config['size_x'], config['size_y'])
                         
+                        # Initialiser les joueurs et leurs unités
+                        self.initialize(config['type_game'], config['nb_players'])
+                        
                         # Configurer le type de carte et générer les ressources
                         if config['map_type'] == 'CENTER':
                             self.controllerMap.map.setMapType(MapType.CENTER_RESOURCES)
@@ -309,10 +312,7 @@ class UIHandler():
                             
                         # Générer la forêt
                         self.controllerMap.map.generateForest()
-                        
-                        # Initialiser les joueurs et leurs unités
-                        self.initialize(config['type_game'], config['nb_players'])
-                        
+
                         # Mettre à jour la map avec les joueurs
                         self.controllerMap.setLstPlayers(self.lstPlayers)
                         

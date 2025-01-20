@@ -412,6 +412,7 @@ class AI:
         for building in self.cplayer.player.buildings:
             if isinstance(building, name):
                 return building
+        return None
         
     def findWaitBuildings(self, name):
         for building in self.lstBuildingWaiting:
@@ -452,6 +453,8 @@ class AI:
         cpt_archer = 0
         cpt_horseman = 0
 
+        logs(self.cplayer.player.name + " :  Count unit" + str(len(self.cplayer.player.units)), logging.INFO)
+
         for unit in self.cplayer.player.units:
             if isinstance(unit, Villager):
                 cpt_villager += 1
@@ -462,6 +465,11 @@ class AI:
             elif isinstance(unit, Horseman):
                 cpt_horseman += 1
         
+        logs(self.cplayer.player.name + " :  Villager : " + str(cpt_villager), logging.INFO)
+        logs(self.cplayer.player.name + " :  Swordsman : " + str(cpt_swordsman), logging.INFO)
+        logs(self.cplayer.player.name + " :  Archer : " + str(cpt_archer), logging.INFO)
+        logs(self.cplayer.player.name + " :  Horseman : " + str(cpt_horseman), logging.INFO)
+
         return cpt_villager, cpt_swordsman, cpt_archer, cpt_horseman
 
     def count_villager_inactivity(self):
@@ -553,7 +561,7 @@ class AI:
                 if check == 1:
                     self.lstUnitWaiting.append("villager")
             cpt_villager += 1
-            ratio_villager = cpt_villager + 1 // len(self.cplayer.player.units) + len(self.lstUnitWaiting)
+            ratio_villager = cpt_villager // len(self.cplayer.player.units) + len(self.lstUnitWaiting)
 
         while ration_sworsman < 0.25:
             barracks = self.findBuildings(Barracks)
@@ -567,7 +575,7 @@ class AI:
                 if check == 1:
                     self.lstUnitWaiting.append("swordsman")
             cpt_swordsman += 1
-            ration_sworsman = cpt_swordsman + 1 // len(self.cplayer.player.units) + len(self.lstUnitWaiting)
+            ration_sworsman = cpt_swordsman // len(self.cplayer.player.units) + len(self.lstUnitWaiting)
         
         while ration_archer < 0.25:
             archery = self.findBuildings(ArcheryRange)
@@ -581,7 +589,7 @@ class AI:
                 if check == 1:
                     self.lstUnitWaiting.append("archer")
             cpt_archer += 1
-            ration_archer = cpt_archer + 1 // len(self.cplayer.player.units) + len(self.lstUnitWaiting)
+            ration_archer = cpt_archer // len(self.cplayer.player.units) + len(self.lstUnitWaiting)
 
         while ration_horseman < 0.25:
             stable = self.findBuildings(Stable)
@@ -595,7 +603,7 @@ class AI:
                 if check == 1:
                     self.lstUnitWaiting.append("horseman")
             cpt_horseman += 1
-            ration_horseman = cpt_horseman + 1 // len(self.cplayer.player.units) + len(self.lstUnitWaiting)
+            ration_horseman = cpt_horseman // len(self.cplayer.player.units) + len(self.lstUnitWaiting)
 
     def collect_strategie(self):
 
@@ -629,10 +637,14 @@ class AI:
         ''' On construit des batiments de défense '''
 
         cpt_villager, cpt_swordsman, cpt_archer, cpt_horseman = self.count_Unit()
-        ratio_villager = cpt_villager // len(self.cplayer.player.units)
-        ration_sworsman = cpt_swordsman // len(self.cplayer.player.units)
-        ration_archer = cpt_archer // len(self.cplayer.player.units)
-        ration_horseman = cpt_horseman // len(self.cplayer.player.units)
+        
+        ration_sworsman = cpt_swordsman / len(self.cplayer.player.units)
+        ration_archer = cpt_archer / len(self.cplayer.player.units)
+        ration_horseman = cpt_horseman / len(self.cplayer.player.units)
+
+        logs(self.cplayer.player.name + " :  Ration swordsman : " + str(ration_sworsman), logging.INFO)
+        logs(self.cplayer.player.name + " :  Ration archer : " + str(ration_archer), logging.INFO)
+        logs(self.cplayer.player.name + " :  Ration horseman : " + str(ration_horseman), logging.INFO)
 
         barracks = self.findBuildings(Barracks)
         while ration_sworsman < 0.34:
@@ -645,8 +657,8 @@ class AI:
             cpt_swordsman += 1
             ration_sworsman = cpt_swordsman / len(self.cplayer.player.units) + len(self.lstUnitWaiting)
         
+        archery = self.findBuildings(ArcheryRange)
         while ration_archer < 0.34:
-            archery = self.findBuildings(ArcheryRange)
             if archery is None:
                 break
             if archery is not None:
@@ -656,8 +668,8 @@ class AI:
             cpt_archer += 1
             ration_archer = cpt_archer / len(self.cplayer.player.units) + len(self.lstUnitWaiting)
 
+        stable = self.findBuildings(Stable)
         while ration_horseman < 0.34:
-            stable = self.findBuildings(Stable)
             if stable is None:
                 break
             if stable is not None:
@@ -669,6 +681,16 @@ class AI:
 
         costGoldKeep = Keep().costG
         costWoodKeep = Keep().costW
+
+        if self.cplayer.player.population == len(self.cplayer.player.units):
+            for i in range (0, 4):
+                house = House()
+                if self.cplayer.player.canAffordBuilding(house):
+                    position = self.findPlaceForBuildings(house)
+                    if position is not None:
+                        check = self.cplayer.addBuilding(house, position[0], position[1])
+                        if check == 2:
+                            self.lstBuildingWaiting.insert(0,house)
 
         cpt = 0
 

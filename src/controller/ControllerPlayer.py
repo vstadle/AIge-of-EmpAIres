@@ -41,184 +41,111 @@ class ControllerPlayer():
     def initializeTownCenter(self, nb):
 
         for i in range(nb):
-            check = False
-            while(not check):
-                towncenter = self.player.getBuildings()[0]
-                posx = towncenter.getX()
-                posy = towncenter.getY()
-                sizeMap = towncenter.getSizeMap()
+            #Placement du TownCenter
+            position = self.findPlaceForBuildings(TownCenter())
+            if position is not None:
+                self.addBuildingInitialize(TownCenter(), position[0], position[1])
 
-                rx = random.randint(-5, 5)
-                ry = random.randint(-5, 5)
-
-                if rx == 0:
-                    rx = rx + sizeMap + 2
-                elif rx > 0:
-                    rx = rx + sizeMap
-
-                if ry == 0:
-                    ry = ry - sizeMap - 2
-                elif ry < 0:
-                    ry = ry - sizeMap
-
-                posx = posx + rx
-                posy = posy + ry
-
-                is_free = True
-                for k in range(sizeMap):
-                    for l in range(sizeMap):
-                        if(not self.cmap.is_free(posx+k, posy+l)):
-                            is_free = False
-                            break
-                    if(not is_free):
-                        break
-                if(is_free):
-                    self.addBuildingInitialize(TownCenter(), posx, posy)
-                    check = True
+        position = None
 
         #Placement des Barracks
         for i in range(nb):
-            check = False
-            while(not check):
-                
-                posx = towncenter.getX()
-                posy = towncenter.getY()
-                sizeMap = towncenter.getSizeMap()
+            position = self.findPlaceForBuildings(Barracks())
+            if position is not None:
+                self.addBuildingInitialize(Barracks(), position[0], position[1])
 
-                rx1 = random.randint(-8, 0)
-                rx2 = random.randint(0, 8)
-                rx = random.choice([rx1, rx2])
-
-                ry1 = random.randint(-8, 0)
-                ry2 = random.randint(0, 8)
-                ry = random.choice([ry1, ry2])
-
-                if rx == 0:
-                    rx = rx + sizeMap + 2
-                elif rx > 0:
-                    rx = rx + sizeMap
-
-                if ry == 0:
-                    ry = ry - sizeMap - 2
-                elif ry < 0:
-                    ry = ry - sizeMap
-
-                posx = posx + rx
-                posy = posy + ry
-
-                is_free = True
-                farm = Barracks()
-                sizeMap = farm.getSizeMap()
-                if(posx + sizeMap) > 120 or (posy + sizeMap) > 120:
-                    continue
-                for k in range(sizeMap):
-                    for l in range(sizeMap):
-                        if(not self.cmap.is_free(posx+k, posy+l)):
-                            is_free = False
-                            break
-                    if(not is_free):
-                        break
-                if(is_free):
-                    self.addBuildingInitialize(farm, posx, posy)
-                    check = True
 
         #Placement des Stable
         for i in range(nb):
-            check = False
-            while(not check):
-                
-                posx = towncenter.getX()
-                posy = towncenter.getY()
-                sizeMap = towncenter.getSizeMap()
-
-                rx1 = random.randint(-8, 0)
-                rx2 = random.randint(0, 8)
-                rx = random.choice([rx1, rx2])
-
-                ry1 = random.randint(-8, 0)
-                ry2 = random.randint(0, 8)
-                ry = random.choice([ry1, ry2])
-
-                if rx == 0:
-                    rx = rx + sizeMap + 2
-                elif rx > 0:
-                    rx = rx + sizeMap
-
-                if ry == 0:
-                    ry = ry - sizeMap - 2
-                elif ry < 0:
-                    ry = ry - sizeMap
-
-                posx = posx + rx
-                posy = posy + ry
-
-                is_free = True
-                stable = Stable()
-                sizeMap = farm.getSizeMap()
-                if(posx + sizeMap) > 120 or (posy + sizeMap) > 120:
-                    continue
-                for k in range(sizeMap):
-                    for l in range(sizeMap):
-                        if(not self.cmap.is_free(posx+k, posy+l)):
-                            is_free = False
-                            break
-                    if(not is_free):
-                        break
-                if(is_free):
-                    self.addBuildingInitialize(stable, posx, posy)
-                    check = True
+            position = self.findPlaceForBuildings(Stable())
+            if position is not None:
+                self.addBuildingInitialize(Stable(), position[0], position[1])
         
         #Placement des ArcheryRange
         for i in range(nb):
-            check = False
-            while(not check):
-                
-                posx = towncenter.getX()
-                posy = towncenter.getY()
-                sizeMap = towncenter.getSizeMap()
-
-                rx1 = random.randint(-8, 0)
-                rx2 = random.randint(0, 8)
-                rx = random.choice([rx1, rx2])
-
-                ry1 = random.randint(-8, 0)
-                ry2 = random.randint(0, 8)
-                ry = random.choice([ry1, ry2])
-
-                if rx == 0:
-                    rx = rx + sizeMap + 2
-                elif rx > 0:
-                    rx = rx + sizeMap
-
-                if ry == 0:
-                    ry = ry - sizeMap - 2
-                elif ry < 0:
-                    ry = ry - sizeMap
-
-                posx = posx + rx
-                posy = posy + ry
-
-                is_free = True
-                archeryrange = ArcheryRange()
-                sizeMap = farm.getSizeMap()
-                if(posx + sizeMap) > 120 or (posy + sizeMap) > 120:
-                    continue
-                for k in range(sizeMap):
-                    for l in range(sizeMap):
-                        if(not self.cmap.is_free(posx+k, posy+l)):
-                            is_free = False
-                            break
-                    if(not is_free):
-                        break
-                if(is_free):
-                    self.addBuildingInitialize(archeryrange, posx, posy)
-                    check = True
+            position = self.findPlaceForBuildings(ArcheryRange())
+            if position is not None:
+                self.addBuildingInitialize(ArcheryRange(), position[0], position[1])
 
         '''
         logs(self.player.name, level=logging.INFO)
         for building in self.player.getBuildings():
             logs(building.__str__(), level=logging.INFO)
         '''
+
+    def findPlaceForBuildings(self, building):
+        """
+        Trouve une position libre pour placer un nouveau bâtiment avec une case d'écart minimum
+        de chaque côté par rapport aux autres bâtiments et en laissant un couloir autour du Town Center.
+
+        Args:
+            building (Building): Le bâtiment à placer.
+
+        Returns:
+            tuple: (x, y) coordonnées du coin supérieur gauche où placer le bâtiment,
+                ou None si aucun emplacement n'est trouvé.
+        """
+        main_building = None
+        if len(self.player.buildings) > 0:
+            main_building = self.player.buildings[0]  # On suppose que le premier bâtiment est le Town Center
+
+        if main_building is not None:
+            town_center_x = main_building.x
+            town_center_y = main_building.y
+            town_center_size = main_building.sizeMap
+            building_size = building.sizeMap
+            radius = 5
+
+            while radius <= max(self.cmap.map.size_map_x, self.cmap.map.size_map_y):
+                for i in range(town_center_x - radius, town_center_x + radius + 1):
+                    for j in range(town_center_y - radius, town_center_y + radius + 1):
+                        # Vérifie si les coordonnées sont dans les limites de la carte
+                        if 0 <= i < self.cmap.map.size_map_x and 0 <= j < self.cmap.map.size_map_y:
+                            # Vérifie si l'emplacement est libre pour le bâtiment
+                            is_free = True
+                            for k in range(-1, building_size + 1):  # Inclut une case autour du bâtiment
+                                for l in range(-1, building_size + 1):
+                                    check_x = i + k
+                                    check_y = j + l
+                                    if (
+                                        0 <= check_x < self.cmap.map.size_map_x
+                                        and 0 <= check_y < self.cmap.map.size_map_y
+                                    ):
+                                        # Vérifie qu'aucune case (y compris autour du bâtiment) n'est occupée
+                                        if self.cmap.map.map[check_x][check_y] != " ":
+                                            is_free = False
+                                            break
+                                    else:
+                                        is_free = False  # Si hors limites, emplacement invalide
+                                        break
+                                if not is_free:
+                                    break
+                            
+                            # Vérifie que le couloir autour du Town Center est respecté
+                            if is_free:
+                                for k in range(-1, town_center_size + 1):
+                                    for l in range(-1, town_center_size + 1):
+                                        # Vérifie les cases autour du Town Center
+                                        corridor_x = town_center_x + k
+                                        corridor_y = town_center_y + l
+                                        if (
+                                            0 <= corridor_x < self.cmap.map.size_map_x
+                                            and 0 <= corridor_y < self.cmap.map.size_map_y
+                                            and abs(corridor_x - (i + building_size // 2)) <= 1
+                                            and abs(corridor_y - (j + building_size // 2)) <= 1
+                                        ):
+                                            if self.cmap.map.map[corridor_x][corridor_y] != " ":
+                                                is_free = False
+                                                break
+                                    if not is_free:
+                                        break
+
+                            if is_free:
+                                return i, j  # Retourne les coordonnées du coin supérieur gauche
+
+                    radius += 1
+
+        return None  # Aucun emplacement trouvé
 
     def addBuildingInitialize(self, building, x, y):
         self.player.addBuilding(building)
@@ -596,7 +523,6 @@ class ControllerPlayer():
                         #logs("New path : " + chemin.__str__(), level=logging.INFO)
                         start_time = time.time()
                         if len(chemin) > 0:
-                            self.queueMoving.append({"unit": unit, "start_time": start_time, "chemin": chemin})
                             case = chemin[0]
                             x = case[0]
                             y = case[1]
