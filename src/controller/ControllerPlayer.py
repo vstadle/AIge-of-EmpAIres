@@ -166,7 +166,7 @@ class ControllerPlayer():
 
         if self.player.canAffordBuilding(building):
             is_free = True
-            if x + building.getSizeMap() < 120 or y + building.getSizeMap() < 120:
+            if x + building.getSizeMap() < self.cmap.map.size_map_x or y + building.getSizeMap() < self.cmap.map.size_map_y:
                 for i in range (building.getSizeMap()):
                     for j in range (building.getSizeMap()):
                         if not self.cmap.is_free(x+i, y+j):
@@ -179,18 +179,16 @@ class ControllerPlayer():
                     cpt = 0
                     lstVillager = []
                     for villager in self.player.units:
-                        if isinstance(villager, Villager) and villager.action == None:
+                        if isinstance(villager, Villager) and villager.action is None and villager.carrying == 0:
                             cpt += 1
                             lstVillager.append(villager)
-                            villager.action = "build"
+
+                    #logs(self.player.name + " : " + str(cpt) + " villagers available", level=logging.INFO)
+
                     if cpt == 0:
                         logs(self.player.name + " : No villager available", level=logging.INFO)
                         return 2
-                    elif cpt == 1:
-                        buildingTime = building.getBuildingTime()
-                    elif cpt > 1:
-                        buildingTime = (3*building.getBuildingTime()) / (cpt + 2)
-
+                    
                     # Determine available tiles around the building
                     available_tiles = []
                     for dx in range(-1, building.getSizeMap() + 1):
@@ -198,26 +196,33 @@ class ControllerPlayer():
                             nx, ny = x + dx, y + dy
                             if self.cmap.is_free(nx, ny):
                                 available_tiles.append((nx, ny))
-                    
-                    tempLstVillager = lstVillager.copy()
 
-                    for i in range(1, min(len(lstVillager), len(available_tiles))):
+                    #logs(self.player.name + " : Available tiles around the building : " + available_tiles.__str__(), level=logging.INFO)
+
+                    taille = min(len(lstVillager), len(available_tiles))
+
+                    tempLstVillager = []
+
+                    for i in range(taille):
                         villager = lstVillager[i]
                         check = self.move(villager, available_tiles[i][0], available_tiles[i][1])
-                        if check == -1:
-                            tempLstVillager.remove(villager)
+                        if check != -1:
+                            tempLstVillager.append(villager)
 
                     if len(tempLstVillager) == 0:
-                        logs(self.player.name + " : No villager can move", level=logging.INFO)
+                        #logs(self.player.name + " : No villager can move", level=logging.INFO)
                         return 2
-                    
-                    else:
-                        lstVillager = tempLstVillager
 
-                    logs(self.player.name + " : " + building.__str__() + " add to building queue buildingTime = " + str(buildingTime), level=logging.INFO)
+                    if len(tempLstVillager) == 1:
+                        buildingTime = building.getBuildingTime()
+                    
+                    elif len(tempLstVillager) > 1:
+                        buildingTime = (3*building.getBuildingTime()) / (cpt + 2)
+
+                    logs(self.player.name + " : " + building.__str__() + " add to building queue buildingTime = " + str(buildingTime) + " with " + str(len(tempLstVillager)) + " villagers", level=logging.INFO)
                     self.player.removeResourcesForBuilding(building)
                     self.cmap.map.addBuildingTemp(building, x, y)
-                    self.player.getBuildingQueue().append({"building": building, "player": self.player, "start_time": time.time(), "buildingTime": buildingTime, 'lstVillagers': lstVillager, "x": x, "y": y})
+                    self.player.getBuildingQueue().append({"building": building, "player": self.player, "start_time": time.time(), "buildingTime": buildingTime, 'lstVillagers': tempLstVillager, "x": x, "y": y})
 
                     return 0
             else:
@@ -451,9 +456,11 @@ class ControllerPlayer():
                     logs(self.player.name + " : Villagers can't collect ressources", level=logging.INFO)
                     villager.action = None
                     self.queueCollect.remove(item)
+                    return 3
 
     def moveWithChemin(self, unit, chemin):
-        
+        if unit.action == "move":
+            return -1
         if chemin is not None:
             start = unit.getPosition()
             end = chemin[len(chemin)-1]
@@ -465,9 +472,12 @@ class ControllerPlayer():
             return 0
         else:
             logs(self.player.name + " : " + str(unit) + " No path found", level=logging.INFO)
+            unit.action = None
             return -1
 
     def move(self, unit, x, y):
+        if unit.action == "move":
+            return -1
         start = unit.getPosition()
         end = (x,y)
         logs(self.player.name + " : " + str(unit) + " is moving", level=logging.INFO)
@@ -475,6 +485,7 @@ class ControllerPlayer():
         unit.action = "move"
         if chemin is None:
             logs(self.player.name + " : " + str(unit) + " No path found", level=logging.INFO)
+            unit.action = None
             return -1
         else:
             chemin.pop(0)
@@ -520,6 +531,7 @@ class ControllerPlayer():
                     if chemin is None:
                         logs(self.player.name + " : " + str(unit) + " No path found", level=logging.ERROR)
                         unit.action = None
+                        return -1
                     else:
                         chemin.pop(0)
                         #logs("New path : " + chemin.__str__(), level=logging.INFO)

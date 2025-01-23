@@ -37,6 +37,7 @@ class AI:
         self.lstUnitWaiting = []
 
         self.RessourceCollecting = [] #ressource + case adjacente
+        self.RessourceDeposit = [] #depot + case adjacente
 
     def villager_is_available(self):
         for unit in self.cplayer.player.units:
@@ -137,7 +138,7 @@ class AI:
                     ):
                         #logs(f"Case libre trouvée pour dépôt à ({adj_x}, {adj_y})", logging.INFO)
                         chemin = A_Star.a_star(self.game.map, (villager.x, villager.y), (adj_x, adj_y))
-                        if chemin is not None:
+                        if chemin is not None and (adj_x, adj_y) not in self.RessourceDeposit:
                             return (building, adj_x, adj_y, chemin)
 
         # Aucun dépôt accessible trouvé
@@ -270,7 +271,17 @@ class AI:
             #Si le villageois n'est pas à coté de la ressource et qu'il ne transporte rien
             #Alors on le déplace
             if unit.action is None and unit.x != target[0] and unit.y != target[1] and unit.carrying == 0:
-                self.cplayer.move(unit, target[0], target[1])
+                check = self.cplayer.move(unit, target[0], target[1])
+                if check == -1:
+                    self.lstVillagerCollect.remove(item)
+                    self.RessourceCollecting.remove(item["target"])
+                    
+                    if isinstance(ressource, Gold):
+                        self.collectGold()
+                    
+                    elif isinstance(ressource, Wood):
+                        self.collectWood()
+
 
             #Sinon si le villageois est à coté de la ressource et qu'il ne transporte rien
             #Alors on le fait collecter la ressource
@@ -279,20 +290,39 @@ class AI:
             
             #Sinon si le villageois ne fait rien et qu'il est plein ou que la ressource est vide
             #Alors on l'envoi au dépôt
-            elif unit.action is None and (ressource.capacity == 0 or unit.carrying == 20) and unit.x == target[0] and unit.y == target[1]:
+            elif unit.action is None and (ressource.capacity == 0 or unit.carrying == 20) and item["deposit"] is None and item["target_deposit"] is None:
                 deposit = self.find_deposit(unit, ressource)
-                if deposit[0] is not None and deposit[1] is not None and deposit[2] is not None:
-                    item["deposit"] = deposit[0]
-                    item["target_deposit"] = deposit[1], deposit[2]
-                    self.cplayer.move(unit, item["target_deposit"][0], item["target_deposit"][1])
-            
+                if deposit is not None:
+                    if deposit[0] is not None and deposit[1] is not None and deposit[2] is not None:
+                        item["deposit"] = deposit[0]
+                        item["target_deposit"] = deposit[1], deposit[2]
+                        check = self.cplayer.move(unit, item["target_deposit"][0], item["target_deposit"][1])
+                        if check == -1:
+                            deposit = self.find_deposit(unit, ressource)
+                            if deposit[0] is not None and deposit[1] is not None and deposit[2] is not None:
+                                item["deposit"] = deposit[0]
+                                item["target_deposit"] = deposit[1], deposit[2]
+                                check = self.cplayer.move(unit, item["target_deposit"][0], item["target_deposit"][1])
+                                if check != -1:
+                                    self.RessourceDeposit.append((deposit[1], deposit[2]))
+                        else:
+                            self.RessourceDeposit.append((deposit[1], deposit[2]))
+
             #Sinon si le villageois ne fait rien et qu'il est à coté du dépôt
             #On le fait déposer les ressources
-            elif unit.action is None and item["deposit"] is not None and item["target_deposit"] is not None:
+            elif unit.action is None and item["deposit"] is not None and item["target_deposit"] is not None and unit.x == item["target_deposit"][0] and unit.y == item["target_deposit"][1] and unit.carrying > 0:
                 self.cplayer.depositResources(unit, item["target_deposit"])
+                self.RessourceDeposit.remove(item["target_deposit"])
+                item["deposit"] = None
+                item["target_deposit"] = None
                 if ressource.capacity == 0:
                     self.lstVillagerCollect.remove(item)
                     self.RessourceCollecting.remove(item["target"])
+
+            elif unit.action is None and (unit.x != target[0] and unit.y != target[1]):
+                if item["target_deposit"] is not None and unit.x != item["target_deposit"][0] and unit.y != item["target_deposit"][1]:
+                    self.cplayer.move(unit, target[0], target[1])
+
 
     def verifBuilding(self):
             for building in self.lstBuildingWaiting:
@@ -737,7 +767,7 @@ class AI:
         ''' Choix de la stratégie de l'IA '''
         ''' On choisit une stratégie en fonction de la situation de l'IA '''
 
-        if self.cplayer.player.gold < 300 and self.cplayer.player.wood < 300:
+        if self.cplayer.player.gold < 100 and self.cplayer.player.wood < 100:
             self.collect_strategie()
 
         elif self.cplayer.player.food < 300 and len(self.cplayer.player.units) < 30:
