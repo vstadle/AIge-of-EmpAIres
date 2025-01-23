@@ -400,7 +400,7 @@ class ControllerPlayer():
         distance_x = abs(ressource.getX() - unit_x)
         distance_y = abs(ressource.getY() - unit_y)
 
-        if distance_x <= 1 and distance_y <= 1:
+        if distance_x <= 1.25 and distance_y <= 1.25:
             if villager.carryingType == None:
                 if isinstance(ressource, Gold):
                     villager.carryingType = "Gold"
@@ -419,7 +419,7 @@ class ControllerPlayer():
                 start_time = time.time()
                 villager.action = "collect"
                 self.queueCollect.append({"villager": villager, "start_time": start_time, "ressource": ressource})
-                logs(self.player.name + " : Villager is collecting resources", level=logging.INFO)
+                #logs(self.player.name + " : Villager is collecting resources", level=logging.INFO)
         else:
             logs(self.player.name + " : Villager is too far to collect resources", level=logging.INFO)
     
@@ -440,7 +440,9 @@ class ControllerPlayer():
                     start_time = time.time()
                     if(ressource.capacity <= 0):
                         logs(self.player.name + " : Ressource is empty", level=logging.INFO)
-                        self.cmap.map.mapRessources[ressource.getX()][ressource.getY()] = None
+
+                        self.cmap.map.map_entities[ressource.getX()][ressource.getY()] = None
+                        #self.cmap.map.mapRessources[ressource.getX()][ressource.getY()] = None
                         self.cmap.map.map[ressource.getX()][ressource.getY()] = " "
                         villager.action = None
                     else:

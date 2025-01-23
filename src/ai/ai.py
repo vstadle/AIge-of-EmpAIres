@@ -62,7 +62,7 @@ class AI:
                     if (x - villager_x) ** 2 + (y - villager_y) ** 2 <= radius ** 2:
                         # Vérifie si la position est dans les limites de la carte
                         if 0 <= x < self.game.map.size_map_x and 0 <= y < self.game.map.size_map_y:
-                            ressource = self.game.map.mapRessources[x][y]
+                            ressource = self.game.map.map_entities[x][y]
                             if ressource is not None and self.game.map.map[x][y] == "G":
                                 # Vérifie les cases adjacentes libres
                                 adjacent_positions = [
@@ -223,7 +223,7 @@ class AI:
                     if (x - villager_x) ** 2 + (y - villager_y) ** 2 <= radius ** 2:
                         # Vérifie si la position est dans les limites de la carte
                         if 0 <= x < self.game.map.size_map_x and 0 <= y < self.game.map.size_map_y:
-                            ressource = self.game.map.mapRessources[x][y]
+                            ressource = self.game.map.map_entities[x][y]
                             if ressource is not None and self.game.map.map[x][y] == "W":
                                 # Vérifie les cases adjacentes libres
                                 adjacent_positions = [
@@ -357,7 +357,7 @@ class AI:
         for x, y in adjacent_positions:
             # Vérifie si la case est dans les limites de la carte et est libre
             if 0 <= x < self.game.map.size_map_x and 0 <= y < self.game.map.size_map_y:
-                if self.game.map.mapUnits[x][y] is None:  # La case est libre
+                if self.game.map.map_entities[x][y] is None:  # La case est libre
                     return True
         return False
 
