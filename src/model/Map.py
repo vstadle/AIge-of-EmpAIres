@@ -25,19 +25,21 @@ class Map():
     def __init__(self, size_map_x, size_map_y):
 
         #Matrice de 120x120 qui va contenir les batiments
-        self.mapBuildings = [[None for x in range(size_map_y)] for y in range(size_map_x)]
+        #self.mapBuildings = [[None for x in range(size_map_y)] for y in range(size_map_x)]
 
         #Matrice de 120x120 qui va contenir les ressources
-        self.mapRessources = [[None for x in range(size_map_y)] for y in range(size_map_x)]
+        #self.mapRessources = [[None for x in range(size_map_y)] for y in range(size_map_x)]
 
         #Matrice de 120x120 qui va contenir les unités
-        self.mapUnits = [[None for x in range(size_map_y)] for y in range(size_map_x)]
+        #self.mapUnits = [[None for x in range(size_map_y)] for y in range(size_map_x)]
 
         #Listes des couleurs
         self.lstColor= [[None for x in range(size_map_y)] for y in range(size_map_x)]
 
         self.map = [[" " for x in range(size_map_y)] for y in range(size_map_x)]
         self.map[0][0] = 'R'
+
+        self.map_entities = [[None for x in range(size_map_y)] for y in range(size_map_x)]
 
         self.map[size_map_x-1][size_map_y-1] = 'R'
 
@@ -84,20 +86,9 @@ class Map():
             for j in range(r_y):
                 self.addRessources(r, x + i, y+j)
 
-    def draw_map(self, win,pos_x,pos_y):
-
-        for i in range(20):  # Limite pour le nombre de lignes à dessiner
-            for j in range(20):  # Limite pour le nombre de colonnes à dessiner
-                # Supposons que self.map contient des caractères pour représenter la carte
-                tile = self.map.map[(pos_y + i) % self.map.height][(pos_x + j) % self.map.width]
-                # Dessiner le tile sur l'écran
-                # Utilisez pygame.draw ou autre méthode selon votre implémentation
-
-        pygame.display.flip()  # Met à jour l'affichage
-        #win.getch()
-
     def addRessources(self, Ressources, x,y):
-        self.mapRessources[x][y] = Ressources
+        self.map_entities[x][y] = Ressources
+        #self.mapRessources[x][y] = Ressources
         self.map[x][y] = Ressources.letter
         Ressources.setXY(x, y)
 
@@ -108,7 +99,8 @@ class Map():
         for i in range(building.sizeMap):
             cpt += 1
             for j in range(building.sizeMap):
-                self.mapBuildings[x + i][y + j] = building
+                self.map_entities[x + i][y + j] = building
+                #self.mapBuildings[x + i][y + j] = building
                 self.map[x + i][y + j] = building.letter
                 self.lstColor[x + i][y + j] = player.getColor()
         if isinstance(building, TownCenter) or isinstance(building, House):
@@ -123,7 +115,8 @@ class Map():
                 self.lstColor[x + i][y + j] = curses.COLOR_WHITE
 
     def addUnits(self, units, x, y, player):
-        self.mapUnits[x][y] = units
+        self.map_entities[x][y] = units
+        #self.mapUnits[x][y] = units
         self.map[x][y] = units.letter
         self.lstColor[x][y] = player.getColor()
         units.setPosition(x, y)
@@ -185,30 +178,36 @@ class Map():
         return self.mapRessources
     
     def is_free(self, x, y):
+        return self.map_entities[x][y] is None
         return self.mapBuildings[x][y] is None and self.mapUnits[x][y] is None and self.mapRessources[x][y] is None
     
     def getColor(self, x, y):
         return self.lstColor[x][y]
 
     def rmUnit(self, unit):
-        self.mapUnits[unit.getX()][unit.getY()] = None
+        self.map_entities[unit.getX()][unit.getY()] = None
+        #self.mapUnits[unit.getX()][unit.getY()] = None
         self.map[unit.getX()][unit.getY()] = " "
     
     def rmBuilding(self, building):
         for i in range(building.sizeMap):
             for j in range(building.sizeMap):
-                self.mapBuildings[building.getX() + i][building.getY() + j] = None
+                self.map_entities[building.getX() + i][building.getY() + j] = None
+                #self.mapBuildings[building.getX() + i][building.getY() + j] = None
                 self.map[building.getX() + i][building.getY() + j] = " "
     
     def rmRessource(self, ressource):
-        self.mapRessources[ressource.getX()][ressource.getY()] = None
+        self.map_entities[ressource.getX()][ressource.getY()] = None
+        #self.mapRessources[ressource.getX()][ressource.getY()] = None
         self.map[ressource.getX()][ressource.getY()] = " "
 
     def moveUnit(self, unit, x, y, player):
         pos = unit.getPosition()
-        self.mapUnits[pos[0]][pos[1]] = None
+        self.map_entities[pos[0]][pos[1]] = None
+        #self.mapUnits[pos[0]][pos[1]] = None
         self.map[pos[0]][pos[1]] = " "
-        self.mapUnits[x][y] = unit
+        self.map_entities[x][y] = unit
+        #self.mapUnits[x][y] = unit
         unit.setPosition(x, y)
         self.map[x][y] = "v"
         self.lstColor[x][y] = player.getColor()
