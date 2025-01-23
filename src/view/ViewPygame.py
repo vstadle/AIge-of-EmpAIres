@@ -24,7 +24,7 @@ class ViewPygame:
         self.panel_surface = None
         self.panel_rect = None
         self.clock = clock
-        self.map = game_map
+        self.map = game_map 
         self.grid_length_x = grid_length_x
         self.grid_length_y = grid_length_y
         self.TILE_SIZE = 64
@@ -178,7 +178,7 @@ class ViewPygame:
         
         # Optimisation : pré-charger les maps
         game_map = self.map.getMap()
-        buildings_map = self.map.get_map_buildings()
+        buildings_map = self.map.get_map_entities()
         
         # Optimisation : stocker la largeur de la grass_tiles
         grass_width_half = self.grass_tiles.get_width()/2
@@ -194,8 +194,7 @@ class ViewPygame:
                     -margin_y <= screen_y <= self.height + margin_y):
                     
                     cell_content = game_map[x][y]
-                    building = buildings_map[x][y]
-                    
+                    building = buildings_map[x][y]                   
                     # Ajouter les éléments visibles à la liste de rendu
                     if cell_content == 'W':
                         tree = self.tiles["tree"]
@@ -280,8 +279,8 @@ class ViewPygame:
         #Méthode auxiliaire pour ajouter les bâtiments à la liste de rendu
         
         if isinstance(building, TownCenter):
-            if (y == 0 or not isinstance(self.map.get_map_buildings()[x - 1][y], TownCenter)) and \
-               (x == 0 or not isinstance(self.map.get_map_buildings()[x][y - 1], TownCenter)):
+            if (y == 0 or not isinstance(self.map.get_map_entities()[x - 1][y], TownCenter)) and \
+               (x == 0 or not isinstance(self.map.get_map_entities()[x][y - 1], TownCenter)):
                 sprite_x = screen_x - self.cached_sprites['towncenter'].get_width()//2 + 1.5*self.TILE_SIZE
                 sprite_y = screen_y - self.cached_sprites['towncenter'].get_height() + 2.7 * self.TILE_SIZE
                 render_list.append((
@@ -289,8 +288,8 @@ class ViewPygame:
                     (self.cached_sprites['towncenter'], (sprite_x, sprite_y))
                 ))
         elif isinstance(building, Barracks):
-            if (x == 0 or not isinstance(self.map.get_map_buildings()[x - 1][y], Barracks)) and \
-               (y == 0 or not isinstance(self.map.get_map_buildings()[x][y - 1], Barracks)):
+            if (x == 0 or not isinstance(self.map.get_map_entities()[x - 1][y], Barracks)) and \
+               (y == 0 or not isinstance(self.map.get_map_entities()[x][y - 1], Barracks)):
                 sprite_x = screen_x - self.cached_sprites['barracks'].get_width()//2 + self.TILE_SIZE
                 sprite_y = screen_y - self.cached_sprites['barracks'].get_height()//2 +0.5*self.TILE_SIZE
                 render_list.append((
@@ -298,8 +297,8 @@ class ViewPygame:
                     (self.cached_sprites['barracks'], (sprite_x, sprite_y))
                 ))
         elif isinstance(building, ArcheryRange):
-            if (x == 0 or not isinstance(self.map.get_map_buildings()[x - 1][y], ArcheryRange)) and \
-            (y == 0 or not isinstance(self.map.get_map_buildings()[x][y - 1], ArcheryRange)):
+            if (x == 0 or not isinstance(self.map.get_map_entities()[x - 1][y], ArcheryRange)) and \
+            (y == 0 or not isinstance(self.map.get_map_entities()[x][y - 1], ArcheryRange)):
                 sprite_x = screen_x - self.cached_sprites['archeryrange'].get_width()//2 + 1.5*self.TILE_SIZE
                 sprite_y = screen_y - self.cached_sprites['archeryrange'].get_height()//2+0.5*self.TILE_SIZE
                 render_list.append((
@@ -307,8 +306,8 @@ class ViewPygame:
                     (self.cached_sprites['archeryrange'], (sprite_x, sprite_y))
                 ))
         elif isinstance(building, Stable):
-            if (y == 0 or not isinstance(self.map.get_map_buildings()[x - 1][y], Stable)) and \
-            (x == 0 or not isinstance(self.map.get_map_buildings()[x][y - 1], Stable)):
+            if (y == 0 or not isinstance(self.map.get_map_entities()[x - 1][y], Stable)) and \
+            (x == 0 or not isinstance(self.map.get_map_entities()[x][y - 1], Stable)):
                 sprite_x = screen_x - self.cached_sprites['stable'].get_width()//2 + self.TILE_SIZE
                 sprite_y = screen_y - self.cached_sprites['stable'].get_height()//2 + 0.5*self.TILE_SIZE
                 render_list.append((
@@ -316,8 +315,8 @@ class ViewPygame:
                     (self.cached_sprites['stable'], (sprite_x, sprite_y))
                 ))
         elif isinstance(building, Farm):  # Ajout de la condition pour la ferme
-            if (y == 0 or not isinstance(self.map.get_map_buildings()[x - 1][y], Farm)) and \
-            (x == 0 or not isinstance(self.map.get_map_buildings()[x][y - 1], Farm)):
+            if (y == 0 or not isinstance(self.map.get_map_entities()[x - 1][y], Farm)) and \
+            (x == 0 or not isinstance(self.map.get_map_entities()[x][y - 1], Farm)):
                 sprite_x = screen_x - self.cached_sprites['farm'].get_width()//2 + self.TILE_SIZE
                 sprite_y = screen_y - self.cached_sprites['farm'].get_height()//2 + 1.5*self.TILE_SIZE
                 render_list.append((
@@ -325,8 +324,8 @@ class ViewPygame:
                     (self.cached_sprites['farm'], (sprite_x, sprite_y))
                 ))
         elif isinstance(building, House):
-            if (y == 0 or not isinstance(self.map.get_map_buildings()[x - 1][y], House)) and \
-            (x == 0 or not isinstance(self.map.get_map_buildings()[x][y - 1], House)):
+            if (y == 0 or not isinstance(self.map.get_map_entities()[x - 1][y], House)) and \
+            (x == 0 or not isinstance(self.map.get_map_entities()[x][y - 1], House)):
                 sprite_x = screen_x - self.cached_sprites['house'].get_width()//2 + self.TILE_SIZE
                 sprite_y = screen_y - self.cached_sprites['house'].get_height()//2 + self.TILE_SIZE//2
                 render_list.append((
@@ -334,8 +333,8 @@ class ViewPygame:
                     (self.cached_sprites['house'], (sprite_x, sprite_y))
                 ))
         elif isinstance(building, Camp):
-            if (y == 0 or not isinstance(self.map.get_map_buildings()[x - 1][y], Camp)) and \
-            (x == 0 or not isinstance(self.map.get_map_buildings()[x][y - 1], Camp)):
+            if (y == 0 or not isinstance(self.map.get_map_entities()[x - 1][y], Camp)) and \
+            (x == 0 or not isinstance(self.map.get_map_entities()[x][y - 1], Camp)):
                 sprite_x = screen_x - self.cached_sprites['camp'].get_width()//2 + self.TILE_SIZE
                 sprite_y = screen_y - self.cached_sprites['camp'].get_height()//2 + self.TILE_SIZE//2
                 render_list.append((
@@ -343,8 +342,8 @@ class ViewPygame:
                     (self.cached_sprites['camp'], (sprite_x, sprite_y))
                 ))
         elif isinstance(building, Keep):
-            if (y == 0 or not isinstance(self.map.get_map_buildings()[x - 1][y], Keep)) and \
-            (x == 0 or not isinstance(self.map.get_map_buildings()[x][y - 1], Keep)):
+            if (y == 0 or not isinstance(self.map.get_map_entities()[x - 1][y], Keep)) and \
+            (x == 0 or not isinstance(self.map.get_map_entities()[x][y - 1], Keep)):
                 sprite_x = screen_x - self.cached_sprites['keep'].get_width()//2 + self.TILE_SIZE
                 sprite_y = screen_y - self.cached_sprites['keep'].get_height()//2 - 0.5 * self.TILE_SIZE + 10
                 render_list.append((
@@ -441,7 +440,7 @@ class ViewPygame:
                 screen_y = center_y + iso_y
                 
                 cell_content = self.map.getMap()[x][y]
-                building = self.map.get_map_buildings()[x][y]
+                building = self.map.get_map_entities()[x][y]
                 
                 color = (0, 128, 0)  # Couleur par défaut
                 if cell_content == 'W':

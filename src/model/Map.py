@@ -215,5 +215,5 @@ class Map():
     def setMapType(self, type):
         self.mapType = type
 
-    def get_map_buildings(self):
-        return self.mapBuildings
+    def get_map_entities(self):
+        return self.map_entities
