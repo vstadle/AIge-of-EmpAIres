@@ -432,12 +432,38 @@ class AI:
 
                 if closest_building:
                     # Calcul d'une zone stratégique autour du bâtiment le plus proche
-                    start_x = closest_building.x
-                    start_y = closest_building.y
-                    for i in range(max(0, start_x - 3), min(self.game.map.size_map_x, start_x + 6)):
-                        for j in range(max(0, start_y - 3), min(self.game.map.size_map_y, start_y + 6)):
-                            if self.isPositionFree(i, j, building_size):
-                                return i, j
+                    start_x = closest_building.x + closest_building.sizeMap // 2
+                    start_y = closest_building.y + closest_building.sizeMap // 2
+                    
+                    # Exploration d'une zone en forme de croix autour du bâtiment
+                    offsets = [(-3, 0), (3, 0), (0, -3), (0, 3), (-3, -3), (-3, 3), (3, -3), (3, 3)]
+                    for dx, dy in offsets:
+                        candidate_x = start_x + dx
+                        candidate_y = start_y + dy
+                        if (0 <= candidate_x < self.game.map.size_map_x and
+                            0 <= candidate_y < self.game.map.size_map_y and
+                            self.isPositionFree(candidate_x, candidate_y, building_size)):
+                            return candidate_x, candidate_y
+
+            # Logique spécifique pour les bâtiments non-Keep sur une carte avec ressources au centre
+            if self.game.map.mapType == MapType.CENTER_RESOURCES and not isinstance(building, Keep):
+                map_center_x = self.game.map.size_map_x // 2
+                map_center_y = self.game.map.size_map_y // 2
+
+                # Calcul de la direction opposée au centre de la carte
+                opposite_x = 2 * town_center_x - map_center_x
+                opposite_y = 2 * town_center_y - map_center_y
+
+                # Exploration d'une zone autour de la direction opposée
+                for radius in range(3, 10):  # Rayon de recherche ajustable
+                    for dx in range(-radius, radius + 1):
+                        for dy in range(-radius, radius + 1):
+                            candidate_x = opposite_x + dx
+                            candidate_y = opposite_y + dy
+                            if (0 <= candidate_x < self.game.map.size_map_x and
+                                0 <= candidate_y < self.game.map.size_map_y and
+                                self.isPositionFree(candidate_x, candidate_y, building_size)):
+                                return candidate_x, candidate_y
 
             # Logique générale pour tous les bâtiments
             radius = 5
