@@ -18,6 +18,7 @@ from model.Swordsman import Swordsman
 from model.Horseman import Horseman
 from model.Archer import Archer
 from model.Keep import Keep
+from model.Map import MapType
 
 from controller import A_Star
 
@@ -395,6 +396,7 @@ class AI:
         """
         Trouve une position libre pour placer un nouveau bâtiment avec une case d'écart minimum
         de chaque côté par rapport aux autres bâtiments et en laissant un couloir autour du Town Center.
+        Adapte le placement stratégique pour les Keeps selon le type de carte.
 
         Args:
             building (Building): Le bâtiment à placer.
@@ -405,65 +407,106 @@ class AI:
         """
         main_building = None
         if len(self.cplayer.player.buildings) > 0:
-            main_building = self.cplayer.player.buildings[0]  # On suppose que le premier bâtiment est le Town Center
+            main_building = self.cplayer.player.buildings[0]  # Supposé être le Town Center
 
         if main_building is not None:
             town_center_x = main_building.x
             town_center_y = main_building.y
             town_center_size = main_building.sizeMap
             building_size = building.sizeMap
-            radius = 5
 
+            # Logique spécifique pour les Keeps sur une carte avec ressources au centre
+            if isinstance(building, Keep) and self.game.map.mapType == MapType.CENTER_RESOURCES:
+                map_center_x = self.game.map.size_map_x // 2
+                map_center_y = self.game.map.size_map_y // 2
+
+                # Trouver le bâtiment du joueur le plus proche des ressources
+                closest_building = None
+                min_distance = float('inf')
+                for b in self.cplayer.player.buildings:
+                    distance = ((b.x + b.sizeMap // 2 - map_center_x) ** 2 +
+                                (b.y + b.sizeMap // 2 - map_center_y) ** 2) ** 0.5
+                    if distance < min_distance:
+                        min_distance = distance
+                        closest_building = b
+
+                if closest_building:
+                    # Calcul d'une zone stratégique autour du bâtiment le plus proche
+                    start_x = closest_building.x
+                    start_y = closest_building.y
+                    for i in range(max(0, start_x - 3), min(self.game.map.size_map_x, start_x + 6)):
+                        for j in range(max(0, start_y - 3), min(self.game.map.size_map_y, start_y + 6)):
+                            if self.isPositionFree(i, j, building_size):
+                                return i, j
+
+            # Logique générale pour tous les bâtiments
+            radius = 5
             while radius <= max(self.game.map.size_map_x, self.game.map.size_map_y):
                 for i in range(town_center_x - radius, town_center_x + radius + 1):
                     for j in range(town_center_y - radius, town_center_y + radius + 1):
-                        # Vérifie si les coordonnées sont dans les limites de la carte
-                        if 0 <= i < self.game.map.size_map_x and 0 <= j < self.game.map.size_map_y:
-                            # Vérifie si l'emplacement est libre pour le bâtiment
-                            is_free = True
-                            for k in range(-1, building_size + 1):  # Inclut une case autour du bâtiment
-                                for l in range(-1, building_size + 1):
-                                    check_x = i + k
-                                    check_y = j + l
-                                    if (
-                                        0 <= check_x < self.game.map.size_map_x
-                                        and 0 <= check_y < self.game.map.size_map_y
-                                    ):
-                                        # Vérifie qu'aucune case (y compris autour du bâtiment) n'est occupée
-                                        if self.game.map.map[check_x][check_y] != " ":
-                                            is_free = False
-                                            break
-                                    else:
-                                        is_free = False  # Si hors limites, emplacement invalide
-                                        break
-                                if not is_free:
-                                    break
-                            
+                        # Vérifie si l'emplacement est libre
+                        if self.isPositionFree(i, j, building_size):
                             # Vérifie que le couloir autour du Town Center est respecté
-                            if is_free:
-                                for k in range(-1, town_center_size + 1):
-                                    for l in range(-1, town_center_size + 1):
-                                        # Vérifie les cases autour du Town Center
-                                        corridor_x = town_center_x + k
-                                        corridor_y = town_center_y + l
-                                        if (
-                                            0 <= corridor_x < self.game.map.size_map_x
-                                            and 0 <= corridor_y < self.game.map.size_map_y
-                                            and abs(corridor_x - (i + building_size // 2)) <= 1
-                                            and abs(corridor_y - (j + building_size // 2)) <= 1
-                                        ):
-                                            if self.game.map.map[corridor_x][corridor_y] != " ":
-                                                is_free = False
-                                                break
-                                    if not is_free:
-                                        break
-
-                            if is_free:
-                                return i, j  # Retourne les coordonnées du coin supérieur gauche
-
-                    radius += 1
+                            if self.isCorridorRespected(town_center_x, town_center_y, town_center_size, i, j, building_size):
+                                return i, j
+                radius += 1
 
         return None  # Aucun emplacement trouvé
+
+
+    def isPositionFree(self, x, y, size):
+        """
+        Vérifie si une position est libre pour placer un bâtiment de taille donnée.
+
+        Args:
+            x (int): Coordonnée X.
+            y (int): Coordonnée Y.
+            size (int): Taille du bâtiment.
+
+        Returns:
+            bool: True si l'emplacement est libre, False sinon.
+        """
+        for k in range(-1, size + 1):  # Inclut une case autour du bâtiment
+            for l in range(-1, size + 1):
+                check_x = x + k
+                check_y = y + l
+                if (
+                    0 <= check_x < self.game.map.size_map_x
+                    and 0 <= check_y < self.game.map.size_map_y
+                    and self.game.map.map[check_x][check_y] != " "
+                ):
+                    return False
+        return True
+
+    def isCorridorRespected(self, town_center_x, town_center_y, town_center_size, x, y, building_size):
+        """
+        Vérifie que le couloir autour du Town Center est respecté.
+
+        Args:
+            town_center_x (int): Coordonnée X du Town Center.
+            town_center_y (int): Coordonnée Y du Town Center.
+            town_center_size (int): Taille du Town Center.
+            x (int): Coordonnée X du bâtiment à vérifier.
+            y (int): Coordonnée Y du bâtiment à vérifier.
+            building_size (int): Taille du bâtiment à vérifier.
+
+        Returns:
+            bool: True si le couloir est respecté, False sinon.
+        """
+        for k in range(-1, town_center_size + 1):
+            for l in range(-1, town_center_size + 1):
+                corridor_x = town_center_x + k
+                corridor_y = town_center_y + l
+                if (
+                    0 <= corridor_x < self.game.map.size_map_x
+                    and 0 <= corridor_y < self.game.map.size_map_y
+                    and abs(corridor_x - (x + building_size // 2)) <= 1
+                    and abs(corridor_y - (y + building_size // 2)) <= 1
+                    and self.game.map.map[corridor_x][corridor_y] != " "
+                ):
+                    return False
+        return True
+
 
 
     def findBuildings(self, name):

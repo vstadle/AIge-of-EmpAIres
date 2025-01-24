@@ -306,9 +306,11 @@ class UIHandler():
                         if config['map_type'] == 'CENTER':
                             self.controllerMap.map.setMapType(MapType.CENTER_RESOURCES)
                             self.controllerMap.map.generateCenterResources()
+                            self.controllerMap.map.mapType = MapType.CENTER_RESOURCES
                         else:
                             self.controllerMap.map.setMapType(MapType.GENEROUS_RESOURCES)
                             self.controllerMap.map.generateGenerousResources()
+                            self.controllerMap.map.mapType = MapType.GENEROUS_RESOURCES
                             
                         # Générer la forêt
                         self.controllerMap.map.generateForest()

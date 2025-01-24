@@ -186,7 +186,7 @@ class ControllerPlayer():
                     #logs(self.player.name + " : " + str(cpt) + " villagers available", level=logging.INFO)
 
                     if cpt == 0:
-                        logs(self.player.name + " : No villager available", level=logging.INFO)
+                        #logs(self.player.name + " : No villager available", level=logging.INFO)
                         return 2
                     
                     # Determine available tiles around the building
