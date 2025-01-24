@@ -208,6 +208,7 @@ class ControllerPlayer():
                         check = self.move(villager, available_tiles[i][0], available_tiles[i][1])
                         if check != -1:
                             tempLstVillager.append(villager)
+                            villager.action = "build"
 
                     if len(tempLstVillager) == 0:
                         #logs(self.player.name + " : No villager can move", level=logging.INFO)
@@ -244,10 +245,6 @@ class ControllerPlayer():
             x = item["x"]
             y = item["y"]
 
-            if lstVillagers[0].action is None:
-                for villager in lstVillagers:
-                    villager.action = "build"
-
             if current_time - start_time >= buildingTime:
 
                 is_free = True
@@ -273,7 +270,11 @@ class ControllerPlayer():
                     self.player.getBuildingQueue().remove(item)
                     logs(self.player.name + " : " + building.__str__() + " is placed", level=logging.INFO)
                     for villager in lstVillagers:
+                        for item in self.queueMoving[:]:
+                            if item["unit"] == villager:
+                                self.queueMoving.remove(item)
                         villager.action = None
+
                     return 0
                 else:
                     print()
@@ -459,33 +460,33 @@ class ControllerPlayer():
                     return 3
 
     def moveWithChemin(self, unit, chemin):
-        if unit.action == "move":
-            return -1
         if chemin is not None:
             start = unit.getPosition()
             end = chemin[len(chemin)-1]
             
             logs(self.player.name + " : " + str(unit) + " is moving", level=logging.INFO)
-            unit.action = "move"
+            if unit.action is None:
+                unit.action = "move"
             start_time = time.time()
             self.queueMoving.append({"unit": unit, "start_time": start_time, "chemin": chemin})
             return 0
         else:
             logs(self.player.name + " : " + str(unit) + " No path found", level=logging.INFO)
-            unit.action = None
+            if unit.action != "build":
+                unit.action = None
             return -1
 
     def move(self, unit, x, y):
-        if unit.action == "move":
-            return -1
         start = unit.getPosition()
         end = (x,y)
         logs(self.player.name + " : " + str(unit) + " is moving", level=logging.INFO)
         chemin = A_Star.a_star(self.cmap.map, start, end)
-        unit.action = "move"
+        if unit.action is None:
+            unit.action = "move"
         if chemin is None:
             logs(self.player.name + " : " + str(unit) + " No path found", level=logging.INFO)
-            unit.action = None
+            if unit.action != "build":
+                unit.action = None
             return -1
         else:
             chemin.pop(0)
@@ -520,7 +521,8 @@ class ControllerPlayer():
                         self.queueMoving.append({"unit": unit, "start_time": start_time, "chemin": chemin})
                     else:
                         logs(self.player.name + " : " + str(unit) + " is arrived", level=logging.INFO)
-                        unit.action = None
+                        if unit.action != "build":
+                            unit.action = None
                 else:
                     #logs("Case :" + self.cmap.map.map[x][y], level=logging.INFO)
                     #logs("Unit position :" + str(unit.getPosition()), level=logging.INFO)
@@ -530,7 +532,8 @@ class ControllerPlayer():
                     chemin = A_Star.a_star(self.cmap.map, (unit.getPosition()), chemin[len(chemin)-1])
                     if chemin is None:
                         logs(self.player.name + " : " + str(unit) + " No path found", level=logging.ERROR)
-                        unit.action = None
+                        if unit.action != "build":
+                            unit.action = None
                         return -1
                     else:
                         chemin.pop(0)
@@ -551,10 +554,12 @@ class ControllerPlayer():
                                         self.queueMoving.append({"unit": unit, "start_time": start_time, "chemin": chemin})
                                     else:
                                         logs(self.player.name + " : " + str(unit) + " is arrived", level=logging.INFO)
-                                        unit.action = None
+                                        if unit.action != "build":
+                                            unit.action = None
                         else:
                             logs(self.player.name + " : " + str(unit) + " is arrived", level=logging.INFO)
-                            unit.action = None
+                            if unit.action != "build":
+                                unit.action = None
 
     def depositResources(self, villager, target_deposit):
 

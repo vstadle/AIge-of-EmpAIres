@@ -767,7 +767,7 @@ class AI:
         ''' Choix de la stratégie de l'IA '''
         ''' On choisit une stratégie en fonction de la situation de l'IA '''
 
-        if self.cplayer.player.gold < 100 and self.cplayer.player.wood < 100:
+        if self.cplayer.player.gold < 300 and self.cplayer.player.wood < 300:
             self.collect_strategie()
 
         elif self.cplayer.player.food < 300 and len(self.cplayer.player.units) < 30:
