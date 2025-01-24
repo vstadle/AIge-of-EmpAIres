@@ -464,14 +464,14 @@ class ControllerPlayer():
             start = unit.getPosition()
             end = chemin[len(chemin)-1]
             
-            logs(self.player.name + " : " + str(unit) + " is moving", level=logging.INFO)
+            #logs(self.player.name + " : " + str(unit) + " is moving", level=logging.INFO)
             if unit.action is None:
                 unit.action = "move"
             start_time = time.time()
             self.queueMoving.append({"unit": unit, "start_time": start_time, "chemin": chemin})
             return 0
         else:
-            logs(self.player.name + " : " + str(unit) + " No path found", level=logging.INFO)
+            #logs(self.player.name + " : " + str(unit) + " No path found", level=logging.INFO)
             if unit.action != "build":
                 unit.action = None
             return -1
@@ -479,12 +479,12 @@ class ControllerPlayer():
     def move(self, unit, x, y):
         start = unit.getPosition()
         end = (x,y)
-        logs(self.player.name + " : " + str(unit) + " is moving", level=logging.INFO)
+        #logs(self.player.name + " : " + str(unit) + " is moving", level=logging.INFO)
         chemin = A_Star.a_star(self.cmap.map, start, end)
         if unit.action is None:
             unit.action = "move"
         if chemin is None:
-            logs(self.player.name + " : " + str(unit) + " No path found", level=logging.INFO)
+            #logs(self.player.name + " : " + str(unit) + " No path found", level=logging.INFO)
             if unit.action != "build":
                 unit.action = None
             return -1
@@ -520,7 +520,7 @@ class ControllerPlayer():
                     if len(chemin) > 0:
                         self.queueMoving.append({"unit": unit, "start_time": start_time, "chemin": chemin})
                     else:
-                        logs(self.player.name + " : " + str(unit) + " is arrived", level=logging.INFO)
+                        #logs(self.player.name + " : " + str(unit) + " is arrived", level=logging.INFO)
                         if unit.action != "build":
                             unit.action = None
                 else:
@@ -531,7 +531,7 @@ class ControllerPlayer():
                     self.queueMoving.remove(item)
                     chemin = A_Star.a_star(self.cmap.map, (unit.getPosition()), chemin[len(chemin)-1])
                     if chemin is None:
-                        logs(self.player.name + " : " + str(unit) + " No path found", level=logging.ERROR)
+                        #logs(self.player.name + " : " + str(unit) + " No path found", level=logging.ERROR)
                         if unit.action != "build":
                             unit.action = None
                         return -1
@@ -544,7 +544,7 @@ class ControllerPlayer():
                             x = case[0]
                             y = case[1]
                             if len(chemin) == 1:
-                                logs(self.player.name + " : " + str(unit) + " is block", level=logging.ERROR)
+                                #logs(self.player.name + " : " + str(unit) + " is block", level=logging.ERROR)
                                 unit.action = None
                             else:
                                 if self.cmap.map.is_free(x,y) and self.cmap.map.map[x][y] == " ":
@@ -553,11 +553,11 @@ class ControllerPlayer():
                                     if len(chemin) > 0:
                                         self.queueMoving.append({"unit": unit, "start_time": start_time, "chemin": chemin})
                                     else:
-                                        logs(self.player.name + " : " + str(unit) + " is arrived", level=logging.INFO)
+                                        #logs(self.player.name + " : " + str(unit) + " is arrived", level=logging.INFO)
                                         if unit.action != "build":
                                             unit.action = None
                         else:
-                            logs(self.player.name + " : " + str(unit) + " is arrived", level=logging.INFO)
+                            #logs(self.player.name + " : " + str(unit) + " is arrived", level=logging.INFO)
                             if unit.action != "build":
                                 unit.action = None
 

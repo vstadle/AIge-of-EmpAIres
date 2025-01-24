@@ -741,7 +741,7 @@ class AI:
         costWoodKeep = Keep().costW
 
         if self.cplayer.player.population == len(self.cplayer.player.units):
-            for i in range (0, 4):
+            for i in range (0, 9):
                 house = House()
                 if self.cplayer.player.canAffordBuilding(house):
                     position = self.findPlaceForBuildings(house)
