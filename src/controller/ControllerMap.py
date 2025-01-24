@@ -47,15 +47,18 @@ class ControllerMap():
 
     def placementTownCenter(self, nbPlayer, lstPlayers):
         position = []
-        center_x, center_y = self.map.size_map_x//2, self.map.size_map_y//2
-        
-        radius = 40
-        k = random.uniform(0, 1) * 2 * math.pi 
+        center_x, center_y = self.map.size_map_x // 2, self.map.size_map_y // 2
+
+        max_radius_x = self.map.size_map_x // 2 - 1
+        max_radius_y = self.map.size_map_y // 2 - 1
+        radius = min(max_radius_x, max_radius_y) // 2
+
+        k = random.uniform(0, 1) * 2 * math.pi
         for i in range(nbPlayer):
             x = radius * math.cos(2 * math.pi * i / nbPlayer)
             y = radius * math.sin(2 * math.pi * i / nbPlayer)
             position.append((x * math.cos(k) - y * math.sin(k) + center_x, 
-                             x * math.sin(k) + y * math.cos(k) + center_y))
+                            x * math.sin(k) + y * math.cos(k) + center_y))
 
         cpt = 0
         for i in position:
