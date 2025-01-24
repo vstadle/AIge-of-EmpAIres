@@ -21,10 +21,10 @@ class Camera:
         
         # Vectorized movement calculation
         movement = pygame.Vector2(0, 0)
-        if keys[pygame.K_z]: movement.y += speed
-        if keys[pygame.K_s]: movement.y -= speed
-        if keys[pygame.K_q]: movement.x += speed
-        if keys[pygame.K_d]: movement.x -= speed
+        if keys[pygame.K_z] or keys[pygame.K_UP]: movement.y += speed
+        if keys[pygame.K_s] or keys[pygame.K_DOWN]: movement.y -= speed
+        if keys[pygame.K_q] or keys[pygame.K_LEFT]: movement.x += speed
+        if keys[pygame.K_d] or keys[pygame.K_RIGHT]: movement.x -= speed
         
         self.scroll += movement
         self.clamp_scroll()

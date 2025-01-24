@@ -149,13 +149,13 @@ class ControllerGame():
 
             if not self.paused:
 
-                if key == ord('z'):
+                if key == ord('z') or key == curses.KEY_UP:
                     self.viewTerminal.camera.move(0, -1, stdscr)
-                elif key == ord('s'):
+                elif key == ord('s') or key == curses.KEY_DOWN:
                     self.viewTerminal.camera.move(0, 1, stdscr)
-                elif key == ord('q'):
+                elif key == ord('q') or key == curses.KEY_LEFT:
                     self.viewTerminal.camera.move(-1, 0, stdscr)
-                elif key == ord('d'):
+                elif key == ord('d') or key == curses.KEY_RIGHT:
                     self.viewTerminal.camera.move(1, 0, stdscr)
                 elif key == curses.KEY_F2 or key == curses.KEY_F9:
                     self.change_mode()
