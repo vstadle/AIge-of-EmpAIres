@@ -11,7 +11,7 @@ from model.Gold import Gold
 from model.Food import Food
 from model.Wood import Wood
 from logs.logger import logs
-
+import numpy as np
 
 import random
 import curses
@@ -34,7 +34,7 @@ class Map():
         #self.mapUnits = [[None for x in range(size_map_y)] for y in range(size_map_x)]
 
         #Listes des couleurs
-        self.lstColor= [[None for x in range(size_map_y)] for y in range(size_map_x)]
+        '''self.lstColor= [[None for x in range(size_map_y)] for y in range(size_map_x)]
 
         self.map = [[" " for x in range(size_map_y)] for y in range(size_map_x)]
         self.map[0][0] = 'R'
@@ -42,10 +42,14 @@ class Map():
         self.map_entities = [[None for x in range(size_map_y)] for y in range(size_map_x)]
 
         self.map[size_map_x-1][size_map_y-1] = 'R'
-
+        '''
+    
         self.size_map_x = size_map_x
         self.size_map_y = size_map_y
-
+        self.map = np.full((size_map_x, size_map_y), ' ', dtype='<U1')
+        self.map[0][0] = 'G'
+        self.map_entities = np.full((size_map_x, size_map_y), None)
+        self.lstColor = np.full((size_map_x, size_map_y), None)
         self.mapType = None
         
     
@@ -121,41 +125,70 @@ class Map():
         self.lstColor[x][y] = player.getColor()
         units.setPosition(x, y)
 
+    
     def generateForest(self):
-        max_percentage_wood = 0.1 
+        max_percentage_wood = 0.1
         total_cells = self.size_map_x * self.size_map_y
-        max_trees = int(total_cells * max_percentage_wood) 
-
-        num_forests = random.randint(3, 8) 
-        total_trees_planted = 0 
+        max_trees = int(total_cells * max_percentage_wood)
+        total_trees_planted = 0
 
         while total_trees_planted < max_trees:
-            width = random.randint(3, 10)
-
-            height = random.randint(3, 10)
-            num_trees_in_forest = width * height
-
-            if total_trees_planted + num_trees_in_forest > max_trees:
-                remaining_trees = max_trees - total_trees_planted
-                width = min(width, remaining_trees // height)
-
-            x = random.randint(0, self.size_map_x - height)
-            y = random.randint(0, self.size_map_y - width)
-
-            trees_planted_in_this_forest = 0
-            for i in range(height):
-                if width < 1: 
-                    continue
-                num_trees_in_row = random.randint(max(1,width - 3), width)
-                positions_in_row = random.sample(range(width), num_trees_in_row)
-                for j in positions_in_row:
-                    if self.map[x + i][y + j] == " ":
-                        self.addRessources(Wood(), x + i, y + j)
-                        trees_planted_in_this_forest += 1
-
-            total_trees_planted += trees_planted_in_this_forest
-            if trees_planted_in_this_forest == 0:
+            # Use a more irregular shape generation
+            forest_shape = self._generate_forest_mask()
+            
+            # Find a valid placement for the forest
+            placed = False
+            attempts = 0
+            while not placed and attempts < 100:
+                x = random.randint(0, self.size_map_x - len(forest_shape))
+                y = random.randint(0, self.size_map_y - len(forest_shape[0]))
+                
+                # Check if the forest can be placed
+                if self._can_place_forest(forest_shape, x, y):
+                    # Place the forest
+                    trees_planted = self._place_forest(forest_shape, x, y)
+                    total_trees_planted += trees_planted
+                    placed = True
+                
+                attempts += 1
+            
+            if not placed:
                 break
+
+    def _generate_forest_mask(self):
+        # Generate an irregular forest shape
+        size = random.randint(5, 15)
+        forest_mask = [[False] * size for _ in range(size)]
+        
+        # Use a randomized cellular automata-like approach
+        for i in range(size):
+            for j in range(size):
+                # Randomly decide to add a tree with decreasing probability towards edges
+                prob = 0.7 - (abs(i - size//2) + abs(j - size//2)) * 0.05
+                if random.random() < prob:
+                    forest_mask[i][j] = True
+        
+        return forest_mask
+
+    def _can_place_forest(self, forest_shape, start_x, start_y):
+        for i in range(len(forest_shape)):
+            for j in range(len(forest_shape[0])):
+                if forest_shape[i][j]:
+                    # Check if this cell can accommodate a tree
+                    if (start_x + i >= self.size_map_x or 
+                        start_y + j >= self.size_map_y or 
+                        self.map[start_x + i][start_y + j] != " "):
+                        return False
+        return True
+
+    def _place_forest(self, forest_shape, start_x, start_y):
+        trees_planted = 0
+        for i in range(len(forest_shape)):
+            for j in range(len(forest_shape[0])):
+                if forest_shape[i][j]:
+                    self.addRessources(Wood(), start_x + i, start_y + j)
+                    trees_planted += 1
+        return trees_planted
 
     def addTownCenter(self, towncenter): 
         center_x, center_y = self.size_map_x//2, self.size_map_y//2

@@ -15,8 +15,6 @@ from view.Camera import Camera
 
 class ViewPygame:
     # Constantes de classe
-        
-    
     def __init__(self, grid_length_x, grid_length_y, game_map, clock, game):
         pygame.init()
         self.game = game
@@ -34,10 +32,13 @@ class ViewPygame:
         self.camera = Camera(self.width, self.height, self.grid_length_x, self.grid_length_y)
         self.fps_font = pygame.font.SysFont(None, 25)
         # Créer la surface de fond une seule fois
-        iso_height = (grid_length_x + grid_length_y) * self.TILE_SIZE / 2
+        '''iso_height = (grid_length_x + grid_length_y) * self.TILE_SIZE / 2
         self.grass_tiles = pygame.Surface(
             (grid_length_x * self.TILE_SIZE * 4, iso_height + 2*self.TILE_SIZE) # Ajout de TILE_SIZE pour le bas
-        ).convert_alpha()
+        ).convert_alpha()'''
+        self.grass_surface = None
+        self.grass_tiles_width = grid_length_x * self.TILE_SIZE * 4
+        self.grass_tiles_height = (grid_length_x + grid_length_y) * self.TILE_SIZE / 2
         
         
         # Charger et mettre en cache tous les sprites au démarrage
@@ -140,6 +141,13 @@ class ViewPygame:
                 self.tiles["archer"],
                 (self.TILE_SIZE, self.TILE_SIZE) 
             ),
+            'tree':pygame.transform.scale(self.tiles["tree"],
+                (1.8*self.TILE_SIZE,2.75* self.TILE_SIZE) 
+            ),
+            'gold':pygame.transform.scale(self.tiles["gold"],
+                (1.76*self.TILE_SIZE,1.08* self.TILE_SIZE) 
+            ),
+
         }
 
     def _create_world(self):
@@ -149,67 +157,75 @@ class ViewPygame:
             for grid_y in range(self.grid_length_y):
                 world_tile = self.grid_to_world(grid_x, grid_y)
                 world[grid_x].append(world_tile)
-                
+                '''
                 # Dessiner l'herbe de base, pas besoin de TILE_SIZE vu qu'il est pris en compte dans la taille de la surface
                 render_pos = world_tile["render_pos"]
                 self.grass_tiles.blit(
                     self.tiles["block"],
                     (render_pos[0] + self.grass_tiles.get_width()/2, render_pos[1])
-                )
+                )'''
         return world
 
     def draw_map_2_5D(self):
-        # Optimisation : stocker les références aux fonctions fréquemment utilisées
-        _min = min
-        _max = max
-        _int = int
-        
         self.screen.fill((0, 0, 0))
         self.camera.handle_input()
         
-        # Dessiner le fond d'herbe
-        self.screen.blit(self.grass_tiles, (self.camera.scroll.x, self.camera.scroll.y))
-        # Calculer les marges pour la visibilité
+        # Dynamic grass surface creation
+        if self.grass_surface is None or \
+        self.grass_surface.get_width() != self.width or \
+        self.grass_surface.get_height() != self.height:
+            self.grass_surface = pygame.Surface((self.width, self.height)).convert_alpha()
+        
+        # Clear previous grass surface
+        self.grass_surface.fill((0, 0, 0, 0))
+        
+        # Margins for visibility
         margin_x = self.width // 2
         margin_y = self.height // 2
         
-        # Liste pour le tri en Z
+        # Render list for Z-sorting
         render_list = []
         
-        # Optimisation : pré-charger les maps
+        # Preload maps
         game_map = self.map.getMap()
         buildings_map = self.map.get_map_entities()
-        
-        # Optimisation : stocker la largeur de la grass_tiles
-        grass_width_half = self.grass_tiles.get_width()/2
         
         for x in range(self.grid_length_x):
             for y in range(self.grid_length_y):
                 render_pos = self.world[x][y]["render_pos"]
-                screen_x = render_pos[0] + grass_width_half + self.camera.scroll.x
+                screen_x = render_pos[0] + self.camera.scroll.x
                 screen_y = render_pos[1] + self.camera.scroll.y
                 
-                # Vérification de la visibilité avec marges pour la vue isométrique
+                # Check tile visibility
                 if (-margin_x <= screen_x <= self.width + margin_x and 
                     -margin_y <= screen_y <= self.height + margin_y):
                     
+                    # Draw basic grass tile
+                    self.screen.blit(self.tiles["block"], (screen_x, screen_y))
+                    
+                    # Rest of your existing rendering logic...
                     cell_content = game_map[x][y]
-                    building = buildings_map[x][y]                   
+                    building = buildings_map[x][y]               
                     # Ajouter les éléments visibles à la liste de rendu
                     if cell_content == 'W':
-                        tree = self.tiles["tree"]
                         # On utilise le screen_y pour trier correctement les arbres par rapport au reste
                         render_list.append((
+                            screen_y + self.TILE_SIZE//2,
+                            (self.cached_sprites['tree'],
+                            (screen_x + 10, 
+                            screen_y  -2 * self.TILE_SIZE))
+                        ))
+                        '''render_list.append((
                             screen_y,
                             (tree, 
                             (screen_x, screen_y - tree.get_height() + self.TILE_SIZE - 20))
-                        ))
+                        ))'''
                     elif cell_content == 'G':
-                        gold = self.tiles["gold"]
                         render_list.append((
-                            screen_y,
-                            (gold, 
-                            (screen_x, screen_y - (gold.get_height() - self.TILE_SIZE) / 2))
+                            screen_y + self.TILE_SIZE//2,
+                            (self.cached_sprites['gold'],
+                            (screen_x + 10, 
+                            screen_y))
                         ))
                     elif cell_content == 'v':
                         # On utilise le screen_y + la moitié de la taille de la tuile pour trier les unités au niveau du sol
@@ -479,70 +495,60 @@ class ViewPygame:
         """Dessine la minimap avec interaction pour les cartes rectangulaires"""
         minimap_x = self.width - self.minimap_base.get_width() - 10
         minimap_y = 10
-        
+    
         # Calcul de la taille totale du monde isométrique
         world_iso_width = (self.grid_length_x + self.grid_length_y) * self.TILE_SIZE
         world_iso_height = (self.grid_length_x + self.grid_length_y) * self.TILE_SIZE / 2
-        
+    
         # Obtenir les dimensions de la minimap
         minimap_width = self.minimap_base.get_width()
         minimap_height = self.minimap_base.get_height()
-        
+    
         # Calculer les échelles
         scale_x = minimap_width / world_iso_width
         scale_y = minimap_height / world_iso_height
-        
-        # Calculer le décalage initial du monde isométrique
-        # Ajuster le décalage en fonction des dimensions de la grille
-        if self.grid_length_x > self.grid_length_y:
-            # Pour une grille plus large que haute
-            initial_offset_x = self.grass_tiles.get_width() / 4 + (self.grid_length_x - self.grid_length_y) * self.TILE_SIZE / 2
-        elif self.grid_length_x < self.grid_length_y:
-            # Pour une grille plus haute que large
-            initial_offset_x = self.grass_tiles.get_width() / 4 - (self.grid_length_y - self.grid_length_x) * self.TILE_SIZE / 2
-        else:
-            # Pour une grille carrée (cas original)
-            initial_offset_x = self.grass_tiles.get_width() / 4
-        
+    
         # Calculer la position du viewport sur la minimap
-        viewport_x = minimap_x + (-self.camera.scroll.x * scale_x) - (initial_offset_x * scale_x)
+        viewport_x = minimap_x + (-self.camera.scroll.x * scale_x) + (minimap_width / 2)
         viewport_y = minimap_y + (-self.camera.scroll.y * scale_y)
         
-        # Ajustement du viewport en fonction du ratio de la grille
-        if self.grid_length_x != self.grid_length_y:
-            viewport_offset = (abs(self.grid_length_x - self.grid_length_y) * self.TILE_SIZE * scale_x) / 2
-            if self.grid_length_x > self.grid_length_y:
-                viewport_x -= viewport_offset
-            else:
-                viewport_x += viewport_offset
-        
+        # Additional adjustment for isometric perspective
+        iso_offset_x = (abs(self.grid_length_x - self.grid_length_y) * self.TILE_SIZE * scale_x) / 2
+        if self.grid_length_x > self.grid_length_y:
+            viewport_x -= iso_offset_x
+        else:
+            viewport_x += iso_offset_x
+    
         # Calculer les dimensions du viewport
         viewport_width = self.width * scale_x
         viewport_height = self.height * scale_y
-        
+    
         # S'assurer que le viewport reste dans les limites de la minimap
         viewport_x = max(minimap_x, min(viewport_x, minimap_x + minimap_width - viewport_width))
         viewport_y = max(minimap_y, min(viewport_y, minimap_y + minimap_height - viewport_height))
-        
+    
         # Créer le rectangle de la minimap pour la détection des clics
         minimap_rect = pygame.Rect(minimap_x, minimap_y, minimap_width, minimap_height)
-        
+    
         # Afficher la minimap pré-rendue
         self.screen.blit(self.minimap_base, (minimap_x, minimap_y))
-        
+    
         # Dessiner le viewport
         viewport_rect = pygame.Rect(viewport_x, viewport_y, viewport_width, viewport_height)
         pygame.draw.rect(self.screen, (255, 255, 255), viewport_rect, 1)
-        
+    
         # Cadre de la minimap
-        pygame.draw.rect(self.screen, (255, 255, 255), 
-                        (minimap_x-1, minimap_y-1, 
-                        minimap_width+2, 
+        pygame.draw.rect(self.screen, (255, 255, 255),
+                        (minimap_x-1, minimap_y-1,
+                        minimap_width+2,
                         minimap_height+2), 1)
-        
+    
         # Gérer la navigation via la minimap
         mouse_pos = pygame.mouse.get_pos()
-        grass_tiles_size = (self.grass_tiles.get_width(), self.grass_tiles.get_height())
+        grass_tiles_size = (
+            (self.grid_length_x + self.grid_length_y) * self.TILE_SIZE, 
+            (self.grid_length_x + self.grid_length_y) * self.TILE_SIZE / 2
+        )
         self.camera.handle_minimap_navigation(mouse_pos, minimap_rect, grass_tiles_size)
     def initialize_player_panel(self):
         minimap_size = min(self.width, self.height) // 5

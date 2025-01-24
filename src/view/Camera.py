@@ -37,11 +37,12 @@ class Camera:
     def handle_minimap_navigation(self, mouse_pos, minimap_rect, grass_tiles_size):
         if not (pygame.mouse.get_pressed()[0] and minimap_rect.collidepoint(mouse_pos)):
             return
-            
-        # Calculate relative position and scroll in one step
+        
         rel_x = (mouse_pos[0] - minimap_rect.x) / minimap_rect.width
         rel_y = (mouse_pos[1] - minimap_rect.y) / minimap_rect.height
         
-        self.scroll.x = -(rel_x * (grass_tiles_size[0] - self.width))
-        self.scroll.y = -(rel_y * (grass_tiles_size[1] - self.height))
+        # Ajustement pour centrer horizontalement
+        self.scroll.x = -(rel_x * grass_tiles_size[0] - grass_tiles_size[0] / 2)
+        self.scroll.y = -(rel_y * grass_tiles_size[1])
+        
         self.clamp_scroll()
