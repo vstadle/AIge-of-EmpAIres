@@ -29,6 +29,7 @@ class ControllerPlayer():
         self.cmap = cmap
         self.queueCollect = []
         self.queueMoving = []
+        self.queueAttack = []
     
     @classmethod
     def from_saved(cls,player,cmap):
@@ -568,3 +569,37 @@ class ControllerPlayer():
 
     def getPlayer(self):
         return self.player
+    
+    def attack(self, unit, enemy, playerenemy):
+        
+        #Vérification de la distance entre l'unité et l'ennemi
+        distance_x = abs(enemy.x - unit.x)
+        distance_y = abs(enemy.y - unit.y)
+        
+        if distance_x <= unit.attackRange and distance_y <= unit.attackRange:
+            logs(self.player.name + " : " + str(unit) + " is attacking", level=logging.INFO)
+            unit.action = "attack"
+            start_time = time.time()
+            self.queueAttack.append({"unit": unit, "start_time": start_time, "enemy": enemy, "playerenemy": playerenemy})
+            return 0
+            
+    def updating_attack(self):
+        
+        current_time = time.time()
+        
+        for item in self.queueMoving[:]:
+            unit = item["unit"]
+            start_time = item["start_time"]
+            enemy = item["enemy"]
+            playerenemy = item["playerenemy"]
+            
+            if current_time - start_time >= unit.attackSpeed:
+                logs(self.player.name + " : " + str(unit) + " is attacking", level=logging.INFO)
+                enemy.health -= unit.attack
+                if enemy.health <= 0:
+                    self.cmap.map.map_entities[enemy.x][enemy.y] = None
+                    self.cmap.map.map[enemy.x][enemy.y] = " "
+                    playerenemy.removeUnit(enemy)
+                    logs(self.player.name + " : " + str(enemy) + " is dead", level=logging.INFO)
+                self.queueAttack.remove(item)
+                unit.action = None

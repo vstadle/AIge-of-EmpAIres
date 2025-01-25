@@ -95,3 +95,6 @@ class Player():
 
     def getColor(self):
         return self.color
+    
+    def removeUnit(self, unit):
+        self.units.remove(unit)
