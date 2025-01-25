@@ -119,7 +119,7 @@ class ViewPygame:
             ),
             'villager': pygame.transform.scale(
                 self.tiles["villager"],
-                (self.TILE_SIZE, self.TILE_SIZE) 
+                (0.84 * self.TILE_SIZE, 1.38 * self.TILE_SIZE) 
             ),
             'house': pygame.transform.scale(
                 self.tiles["house"],
