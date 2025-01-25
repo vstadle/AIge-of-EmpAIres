@@ -7,10 +7,12 @@ from model.Stable import Stable
 from model.House import House
 from model.Camp import Camp
 from model.Ressources import Ressources
+from model.Units import Units
 from model.Gold import Gold
 from model.Food import Food
 from model.Wood import Wood
 from logs.logger import logs
+from model.Villager import Villager
 import numpy as np
 
 import random
@@ -47,8 +49,9 @@ class Map():
         self.size_map_x = size_map_x
         self.size_map_y = size_map_y
         self.map = np.full((size_map_x, size_map_y), ' ', dtype='<U1')
-        self.map[0][0] = 'G'
+        self.map[0][0] = 's'
         self.map_entities = np.full((size_map_x, size_map_y), None)
+        self.map_entities[0][0] = Units
         self.lstColor = np.full((size_map_x, size_map_y), None)
         self.mapType = None
         
@@ -190,7 +193,7 @@ class Map():
                     trees_planted += 1
         return trees_planted
 
-    def addTownCenter(self, towncenter): 
+    '''def addTownCenter(self, towncenter): 
         center_x, center_y = self.size_map_x//2, self.size_map_y//2
         distance_from_center = random.randint(40,55)
         angle = random.uniform(0, 2 * 3.14159)
@@ -199,7 +202,7 @@ class Map():
         pos2_x = center_x - (pos1_x - center_x)
         pos2_y = center_y - (pos1_y - center_y)
         self.addBuilding(towncenter, pos1_x, pos1_y)
-        self.addBuilding(towncenter, pos2_x, pos2_y)
+        self.addBuilding(towncenter, pos2_x, pos2_y)'''
     
     def getMap(self):
         return self.map

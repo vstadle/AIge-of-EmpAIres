@@ -199,7 +199,7 @@ class UIHandler():
         
         config = {
             'type_game': 'LEAN',
-            'map_type': 'GENEROUS',
+            'map_type': 'CENTER',
             'nb_players': 2,
             'size_x': 120,
             'size_y': 120
@@ -207,13 +207,13 @@ class UIHandler():
         
         game_types = ['LEAN', 'MEAN', 'MARINES']
         map_types = ['GENEROUS', 'CENTER']
-        player_range = range(2, 9)
+        player_range = range(2, 41)
         
         slider_width = 300
         slider_x = (800 - slider_width) // 2
         
-        slider_x_coord = SliderControl(slider_x, 340, slider_width, 10, 120, 300, config['size_x'], button_image)
-        slider_y_coord = SliderControl(slider_x, 440, slider_width, 10, 120, 300, config['size_y'], button_image)
+        slider_x_coord = SliderControl(slider_x, 340, slider_width, 10, 120, 3000, config['size_x'], button_image)
+        slider_y_coord = SliderControl(slider_x, 440, slider_width, 10, 120, 3000, config['size_y'], button_image)
         
         selected_option = None
         config_active = True

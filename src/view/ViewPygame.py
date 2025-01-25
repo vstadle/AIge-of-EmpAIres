@@ -11,6 +11,8 @@ from model.House import House
 from model.Camp import Camp
 from model.TownCenter import TownCenter
 from view.Camera import Camera
+from model.Ressources import Ressources
+from model.Units import Units
 
 
 class ViewPygame:
@@ -31,11 +33,7 @@ class ViewPygame:
         self.screen = pygame.display.set_mode((self.width,self.height), pygame.DOUBLEBUF | pygame.RESIZABLE)
         self.camera = Camera(self.width, self.height, self.grid_length_x, self.grid_length_y)
         self.fps_font = pygame.font.SysFont(None, 25)
-        # Créer la surface de fond une seule fois
-        '''iso_height = (grid_length_x + grid_length_y) * self.TILE_SIZE / 2
-        self.grass_tiles = pygame.Surface(
-            (grid_length_x * self.TILE_SIZE * 4, iso_height + 2*self.TILE_SIZE) # Ajout de TILE_SIZE pour le bas
-        ).convert_alpha()'''
+        
         self.grass_surface = None
         self.grass_tiles_width = grid_length_x * self.TILE_SIZE * 4
         self.grass_tiles_height = (grid_length_x + grid_length_y) * self.TILE_SIZE / 2
@@ -58,6 +56,8 @@ class ViewPygame:
         # Créer le monde une seule fois
         self.world = self._create_world()
         self.initialize_player_panel()
+        self.full_minimap_mode = False
+        self.minimap_zoom = 1.0
         
         # Cache pour les positions de rendu (optimisation)
         self._render_positions_cache = {}
@@ -167,101 +167,90 @@ class ViewPygame:
         return world
 
     def draw_map_2_5D(self):
+        # Check if full minimap mode is active
+        if hasattr(self, 'full_minimap_mode') and self.full_minimap_mode:
+            self.draw_full_minimap()
+            return
+            
+            
+
         self.screen.fill((0, 0, 0))
         self.camera.handle_input()
         
-        # Dynamic grass surface creation
-        if self.grass_surface is None or \
-        self.grass_surface.get_width() != self.width or \
-        self.grass_surface.get_height() != self.height:
-            self.grass_surface = pygame.Surface((self.width, self.height)).convert_alpha()
+        # Calculer la zone visible de manière plus intelligente
+        camera_x = -self.camera.scroll.x
+        camera_y = -self.camera.scroll.y
         
-        # Clear previous grass surface
-        self.grass_surface.fill((0, 0, 0, 0))
-        
-        # Margins for visibility
-        margin_x = self.width // 2
-        margin_y = self.height // 2
-        
-        # Render list for Z-sorting
+        # Convertir les coordonnées écran en coordonnées de grille
+        min_grid_x, min_grid_y = self.world_to_grid(camera_x - self.width/2, camera_y - self.height/2)
+        max_grid_x, max_grid_y = self.world_to_grid(camera_x + self.width/2, camera_y + self.height/2)
+
+        # Calculer des bornes supplémentaires avec un padding plus large
+        padding_x = int(self.width / self.TILE_SIZE) + 4  # Augmenté de 2 à 4
+        padding_y = int(self.height / self.TILE_SIZE) + 4  # Augmenté de 2 à 4
+
+        min_grid_x = max(0, min_grid_x - padding_x)
+        min_grid_y = max(0, min_grid_y - padding_y)
+        max_grid_x = min(self.grid_length_x, max_grid_x + padding_x)
+        max_grid_y = min(self.grid_length_y, max_grid_y + padding_y)
+
         render_list = []
+        map_entities = self.map.get_map_entities()
         
-        # Preload maps
-        game_map = self.map.getMap()
-        buildings_map = self.map.get_map_entities()
-        
-        for x in range(self.grid_length_x):
-            for y in range(self.grid_length_y):
+        for x in range(min_grid_x, max_grid_x):
+            for y in range(min_grid_y, max_grid_y):
                 render_pos = self.world[x][y]["render_pos"]
                 screen_x = render_pos[0] + self.camera.scroll.x
                 screen_y = render_pos[1] + self.camera.scroll.y
                 
-                # Check tile visibility
-                if (-margin_x <= screen_x <= self.width + margin_x and 
-                    -margin_y <= screen_y <= self.height + margin_y):
+                # Vérification de la visibilité avec une marge généreuse
+                if (-self.TILE_SIZE * 2 <= screen_x <= self.width + self.TILE_SIZE * 2 and
+                    -self.TILE_SIZE * 2 <= screen_y <= self.height + self.TILE_SIZE * 2):
                     
-                    # Draw basic grass tile
                     self.screen.blit(self.tiles["block"], (screen_x, screen_y))
                     
-                    # Rest of your existing rendering logic...
-                    cell_content = game_map[x][y]
-                    building = buildings_map[x][y]               
-                    # Ajouter les éléments visibles à la liste de rendu
-                    if cell_content == 'W':
-                        # On utilise le screen_y pour trier correctement les arbres par rapport au reste
-                        render_list.append((
-                            screen_y + self.TILE_SIZE//2,
-                            (self.cached_sprites['tree'],
-                            (screen_x + 10, 
-                            screen_y  -2 * self.TILE_SIZE))
-                        ))
-                        '''render_list.append((
-                            screen_y,
-                            (tree, 
-                            (screen_x, screen_y - tree.get_height() + self.TILE_SIZE - 20))
-                        ))'''
-                    elif cell_content == 'G':
-                        render_list.append((
-                            screen_y + self.TILE_SIZE//2,
-                            (self.cached_sprites['gold'],
-                            (screen_x + 10, 
-                            screen_y))
-                        ))
-                    elif cell_content == 'v':
-                        # On utilise le screen_y + la moitié de la taille de la tuile pour trier les unités au niveau du sol
-                        render_list.append((
-                            screen_y + self.TILE_SIZE//2,
-                            (self.cached_sprites['villager'],
-                            (screen_x - self.TILE_SIZE//2 + self.TILE_SIZE, 
-                            screen_y - self.TILE_SIZE//2 + 10))
-                        ))
-                    elif cell_content == 'h':
-                        render_list.append((
-                            screen_y + self.TILE_SIZE//2,
-                            (self.cached_sprites['horseman'],
-                            (screen_x - self.TILE_SIZE//2 + 0.5  * self.TILE_SIZE, 
-                            screen_y - self.TILE_SIZE//2 - self.TILE_SIZE))
-                        ))
-                    elif cell_content == 'a':
-                         render_list.append((
-                            screen_y + self.TILE_SIZE//2,
-                            (self.cached_sprites['archer'],
-                            (screen_x - self.TILE_SIZE//2 + 0.5  * self.TILE_SIZE, 
-                            screen_y - self.TILE_SIZE//2 - self.TILE_SIZE))
-                        ))
+                    entity = map_entities[x][y]
                     
-                    # Gestion des bâtiments
-                    if building:
-                        self._add_building_to_render_list(
-                            building, x, y, screen_x, screen_y, render_list
-                        )
+                    if entity:
+                        # Gestion des ressources
+                        if isinstance(entity, Ressources):
+                            sprite_key = 'tree' if entity.__class__.__name__ == 'Wood' else 'gold'
+                            render_list.append((
+                                screen_y + self.TILE_SIZE//2,
+                                (self.cached_sprites[sprite_key],
+                                (screen_x + 10, screen_y - (2 if sprite_key == 'tree' else 0) * self.TILE_SIZE))
+                            ))
+                        
+                        # Gestion des unités
+                        elif isinstance(entity, Units):
+                            sprite_mapping = {
+                                'Villager': 'villager',
+                                'Swordsman': 'swordsman',
+                                'Horseman': 'horseman', 
+                                'Archer': 'archer'
+                            }
+                            sprite_key = sprite_mapping.get(entity.__class__.__name__, None)
+                            
+                            if sprite_key and sprite_key in self.cached_sprites:
+                                render_list.append((
+                                    screen_y + self.TILE_SIZE//2,
+                                    (self.cached_sprites[sprite_key],
+                                    (screen_x - self.TILE_SIZE//2 + self.TILE_SIZE, 
+                                    screen_y - self.TILE_SIZE//2 + 10))
+                                ))
+                        
+                        # Gestion des bâtiments
+                        elif isinstance(entity, (TownCenter, Barracks, ArcheryRange, Stable, 
+                                                Farm, House, Camp, Keep)):
+                            self._add_building_to_render_list(
+                                entity, x, y, screen_x, screen_y, render_list
+                            )
 
-        # Trier et dessiner les éléments
-        if render_list:
-            for _, (sprite, pos) in sorted(render_list, key=lambda x: x[0]):
-                self.screen.blit(sprite, pos)
+        # Rendu trié par profondeur
+        for _, (sprite, pos) in sorted(render_list, key=lambda x: x[0]):
+            self.screen.blit(sprite, pos)
         
-        
+        # Reste des méthodes d'affichage
         self.draw_minimap()
         self.draw_player_info()
         self._update_fps_display()
@@ -391,8 +380,20 @@ class ViewPygame:
         }
 
         return out
+    def world_to_grid(self, world_x, world_y):
+        """Convertit les coordonnées du monde en coordonnées de grille."""
+        iso_x = world_x
+        iso_y = world_y
 
+        # Conversion isométrique inverse
+        cart_x = (2 * iso_y + iso_x) / 2
+        cart_y = (2 * iso_y - iso_x) / 2
+        
+        # On prend en compte la taille des tuiles
+        grid_x = int(cart_x / self.TILE_SIZE)
+        grid_y = int(cart_y / self.TILE_SIZE)
 
+        return grid_x, grid_y
     def cart_to_iso(self, x, y):
         iso_x = x - y
         iso_y = (x + y)/2
@@ -643,3 +644,76 @@ class ViewPygame:
                 (text_x + self.panel_rect.width - 80, text_y + 20)  # Décalage ajusté pour éviter les dépassements
             )
             text_y += 55
+    def draw_full_minimap(self):
+        """Render a full-screen minimap with zoom and navigation capability"""
+        # Create a semi-transparent surface
+        overlay = pygame.Surface((self.width, self.height), pygame.SRCALPHA)
+        overlay.fill((0, 0, 0, 128))  # Black with 50% transparency
+        
+        # Allow zooming of the minimap
+        zoom = getattr(self, 'minimap_zoom', 1.0)
+        full_screen_minimap = pygame.transform.scale(
+            self.minimap_base,
+            (int(self.minimap_base.get_width() * zoom), int(self.minimap_base.get_height() * zoom))
+        )
+        
+        # Center the zoomed minimap
+        offset_x = (self.width - full_screen_minimap.get_width()) // 2
+        offset_y = (self.height - full_screen_minimap.get_height()) // 2
+        
+        # Calcul de la zone totale de la minimap
+        minimap_total_width = self.minimap_base.get_width() * zoom
+        minimap_total_height = self.minimap_base.get_height() * zoom
+        
+        # Navigation logic based on mouse position
+        mouse_pos = pygame.mouse.get_pos()
+        
+        # Calcul du déplacement en fonction de la position de la souris
+        scroll_speed = 10  # Vitesse de déplacement
+        scroll_x = 0
+        scroll_y = 0
+
+        # Détermination du déplacement horizontal
+        if mouse_pos[0] < self.width * 0.2:
+            scroll_x = -scroll_speed
+        elif mouse_pos[0] > self.width * 0.8:
+            scroll_x = scroll_speed
+
+        # Détermination du déplacement vertical
+        if mouse_pos[1] < self.height * 0.2:
+            scroll_y = -scroll_speed
+        elif mouse_pos[1] > self.height * 0.8:
+            scroll_y = scroll_speed
+
+        # Mise à jour de l'offset pour la navigation
+        self.full_minimap_offset_x = getattr(self, 'full_minimap_offset_x', 0) + scroll_x
+        self.full_minimap_offset_y = getattr(self, 'full_minimap_offset_y', 0) + scroll_y
+        
+        # Limites de l'offset pour ne pas sortir de la minimap (correction)
+        self.full_minimap_offset_x = max(
+            min(self.full_minimap_offset_x, 
+            (minimap_total_width - self.width) // 2 if minimap_total_width > self.width else 0), 
+            (self.width - minimap_total_width) // 2 if minimap_total_width < self.width else 
+            (self.width - minimap_total_width) // 2
+        )
+        self.full_minimap_offset_y = max(
+            min(self.full_minimap_offset_y, 
+            (minimap_total_height - self.height) // 2 if minimap_total_height > self.height else 0),
+            (self.height - minimap_total_height) // 2 if minimap_total_height < self.height else
+            (self.height - minimap_total_height) // 2
+        )
+        
+        offset_x -= self.full_minimap_offset_x
+        offset_y -= self.full_minimap_offset_y
+        
+        # Blit the semi-transparent overlay
+        self.screen.blit(overlay, (0, 0))
+        
+        # Blit the minimap on top of the overlay
+        self.screen.blit(full_screen_minimap, (offset_x, offset_y))
+
+    def toggle_full_minimap(self):
+        """Toggle between normal view and full-screen minimap"""
+        self.full_minimap_mode = not getattr(self, 'full_minimap_mode', False)
+        self.minimap_zoom = 1.0  # Reset zoom when toggling
+        
