@@ -290,3 +290,4 @@ class ControllerGame():
     
     def pause(self):
         self.paused = not self.paused
+
