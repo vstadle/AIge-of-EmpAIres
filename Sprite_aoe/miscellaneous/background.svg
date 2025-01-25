@@ -1,0 +1,52 @@
+<svg viewBox="0 0 800 600" xmlns="http://www.w3.org/2000/svg">
+  <!-- Base background gradient -->
+  <defs>
+    <linearGradient id="bgGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#8B4513;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#654321;stop-opacity:1" />
+    </linearGradient>
+    
+    <!-- Pattern for the background -->
+    <pattern id="medievalPattern" x="0" y="0" width="40" height="40" patternUnits="userSpaceOnUse">
+      <path d="M0 0h40v40H0z" fill="none"/>
+      <path d="M0 0L40 40M40 0L0 40" stroke="#8B4513" stroke-width="0.5" opacity="0.2"/>
+    </pattern>
+
+    <!-- Border pattern -->
+    <pattern id="borderPattern" x="0" y="0" width="20" height="20" patternUnits="userSpaceOnUse">
+      <rect width="20" height="20" fill="none"/>
+      <path d="M0 10h20M10 0v20" stroke="#D2691E" stroke-width="2" opacity="0.3"/>
+    </pattern>
+  </defs>
+
+  <!-- Background with gradient -->
+  <rect width="100%" height="100%" fill="url(#bgGradient)"/>
+  
+  <!-- Pattern overlay -->
+  <rect width="100%" height="100%" fill="url(#medievalPattern)"/>
+  
+  <!-- Decorative border -->
+  <rect x="20" y="20" width="760" height="560" 
+        stroke="url(#borderPattern)" stroke-width="10" 
+        fill="none"/>
+  
+  <!-- Corner decorations -->
+  <g fill="#D2691E" opacity="0.8">
+    <!-- Top left -->
+    <path d="M30 30l40 0l0 10l-30 0l0 30l-10 0z"/>
+    <!-- Top right -->
+    <path d="M770 30l-40 0l0 10l30 0l0 30l10 0z"/>
+    <!-- Bottom left -->
+    <path d="M30 570l40 0l0 -10l-30 0l0 -30l-10 0z"/>
+    <!-- Bottom right -->
+    <path d="M770 570l-40 0l0 -10l30 0l0 -30l10 0z"/>
+  </g>
+
+  <!-- Medieval shield decoration at the top -->
+  <path d="M370 40 L430 40 L440 60 L400 100 L360 60 Z" 
+        fill="#8B4513" stroke="#D2691E" stroke-width="2"/>
+  
+  <!-- Subtle scroll decorations on sides -->
+  <path d="M60 250 Q70 270 60 290 Q50 270 60 250" fill="#D2691E" opacity="0.6"/>
+  <path d="M740 250 Q730 270 740 290 Q750 270 740 250" fill="#D2691E" opacity="0.6"/>
+</svg>
