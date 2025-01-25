@@ -438,53 +438,177 @@ class UIHandler():
             self.lstPlayers[0].trainVillager(self.lstPlayers[0].getPlayer().getBuildings()[0])
             '''
             
-    def show_load_game_menu(self):
+    def show_load_game_menu(self):  # ASM
         if not pygame.display.get_surface():
             pygame.init()
             self.screen = pygame.display.set_mode((800, 600))
-        
+
         pygame.display.set_caption("Charger une partie")
 
         clock = pygame.time.Clock()
-        files = os.listdir('../save/')
+        files = [file for file in os.listdir('../save/') if file.endswith('.dat')]
         scroll_offset = 0
-        scroll_speed = 20  # Nombre de pixels par défilement
+        scroll_speed = 20
+        selected_file = None
+
+        # Charger les images des boutons
+        load_icon = pygame.image.load('../data/img/lgm_load_icon.png')
+        rename_icon = pygame.image.load('../data/img/lgm_rename_icon.png')
+        delete_icon = pygame.image.load('../data/img/lgm_delete_icon.png')
+        back_icon = pygame.image.load('../data/img/lgm_back_icon.png')
+
+        # Redimensionner les icônes
+        icon_size = (50, 50)
+        load_icon = pygame.transform.scale(load_icon, icon_size)
+        rename_icon = pygame.transform.scale(rename_icon, icon_size)
+        delete_icon = pygame.transform.scale(delete_icon, icon_size)
+        back_icon = pygame.transform.scale(back_icon, icon_size)
+
+        def text_input(prompt):
+            """Affiche une boîte de saisie pour entrer du texte."""
+            input_active = True
+            user_text = ""
+            font = pygame.font.Font(None, 36)
+
+            while input_active:
+                self.screen.fill((50, 50, 50))
+                prompt_surface = font.render(prompt, True, (255, 255, 255))
+                prompt_rect = prompt_surface.get_rect(center=(400, 200))
+                self.screen.blit(prompt_surface, prompt_rect.topleft)
+
+                # Afficher le texte saisi
+                text_surface = font.render(user_text, True, (0, 255, 0))
+                text_rect = text_surface.get_rect(center=(400, 300))
+                self.screen.blit(text_surface, text_rect.topleft)
+
+                pygame.display.flip()
+
+                for event in pygame.event.get():
+                    if event.type == pygame.QUIT:
+                        pygame.quit()
+                        exit()
+                    elif event.type == pygame.KEYDOWN:
+                        if event.key == pygame.K_RETURN:
+                            input_active = False
+                        elif event.key == pygame.K_BACKSPACE:
+                            user_text = user_text[:-1]
+                        else:
+                            user_text += event.unicode
+
+            return user_text
 
         load_game_active = True
         while load_game_active:
-            self.screen.fill((0, 0, 0))
+            self.screen.fill((200, 200, 200))
             mouse_pos = pygame.mouse.get_pos()
 
+            # Afficher la liste des fichiers
             y = 100 - scroll_offset
             file_positions = []
 
             for file in files:
-                label = self.font.render(file, True, (255, 255, 255))
-                rect = label.get_rect(topleft=(100, y))
-                color = (200, 200, 0) if rect.collidepoint(mouse_pos) else (255, 255, 255)
+                if file == selected_file:
+                    color = (0, 200, 0)  # Vert pour le fichier sélectionné
+                elif pygame.Rect(100, y, 400, 30).collidepoint(mouse_pos):
+                    color = (200, 200, 0)  # Doré au survol
+                else:
+                    color = (255, 255, 255)  # Blanc par défaut
+
                 label = self.font.render(file, True, color)
+                rect = label.get_rect(topleft=(100, y))
                 self.screen.blit(label, rect.topleft)
                 file_positions.append((file, rect))
                 y += 40
 
+            # Afficher les boutons
+            icon_positions = {}
+
+            # Bouton "Retour"
+            back_rect = pygame.Rect(20, 20, *icon_size)
+            self.screen.blit(back_icon, back_rect)
+            icon_positions["Retour"] = back_rect
+
+            # Boutons "Charger", "Renommer", "Effacer" si un fichier est sélectionné
+            if selected_file:
+                selected_index = files.index(selected_file)
+                selected_y = 100 + selected_index * 40 - scroll_offset
+
+                icon_positions.update({
+                    "Charger": pygame.Rect(600, selected_y, *icon_size),
+                    "Renommer": pygame.Rect(660, selected_y, *icon_size),
+                    "Effacer": pygame.Rect(720, selected_y, *icon_size),
+                })
+
+                self.screen.blit(load_icon, icon_positions["Charger"].topleft)
+                self.screen.blit(rename_icon, icon_positions["Renommer"].topleft)
+                self.screen.blit(delete_icon, icon_positions["Effacer"].topleft)
+
             pygame.display.flip()
 
+            # Gestion des événements
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
-                    load_game_active = False
+                    pygame.quit()
+                    exit()
+
                 elif event.type == pygame.MOUSEBUTTONDOWN:
                     if event.button == 1:  # Clic gauche
+                        # Vérifie les clics sur les boutons d'action
+                        for action, rect in icon_positions.items():
+                            if rect.collidepoint(mouse_pos):
+                                if action == "Charger" and selected_file:
+                                    self.loadGame(selected_file)
+                                    load_game_active = False
+                                elif action == "Renommer" and selected_file:
+                                    while True:
+                                        new_name = text_input("Entrez un nouveau nom (sans extension) :")
+                                        if not new_name:
+                                            break  # Annuler le renommage si aucun nom n'est saisi
+
+                                        new_file = f"{new_name}.dat"
+
+                                        # Vérifier si le fichier existe déjà
+                                        if os.path.exists(f"../save/{new_file}"):
+                                            text_input(f"Le fichier '{new_file}' existe déjà. Appuyez sur Entrée")
+                                        else:
+                                            try:
+                                                os.rename(f"../save/{selected_file}", f"../save/{new_file}")
+                                                files = [file for file in os.listdir('../save/') if file.endswith('.dat')]
+                                                selected_file = None
+                                                break  # Renommage réussi
+                                            except Exception as e:
+                                                text_input(f"Erreur lors du renommage : {e}")
+                                                break
+
+
+
+
+
+                                elif action == "Effacer" and selected_file:
+                                    confirm = text_input(f"Confirmer suppression de {selected_file} ? (o/n)")
+                                    if confirm.lower() == 'o':
+                                        os.remove(f"../save/{selected_file}")
+                                        files = [file for file in os.listdir('../save/') if file.endswith('.dat')]
+                                        selected_file = None
+                                elif action == "Retour":
+                                    load_game_active = False
+                                    self.show_menu()
+
+                        # Vérifie si un fichier est sélectionné
                         for file, rect in file_positions:
                             if rect.collidepoint(mouse_pos):
-                                self.loadGame(file)
-                                load_game_active = False
+                                selected_file = file
+                                break
+                        else:
+                            selected_file = None  # Aucun fichier sélectionné
+
+                    # Gérer le défilement
                     elif event.button == 4:  # Molette haut
                         scroll_offset = max(0, scroll_offset - scroll_speed)
                     elif event.button == 5:  # Molette bas
                         scroll_offset = min(max(0, len(files) * 40 - 400), scroll_offset + scroll_speed)
 
-            clock.tick(200)
-
+                clock.tick(60)
     def start(self):
         self.controllerGame.run()
 
@@ -557,3 +681,14 @@ class UIHandler():
                 
                 elif event.type == pygame.VIDEORESIZE:
                     screen = pygame.display.set_mode(event.size, pygame.RESIZABLE)
+
+    def display_winner(self, winner_name): #ASM
+        pygame.init()
+        screen = pygame.display.set_mode((800, 600))
+        screen.fill((0, 0, 0))  # Efface l'écran
+        font = pygame.font.Font(None, 74)
+        text = font.render(f"Le joueur {winner_name} a gagné !", True, (255, 255, 255))
+        text_rect = text.get_rect(center=(400, 300))
+        screen.blit(text, text_rect)
+        pygame.display.flip()
+        pygame.time.wait(5000)  # Attend 5 secondes avant de fermer
