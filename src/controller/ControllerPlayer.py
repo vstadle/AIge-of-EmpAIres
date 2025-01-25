@@ -599,6 +599,8 @@ class ControllerPlayer():
             start_time = time.time()
             self.queueAttack.append({"unit": unit, "start_time": start_time, "enemy": enemy, "playerenemy": playerenemy})
             return 0
+        else:
+            return -1
             
     def updating_attack(self):
         
@@ -611,12 +613,23 @@ class ControllerPlayer():
             playerenemy = item["playerenemy"]
             
             if current_time - start_time >= unit.attackSpeed:
-                logs(self.player.name + " : " + str(unit) + " is attacking", level=logging.INFO)
-                enemy.health -= unit.attack
-                if enemy.health <= 0:
-                    self.cmap.map.map_entities[enemy.x][enemy.y] = None
-                    self.cmap.map.map[enemy.x][enemy.y] = " "
-                    playerenemy.removeUnit(enemy)
-                    logs(self.player.name + " : " + str(enemy) + " is dead", level=logging.INFO)
-                self.queueAttack.remove(item)
-                unit.action = None
+                #vérification de la distance entre l'unité et l'ennemi
+                distance_x = abs(enemy.x - unit.x)
+                distance_y = abs(enemy.y - unit.y)
+                
+                #Si l'ennemi est à portée d'attaque, l'unité attaque
+                if distance_x <= unit.attackRange and distance_y <= unit.attackRange:
+                    
+                    logs(self.player.name + " : " + str(unit) + " is attacking", level=logging.INFO)
+                    enemy.health -= unit.attack
+                    if enemy.health <= 0:
+                        self.cmap.map.map_entities[enemy.x][enemy.y] = None
+                        self.cmap.map.map[enemy.x][enemy.y] = " "
+                        playerenemy.removeUnit(enemy)
+                        logs(self.player.name + " : " + str(enemy) + " is dead", level=logging.INFO)
+                        self.queueAttack.remove(item)
+                        unit.action = None
+                #Si l'ennemi est trop loin, l'unité arrête d'attaquer
+                else:
+                    self.queueAttack.remove(item)
+                    unit.action = None

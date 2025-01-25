@@ -386,13 +386,19 @@ class AI:
         
                 target = item["target"]
                 target_position = item["target_position"]
+                playerenemy = item["playerenemy"]
                 
-                if unit.action is None and target is None:
-                    self.lstUnitAttack.remove(item)
-                    self.attackTarget()
-                    
-                if unit.action is None and (unit.x, unit.y == target_position) and target is not None:
-                    self.cplayer.attack(unit, target)
+                if unit.action is None and unit.x != target_position[0] and unit.y != target_position[1]:
+                    check = self.cplayer.move(unit, target_position[0], target_position[1])
+                    if check == -1:
+                        self.lstUnitAttack.remove(item)
+                        self.attack_target()
+                        
+                elif unit.action is None and (unit.x, unit.y == target_position):
+                    check = self.cplayer.attack(unit, target, playerenemy)
+                    if check == -1:
+                        self.lstUnitAttack.remove(item)
+                        self.attack_target(unit, playerenemy)
 
     def find_adjacent_free_tile(self, resource):
         adjacent_positions = [
@@ -793,8 +799,10 @@ class AI:
         if closest_enemy is not None:
             target_position = self.find_adjacent_free_tile(closest_enemy)
             if target_position is not None:
-                self.cplayer.attack(unit, closest_enemy, enemy)
-                self.lstUnitAttack.append({"unit": unit, "target": closest_enemy, "target_position": target_position})
+                self.lstUnitAttack.append({"unit": unit, "target": closest_enemy, "target_position": target_position, "playerenemy": enemy})
+                return 0
+        else:
+            return -1
 
     def find_adjacent_free_tile(self, unitenemy):
         adjacent_positions = [
