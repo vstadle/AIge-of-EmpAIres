@@ -12,8 +12,8 @@ class Camera:
         self.grid_length_y = grid_length_y
         
         # Pré-calcul des limites isométriques
-        self.max_scroll_x = (grid_length_x * self.TILE_SIZE) - (width/2) + 1000
-        self.max_scroll_y = (grid_length_y * self.TILE_SIZE) - (height/2) + 1000
+        self.max_scroll_x = (grid_length_x * self.TILE_SIZE) - (width/2) + 100000
+        self.max_scroll_y = (grid_length_y * self.TILE_SIZE) - (height/2) + 100000
         self.iso_offset_x = (abs(grid_length_x - grid_length_y) * self.TILE_SIZE) / 2
         self.iso_offset_y = (grid_length_y - 0.5 * grid_length_x) * self.TILE_SIZE
         
