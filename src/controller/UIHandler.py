@@ -307,6 +307,17 @@ class UIHandler():
                         scroll_offset = min(max(0, len(files) * 40 - 400), scroll_offset + scroll_speed)
 
             clock.tick(60)
+    
+    def display_winner(self, winner_name): #ASM
+        pygame.init()
+        screen = pygame.display.set_mode((800, 600))
+        screen.fill((0, 0, 0))  # Efface l'écran
+        font = pygame.font.Font(None, 74)
+        text = font.render(f"Le joueur {winner_name} a gagné !", True, (255, 255, 255))
+        text_rect = text.get_rect(center=(400, 300))
+        screen.blit(text, text_rect)
+        pygame.display.flip()
+        pygame.time.wait(5000)  # Attend 5 secondes avant de fermer
 
     def start(self):
         self.controllerGame.run()
