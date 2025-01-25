@@ -8,7 +8,11 @@ from model.ArcheryRange import ArcheryRange
 from model.Stable import Stable
 from model.Barracks import Barracks
 
+from model.Buildings import Buildings
+from model.Units import Units
+
 from model.Villager import Villager
+
 
 from model.Gold import Gold
 from model.Wood import Wood
@@ -18,6 +22,8 @@ from model.Swordsman import Swordsman
 from model.Horseman import Horseman
 from model.Archer import Archer
 from model.Keep import Keep
+
+from model.Player import Player
 
 from controller import A_Star
 
@@ -29,19 +35,25 @@ class AI:
         self.game = game
         self.cplayer = cplayer
 
-        self.lstActionWaiting = []
-        self.lstVillagerCollecting = []
         self.lstVillagerCollect = []
+        self.lstUnitAttack = []
     
         self.lstBuildingWaiting = []
         self.lstUnitWaiting = []
-
+        
         self.RessourceCollecting = [] #ressource + case adjacente
+
 
     def villager_is_available(self):
         for unit in self.cplayer.player.units:
             if isinstance(unit, Villager) and unit.action is None:
                 #logs(self.cplayer.player.name + " : Villager found", logging.INFO)
+                return unit
+        return None
+
+    def unit_is_available(self):
+        for unit in self.cplayer.player.units:
+            if unit.action is None:
                 return unit
         return None
 
@@ -332,6 +344,24 @@ class AI:
                         check = self.cplayer.trainHorseman(stable)
                         if check == 0:
                             self.lstUnitWaiting.remove(unit)
+
+    def verifUnitAttack(self):
+        
+        for item in self.lstUnitAttack:
+            unit = item["unit"]
+            
+            if unit.action is not None:
+                pass
+        
+                target = item["target"]
+                target_position = item["target_position"]
+                
+                if unit.action is None and target is None:
+                    self.lstUnitAttack.remove(item)
+                    self.attackTarget()
+                    
+                if unit.action is None and (unit.x, unit.y == target_position) and target is not None:
+                    self.cplayer.attack(unit, target)
 
     def find_adjacent_free_tile(self, resource):
         adjacent_positions = [
@@ -649,11 +679,53 @@ class AI:
                 self.collectWood()
             self.collectWood()
 
-    def attack_strategie(self):
+    def attack_strategie(self, enemy):
 
         logs(self.cplayer.player.name + " :  Attack strategie", logging.INFO)
 
-        pass
+        for unit in self.cplayer.player.units:
+            if isinstance(unit, Swordsman) or isinstance(unit, Archer) or isinstance(unit, Horseman):
+                self.attack_target(unit, enemy)
+
+    def attack_target(self, unit, enemy):
+
+        closest_enemy = self.find_target(unit, enemy)
+
+        if closest_enemy is not None:
+            target_position = self.find_adjacent_free_tile(closest_enemy)
+            if target_position is not None:
+                self.cplayer.attack(unit, closest_enemy, enemy)
+                self.lstUnitAttack.append({"unit": unit, "target": closest_enemy, "target_position": target_position})
+
+    def find_adjacent_free_tile(self, unitenemy):
+        adjacent_positions = [
+            (unitenemy.x - 1, unitenemy.y),
+            (unitenemy.x + 1, unitenemy.y),
+            (unitenemy.x, unitenemy.y - 1),
+            (unitenemy.x, unitenemy.y + 1),
+            (unitenemy.x - 1, unitenemy.y - 1),
+            (unitenemy.x + 1, unitenemy.y + 1),
+            (unitenemy.x - 1, unitenemy.y + 1),
+            (unitenemy.x + 1, unitenemy.y - 1),
+        ]
+        for x, y in adjacent_positions:
+            # Vérifie si la case est dans les limites de la carte et est libre
+            if 0 <= x < self.game.map.size_map_x and 0 <= y < self.game.map.size_map_y:
+                if self.game.map.map_entities[x][y] is None:  # La case est libre
+                    return (x, y)
+
+    def find_target(self, unit, enemy):
+
+        closest_enemy = None
+        min_distance = float('inf')
+
+        for enemy_unit in enemy.player.units:
+            distance = abs(unit.x - enemy_unit.x) + abs(unit.y - enemy_unit.y)
+            if distance < min_distance:
+                min_distance = distance
+                closest_enemy = enemy_unit
+
+        return closest_enemy
 
     def reforcement_strategie(self):
 
@@ -747,15 +819,19 @@ class AI:
             self.reforcement_strategie()
 
         lstNbUnitPerPlayer = []
+        minUnit = 0
+        minPlayer = None
         for cPlayer in lstcPlayer:
-            lstNbUnitPerPlayer.append(len(cPlayer.player.units))
-        
-        minUnit = min(lstNbUnitPerPlayer)
+            if cPlayer != self.cplayer:
+                if minUnit < len(cPlayer.player.units):
+                    minUnit = len(cPlayer.player.units)
+                    minPlayer = cPlayer
 
         if len(self.cplayer.player.units) > minUnit:
-            self.attack_strategie()
+            self.attack_strategie(minPlayer)
     
     def update(self):
         self.verifBuilding()
         self.verifCollectVillager()
         self.verifUnit()
+        self.verifUnitAttack()
