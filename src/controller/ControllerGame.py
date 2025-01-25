@@ -190,7 +190,7 @@ class ControllerGame():
         tab_pressed = False
         p_pressed = False
         running = True
-        
+    
         while running:
             self.viewPygame.camera.handle_input()            
             keys = pygame.key.get_pressed()
@@ -198,6 +198,7 @@ class ControllerGame():
                 if event.type == pygame.QUIT:
                     running = False
                     break
+                
                 if event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_o:
                         self.stdscr.clear()
@@ -216,7 +217,6 @@ class ControllerGame():
                     elif event.key == pygame.K_F9:
                         running = False
                         pygame.quit()
-                        #self.run()
                         return
                     elif event.key == pygame.K_F12:
                         self.paused = True
@@ -225,28 +225,42 @@ class ControllerGame():
                         return
                     elif event.key == pygame.K_F7 or event.key == pygame.K_F11:
                         self.uiHandler.saveGame()
-                    
+                    elif event.key == pygame.K_m:
+                        self.viewPygame.full_minimap_mode = not self.viewPygame.full_minimap_mode
+                        self.viewPygame.minimap_zoom = 4.5  # Reset zoom when toggling
+                        if self.viewPygame.full_minimap_mode:
+                            self.viewPygame.full_minimap_offset_x = 0
+                            self.viewPygame.full_minimap_offset_y = 0
                 if event.type == pygame.KEYUP:
                     if event.key == pygame.K_TAB:
                         tab_pressed = False
                     elif event.key == pygame.K_p:
                         p_pressed = False
                         self.pause()
+            
                 if event.type == pygame.MOUSEBUTTONDOWN:
-                    if event.button == 4:  
-                        self.zoom_level = round(min(3, self.zoom_level + 0.1), 1)
-                    elif event.button == 5:  
-                        self.zoom_level = round(max(0.5, self.zoom_level - 0.1), 1)
-                        if self.zoom_level < 0.1:
-                            self.zoom_level = 0.1
+                    mouse_pos = pygame.mouse.get_pos()
                     
-            if not self.paused:
+                    # Minimap zoom and navigation
+                    minimap_x = self.viewPygame.width - self.viewPygame.minimap_base.get_width() - 10
+                    minimap_rect = pygame.Rect(minimap_x, 10, 
+                                            self.viewPygame.minimap_base.get_width(), 
+                                            self.viewPygame.minimap_base.get_height())
+                    
+                    if self.viewPygame.full_minimap_mode or minimap_rect.collidepoint(mouse_pos):
+                        if event.button == 4:  # Scroll up (zoom in)
+                            self.viewPygame.minimap_zoom = min(12.0, self.viewPygame.minimap_zoom * 1.1)
+                        elif event.button == 5:  # Scroll down (zoom out)
+                            self.viewPygame.minimap_zoom = max(4.5, self.viewPygame.minimap_zoom / 1.1)
                 
+            if not self.paused:
                 if keys[pygame.K_ESCAPE]:
                     webbrowser.open("https://www.youtube.com/watch?v=dQw4w9WgXcQ")
-                
+            
                 self.viewPygame.draw_map_2_5D()
                 pygame.display.flip()
+                
+                # Game update logic remains the same
                 check = 0
                 check2 = 0
                 for cplayer in self.lstcPlayers:
@@ -254,18 +268,16 @@ class ControllerGame():
                     check = cplayer.update_building()
                     cplayer.updating_collect()
                     cplayer.updating_moving()
-                    if(check==0):
-                        check2+=1
-                if check2!=0:
+                    if check == 0:
+                        check2 += 1
+                if check2 != 0:
                     self.viewPygame.create_static_minimap()
-
-                    
-    
-            self.clock.tick(200)  # Limité à 150 FPS
-        # Cleanup après la boucle
+            
+            self.clock.tick(200)  # Limited to 200 FPS
+        
+        # Cleanup after the loop
         pygame.quit()
         sys.exit()
-        
     def toggle_pause(self):
         self.paused = not self.paused
         if self.paused:

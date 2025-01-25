@@ -56,6 +56,8 @@ class ViewPygame:
         # Créer le monde une seule fois
         self.world = self._create_world()
         self.initialize_player_panel()
+        self.full_minimap_mode = False
+        self.minimap_zoom = 1.0
         
         # Cache pour les positions de rendu (optimisation)
         self._render_positions_cache = {}
@@ -165,6 +167,13 @@ class ViewPygame:
         return world
 
     def draw_map_2_5D(self):
+        # Check if full minimap mode is active
+        if hasattr(self, 'full_minimap_mode') and self.full_minimap_mode:
+            self.draw_full_minimap()
+            return
+            
+            
+
         self.screen.fill((0, 0, 0))
         self.camera.handle_input()
         
@@ -635,3 +644,76 @@ class ViewPygame:
                 (text_x + self.panel_rect.width - 80, text_y + 20)  # Décalage ajusté pour éviter les dépassements
             )
             text_y += 55
+    def draw_full_minimap(self):
+        """Render a full-screen minimap with zoom and navigation capability"""
+        # Create a semi-transparent surface
+        overlay = pygame.Surface((self.width, self.height), pygame.SRCALPHA)
+        overlay.fill((0, 0, 0, 128))  # Black with 50% transparency
+        
+        # Allow zooming of the minimap
+        zoom = getattr(self, 'minimap_zoom', 1.0)
+        full_screen_minimap = pygame.transform.scale(
+            self.minimap_base,
+            (int(self.minimap_base.get_width() * zoom), int(self.minimap_base.get_height() * zoom))
+        )
+        
+        # Center the zoomed minimap
+        offset_x = (self.width - full_screen_minimap.get_width()) // 2
+        offset_y = (self.height - full_screen_minimap.get_height()) // 2
+        
+        # Calcul de la zone totale de la minimap
+        minimap_total_width = self.minimap_base.get_width() * zoom
+        minimap_total_height = self.minimap_base.get_height() * zoom
+        
+        # Navigation logic based on mouse position
+        mouse_pos = pygame.mouse.get_pos()
+        
+        # Calcul du déplacement en fonction de la position de la souris
+        scroll_speed = 10  # Vitesse de déplacement
+        scroll_x = 0
+        scroll_y = 0
+
+        # Détermination du déplacement horizontal
+        if mouse_pos[0] < self.width * 0.2:
+            scroll_x = -scroll_speed
+        elif mouse_pos[0] > self.width * 0.8:
+            scroll_x = scroll_speed
+
+        # Détermination du déplacement vertical
+        if mouse_pos[1] < self.height * 0.2:
+            scroll_y = -scroll_speed
+        elif mouse_pos[1] > self.height * 0.8:
+            scroll_y = scroll_speed
+
+        # Mise à jour de l'offset pour la navigation
+        self.full_minimap_offset_x = getattr(self, 'full_minimap_offset_x', 0) + scroll_x
+        self.full_minimap_offset_y = getattr(self, 'full_minimap_offset_y', 0) + scroll_y
+        
+        # Limites de l'offset pour ne pas sortir de la minimap (correction)
+        self.full_minimap_offset_x = max(
+            min(self.full_minimap_offset_x, 
+            (minimap_total_width - self.width) // 2 if minimap_total_width > self.width else 0), 
+            (self.width - minimap_total_width) // 2 if minimap_total_width < self.width else 
+            (self.width - minimap_total_width) // 2
+        )
+        self.full_minimap_offset_y = max(
+            min(self.full_minimap_offset_y, 
+            (minimap_total_height - self.height) // 2 if minimap_total_height > self.height else 0),
+            (self.height - minimap_total_height) // 2 if minimap_total_height < self.height else
+            (self.height - minimap_total_height) // 2
+        )
+        
+        offset_x -= self.full_minimap_offset_x
+        offset_y -= self.full_minimap_offset_y
+        
+        # Blit the semi-transparent overlay
+        self.screen.blit(overlay, (0, 0))
+        
+        # Blit the minimap on top of the overlay
+        self.screen.blit(full_screen_minimap, (offset_x, offset_y))
+
+    def toggle_full_minimap(self):
+        """Toggle between normal view and full-screen minimap"""
+        self.full_minimap_mode = not getattr(self, 'full_minimap_mode', False)
+        self.minimap_zoom = 1.0  # Reset zoom when toggling
+        
