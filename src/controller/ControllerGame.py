@@ -177,6 +177,32 @@ class ControllerGame():
                     cplayer.updating_collect()
                     cplayer.updating_moving()
 
+
+                     ###### DEBUT ASM #############   
+
+                # Vérification des joueurs restants
+                active_players = []
+                for cplayer in self.lstcPlayers:
+                    if len(cplayer.player.getBuildings()) > 0 or cplayer.player.units > 0:
+                        active_players.append(cplayer.player)
+
+                # Si un seul joueur reste, afficher son nom et terminer le jeu
+                if len(active_players) == 1:
+                    winner = active_players[0]
+                    print(f"Le joueur {winner.name} a gagné !")
+                    
+                    # Affichage graphique de la victoire si nécessaire
+                    winner = active_players[0]
+                    print(f"Le joueur {winner.name} a gagné !")
+                    self.uiHandler.display_winner(winner.name)  # Délégation à UIHandler
+
+                    #pygame.display.flip()
+                    #pygame.time.wait(5000)  # Attend 5 secondes avant de fermer                  
+                    #pygame.quit()
+                    self.uiHandler.show_menu()
+
+                 ###### FIN ASM #############
+
                 self.viewTerminal.draw_map(stdscr)
         
     def change_mode(self):
