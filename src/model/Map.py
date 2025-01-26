@@ -52,7 +52,6 @@ class Map():
         self.map[0][0] = 's'
         self.map_entities = np.full((size_map_x, size_map_y), None)
         self.map_entities[0][0] = Units
-        self.lstColor = np.full((size_map_x, size_map_y), None)
         self.mapType = None
         
     
@@ -102,17 +101,14 @@ class Map():
     def addBuilding(self, building, x, y, player):
         building.setX(x)
         building.setY(y)
-        cpt = 0
+        building.color = player.getColor()
         for i in range(building.sizeMap):
-            cpt += 1
             for j in range(building.sizeMap):
                 self.map_entities[x + i][y + j] = building
-                #self.mapBuildings[x + i][y + j] = building
                 self.map[x + i][y + j] = building.letter
-                self.lstColor[x + i][y + j] = player.getColor()
+        
         if isinstance(building, TownCenter) or isinstance(building, House):
             player.population += building.population
-
     def addBuildingTemp(self, building, x, y):
         building.setX(x)
         building.setY(y)
@@ -122,10 +118,9 @@ class Map():
                 self.lstColor[x + i][y + j] = curses.COLOR_WHITE
 
     def addUnits(self, units, x, y, player):
+        units.color = player.getColor()
         self.map_entities[x][y] = units
-        #self.mapUnits[x][y] = units
         self.map[x][y] = units.letter
-        self.lstColor[x][y] = player.getColor()
         units.setPosition(x, y)
 
     
@@ -221,8 +216,6 @@ class Map():
             self.map_entities[x][y] is None
         )
     
-    def getColor(self, x, y):
-        return self.lstColor[x][y]
 
     def rmUnit(self, unit):
         self.map_entities[unit.getX()][unit.getY()] = None
@@ -244,16 +237,17 @@ class Map():
     def moveUnit(self, unit, x, y, player):
         pos = unit.getPosition()
         self.map_entities[pos[0]][pos[1]] = None
-        #self.mapUnits[pos[0]][pos[1]] = None
         self.map[pos[0]][pos[1]] = " "
+        
         self.map_entities[x][y] = unit
-        #self.mapUnits[x][y] = unit
         unit.setPosition(x, y)
-        self.map[x][y] = "v"
-        self.lstColor[x][y] = player.getColor()
+        self.map[x][y] = unit.letter
 
     def setMapType(self, type):
         self.mapType = type
 
     def get_map_entities(self):
         return self.map_entities
+    def getColor(self, x, y):
+        entity = self.map_entities[x][y]
+        return entity.color if entity and hasattr(entity, 'color') else None

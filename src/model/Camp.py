@@ -3,7 +3,7 @@ from view.HealthBar import HealthBar
 
 class Camp(Buildings):
 
-    def __init__(self):
+    def __init__(self, color=None):
         super().__init__(100, 25, 200, 2, 'C')
         self.competence1 = "Drop points of resources"
         self.health_bar = HealthBar(

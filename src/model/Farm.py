@@ -3,7 +3,7 @@ from view.HealthBar import HealthBar
 
 class Farm(Buildings):
 
-    def __init__(self):
+    def __init__(self, color=None):
         super().__init__(60, 10, 100, 2, 'F')
         self.food = 300
         self.health_bar = HealthBar(

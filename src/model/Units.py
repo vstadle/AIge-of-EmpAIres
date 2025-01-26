@@ -2,7 +2,7 @@ from view.HealthBar import HealthBar  # Assurez-vous que le chemin est correct
 
 class Units():
     #Parameters costF: int, costG: int, costW: int, health: int, trainingTime: int, attack: int, speedAtack: int, speed: int, range: int
-    def __init__(self, costF, costG, costW, health, trainingTime, attack, speedAtack, speed, range, letter):
+    def __init__(self, costF, costG, costW, health, trainingTime, attack, speedAtack, speed, range, letter, color = None):
         self.costF = costF
         self.costG = costG
         self.costW = costW
@@ -22,6 +22,7 @@ class Units():
             width=40,  # Adjust width as needed
             height=4   # Adjust height as needed
         )
+        self.color = color
 
     def __repr__(self):
         return "Units(%r, %r, %r, %r, %r)" % (self.health, self.attack, self.speedAtack, self.speed, self.range)

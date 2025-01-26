@@ -19,46 +19,49 @@ class ViewTerminal:
 
     def draw_map(self, stdscr):
         stdscr.clear()
-        
+    
         # Vérification que les couleurs sont initialisées (uniquement une fois)
         if not hasattr(self, 'colors_initialized'):
             self._initialize_colors(stdscr)
             self.colors_initialized = True
-        
+    
         # Dimensions de l'écran
         max_x, max_y = stdscr.getmaxyx()
-
         # Limiter les dimensions visibles aux dimensions de la carte
         visible_rows = min(max_y, self.GRID_HEIGHT)
         visible_cols = min(max_x, self.GRID_WIDTH)
 
-        #logs("Affichage de la carte visible: " + str(visible_rows) + " " + str(visible_cols), logging.INFO)
-
         # Parcourir uniquement la zone visible
         for row in range(visible_rows):
             for col in range(visible_cols):
-
                 map_row = self.camera.pos_x + row
                 map_col = self.camera.pos_y + col
-
                 # Vérifier si les indices sont valides pour la carte
                 if 0 <= map_row < len(self.map.map) and 0 <= map_col < len(self.map.map[0]):
                     char = self.map.map[map_row][map_col]
                     if char is None or not isinstance(char, str) or len(char) != 1:
                         char = ' '
+                
+                    # Utiliser getColor à la place de lstColor
+                    color_index = self.map.getColor(map_row, map_col)
                     
-                    # Appliquer la couleur si définie
-                    color_index = self.map.lstColor[map_row][map_col]
-                    color_pair = curses.color_pair(color_index if color_index is not None else 7)
+                    # Trouver l'index de couleur correspondant dans lstColor
+                    try:
+                        color_index = ViewTerminal.lstColor.index(color_index) + 1 if color_index is not None else 7
+                    except ValueError:
+                        color_index = 7
+                    
+                    color_pair = curses.color_pair(color_index)
                 else:
                     char = ' '
                     color_pair = curses.color_pair(7)
-
+                
                 # Ajouter le caractère à la position (row, col)
                 try:
                     stdscr.addch(col, row, char, color_pair)
-                except curses.error as e:
+                except curses.error:
                     pass
+        
         # Rafraîchir l'écran une seule fois après avoir dessiné la carte visible
         stdscr.refresh()
 

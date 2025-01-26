@@ -3,7 +3,7 @@ from view.HealthBar import HealthBar
 
 class Villager(Units):
 
-    def __init__(self):
+    def __init__(self, color=None):
         super().__init__(50, 0, 0, 25, 25, 1, 1, 0.8, 1,"v")
         self.collectPerSecond = 2.4 #sec
         self.carryingCapacity = 20 #min

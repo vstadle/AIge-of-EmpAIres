@@ -590,7 +590,6 @@ class ControllerPlayer():
         return self.player
     
     def attack(self, unit, enemy, playerenemy):
-        
         #Vérification de la distance entre l'unité et l'ennemi
         if isinstance(enemy, Buildings):
             distance_x = abs(enemy.x - unit.x) - enemy.sizeMap // 2
@@ -601,9 +600,14 @@ class ControllerPlayer():
         
         if distance_x <= unit.range and distance_y <= unit.range:
             logs(self.player.name + " : " + str(unit) + " is attacking : + " + str(enemy), level=logging.INFO)
+            
             unit.action = "attack"
+            # On applique les damages directement ici, et on met à jour la queue
+            self.apply_damage(unit, enemy, playerenemy)
             start_time = time.time()
             self.queueAttack.append({"unit": unit, "start_time": start_time, "enemy": enemy, "playerenemy": playerenemy})
+            
+            
             return 0
         else:
             return -1
@@ -631,26 +635,42 @@ class ControllerPlayer():
                 if distance_x <= unit.range and distance_y <= unit.range:
                     
                     #logs(self.player.name + " : " + str(unit) + " is attacking", level=logging.INFO)
-                    enemy.health -= unit.attack
+                    
+                    self.apply_damage(unit, enemy, playerenemy)
                     item["start_time"] = time.time()
-                    if enemy.health == 0:
-                        self.cmap.map.map_entities[enemy.x][enemy.y] = None
-                        self.cmap.map.map[enemy.x][enemy.y] = " "
-                        if isinstance(enemy, Buildings):
-                            for x in range(enemy.sizeMap):
-                                for y in range(enemy.sizeMap):
-                                    self.cmap.map.map_entities[enemy.x + x][enemy.y + y] = None
-                                    self.cmap.map.map[enemy.x + x][enemy.y + y] = " "
-                            if enemy in playerenemy.player.buildings:
-                                playerenemy.player.buildings.remove(enemy)
-                            logs(playerenemy.name + " : " + str(enemy) + " is destroyed", level=logging.INFO)
-                        elif isinstance(enemy, Units):
-                            if enemy in playerenemy.player.units:
-                                playerenemy.player.units.remove(enemy) 
-                            logs(playerenemy.player.name + " : " + str(enemy) + " is dead", level=logging.INFO)
-                        self.queueAttack.remove(item)
-                        unit.action = None
                 #Si l'ennemi est trop loin, l'unité arrête d'attaquer
                 else:
                     self.queueAttack.remove(item)
                     unit.action = None
+
+    def apply_damage(self, unit, enemy, playerenemy):
+
+        # Vérification de la validité de la cible
+        if isinstance(enemy, Units) and (enemy not in playerenemy.player.units or enemy.health <= 0):
+            return
+        elif isinstance(enemy, Buildings) and (enemy not in playerenemy.player.buildings or enemy.health <= 0):
+            return
+        
+        # Application des dégâts
+        enemy.health -= unit.attack
+                    
+        if enemy.health <= 0:
+            self.cmap.map.map_entities[enemy.x][enemy.y] = None
+            self.cmap.map.map[enemy.x][enemy.y] = " "
+            if isinstance(enemy, Buildings):
+                for x in range(enemy.sizeMap):
+                    for y in range(enemy.sizeMap):
+                        self.cmap.map.map_entities[enemy.x + x][enemy.y + y] = None
+                        self.cmap.map.map[enemy.x + x][enemy.y + y] = " "
+                if enemy in playerenemy.player.buildings:
+                    playerenemy.player.buildings.remove(enemy)
+                logs(playerenemy.name + " : " + str(enemy) + " is destroyed", level=logging.INFO)
+            elif isinstance(enemy, Units):
+                if enemy in playerenemy.player.units:
+                    playerenemy.player.units.remove(enemy) 
+                logs(playerenemy.player.name + " : " + str(enemy) + " is dead", level=logging.INFO)
+            
+            for item in self.queueAttack[:]:
+                if item["enemy"] == enemy:
+                    self.queueAttack.remove(item)
+                    item["unit"].action = None

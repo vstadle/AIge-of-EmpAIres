@@ -4,7 +4,7 @@ from view.HealthBar import HealthBar
 
 class TownCenter(Buildings):
 
-    def __init__(self):
+    def __init__(self, color=None):
         super().__init__(350, 150, 1000, 4, 'T')
         self.competence2 = "Drop points of resources"
         self.population = 5

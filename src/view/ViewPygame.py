@@ -173,7 +173,7 @@ class ViewPygame:
         return world
 
     def draw_map_2_5D(self):
-        # Check if full minimap mode is active
+       # Check if full minimap mode is active
         if hasattr(self, 'full_minimap_mode') and self.full_minimap_mode:
             self.draw_full_minimap()
             return
