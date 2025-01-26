@@ -21,7 +21,7 @@ from model.Wood import Wood
 from logs.logger import logs
 from model.Buildings import Buildings
 from model.House import House
-
+from view.ViewPygame import ViewPygame
 from model.Units import Units
 
 class ControllerPlayer():
@@ -32,7 +32,6 @@ class ControllerPlayer():
         self.queueCollect = []
         self.queueMoving = []
         self.queueAttack = []
-    
     @classmethod
     def from_saved(cls,player,cmap):
         return cls(player, cmap)
@@ -238,6 +237,19 @@ class ControllerPlayer():
     def update_building(self):
         current_time = time.time()
         
+        # Liste pour stocker les bâtiments à supprimer
+        buildings_to_remove = []
+    
+        for building in self.player.buildings:
+            if building.getHp() <= 0:
+                buildings_to_remove.append(building)
+            # Remove buildings with 0 HP
+        if len(buildings_to_remove) > 0:
+            for building in buildings_to_remove:
+                self.cmap.rmBuilding(building)
+                self.player.buildings.remove(building)
+            return 0 # On retourne 0 quand un bâtiment est supprimé
+
         for item in self.player.getBuildingQueue()[:]:
             building = item["building"]
             player = item["player"]
@@ -249,7 +261,6 @@ class ControllerPlayer():
             y = item["y"]
 
             if current_time - start_time >= buildingTime:
-
                 is_free = True
                 for i in range(building.getSizeMap()):
                     for j in range(building.getSizeMap()):
@@ -261,7 +272,6 @@ class ControllerPlayer():
                             break
                     if(not is_free):
                         break
-
                 if(is_free):
                     if isinstance(building, Farm):
                         player.food += building.food
@@ -277,13 +287,10 @@ class ControllerPlayer():
                             if item["unit"] == villager:
                                 self.queueMoving.remove(item)
                         villager.action = None
-
                     return 0
                 else:
                     print()
-                    #print("Erreur de placement du batiment" , building, player)
         return -1
-                
     def addUnitInitialize(self, unit, building):
         x = building.getX()
         y = building.getY()
@@ -314,6 +321,7 @@ class ControllerPlayer():
 
     def update_training(self):
         current_time = time.time()
+        
         #print(current_time)
         for item in self.player.getTrainingQueue()[:]:
             unit = item["unit"]
@@ -653,7 +661,7 @@ class ControllerPlayer():
                                 if enemy in playerenemy.player.buildings:
                                     playerenemy.player.buildings.remove(enemy)
                                 logs(playerenemy.name + " : " + str(enemy) + " is destroyed", level=logging.INFO)
-                           
+                            
                             #Si c'est une unité, l'unité est supprimée de la liste des unités de l'ennemi
                             elif isinstance(enemy, Units):
                                 if enemy in playerenemy.player.units:

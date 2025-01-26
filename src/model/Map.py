@@ -57,16 +57,26 @@ class Map():
     
     def generateGenerousResources(self):
         max_percentage_gold = 0.01
-        total_cells = self.size_map_x*self.size_map_y
-        max_gold = max_percentage_gold * total_cells
-        gold_planted = 0
-        while (gold_planted < max_gold):
-            x = random.randint(0,self.size_map_x-1)
-            y = random.randint(0,self.size_map_y-1)
-            if(self.map[x][y]== " "):
-                self.addRessources(Gold(), x, y)
-                gold_planted+=1
+        total_cells = self.size_map_x * self.size_map_y
+        max_gold_blocks = int(max_percentage_gold * total_cells / 4)
+        gold_blocks_planted = 0
 
+        while gold_blocks_planted < max_gold_blocks:
+            x = random.randint(0, self.size_map_x - 2)  # Ajustement pour s'assurer que le bloc 2x2 ne dépasse pas la map
+            y = random.randint(0, self.size_map_y - 2)
+
+            # Vérifier si le bloc 2x2 est libre
+            if (self.map[x][y] == " " and
+                self.map[x+1][y] == " " and
+                self.map[x][y+1] == " " and
+                self.map[x+1][y+1] == " "):
+                
+                self.addRessources(Gold(), x, y)
+                self.addRessources(Gold(), x+1, y)
+                self.addRessources(Gold(), x, y+1)
+                self.addRessources(Gold(), x+1, y+1)
+                
+                gold_blocks_planted += 1
 
 
     def generateCenterResources(self):
@@ -102,6 +112,7 @@ class Map():
         building.setX(x)
         building.setY(y)
         building.color = player.getColor()
+        building.is_constructing = False
         for i in range(building.sizeMap):
             for j in range(building.sizeMap):
                 self.map_entities[x + i][y + j] = building
@@ -112,10 +123,10 @@ class Map():
     def addBuildingTemp(self, building, x, y):
         building.setX(x)
         building.setY(y)
+        building.is_constructing = True  # Nouveau : marquer comme en construction
         for i in range(building.sizeMap):
             for j in range(building.sizeMap):
                 self.map[x + i][y + j] = building.letter
-                self.lstColor[x + i][y + j] = curses.COLOR_WHITE
 
     def addUnits(self, units, x, y, player):
         units.color = player.getColor()
@@ -250,4 +261,8 @@ class Map():
         return self.map_entities
     def getColor(self, x, y):
         entity = self.map_entities[x][y]
-        return entity.color if entity and hasattr(entity, 'color') else None
+        if entity:
+            if hasattr(entity, 'is_constructing') and entity.is_constructing:
+                return curses.COLOR_WHITE
+            return entity.color if hasattr(entity, 'color') else None
+        return None
