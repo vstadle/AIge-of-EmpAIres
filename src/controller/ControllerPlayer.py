@@ -600,7 +600,7 @@ class ControllerPlayer():
             distance_y = abs(enemy.y - unit.y)
         
         if distance_x <= unit.range and distance_y <= unit.range:
-            logs(self.player.name + " : " + str(unit) + " is attacking", level=logging.INFO)
+            logs(self.player.name + " : " + str(unit) + " is attacking : + " + str(enemy), level=logging.INFO)
             unit.action = "attack"
             start_time = time.time()
             self.queueAttack.append({"unit": unit, "start_time": start_time, "enemy": enemy, "playerenemy": playerenemy})
@@ -643,11 +643,11 @@ class ControllerPlayer():
                                     self.cmap.map.map[enemy.x + x][enemy.y + y] = " "
                             if enemy in playerenemy.player.buildings:
                                 playerenemy.player.buildings.remove(enemy)
-                            logs(self.player.name + " : " + str(enemy) + " is destroyed", level=logging.INFO)
+                            logs(playerenemy.name + " : " + str(enemy) + " is destroyed", level=logging.INFO)
                         elif isinstance(enemy, Units):
                             if enemy in playerenemy.player.units:
                                 playerenemy.player.units.remove(enemy) 
-                            logs(self.player.name + " : " + str(enemy) + " is dead", level=logging.INFO)
+                            logs(playerenemy.player.name + " : " + str(enemy) + " is dead", level=logging.INFO)
                         self.queueAttack.remove(item)
                         unit.action = None
                 #Si l'ennemi est trop loin, l'unité arrête d'attaquer

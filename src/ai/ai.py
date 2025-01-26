@@ -391,7 +391,14 @@ class AI:
             unit = item["unit"]
             
             if unit.health <= 0:
-                self.lstUnitAttack.remove(item)
+                for item in self.lstUnitAttack:
+                    if item["unit"] == unit:
+                        self.lstUnitAttack.remove(item)
+                        break
+                for item in self.cplayer.queueAttack:
+                    if item["unit"] == unit:
+                        self.cplayer.queueAttack.remove(item)
+                        break
                 continue
             
             
@@ -399,12 +406,22 @@ class AI:
             target_position = item["target_position"]
             playerenemy = item["playerenemy"]
             
-            if target.health <= 0:
-                self.lstUnitAttack.remove(item)
-                continue
-            
-            distance_x = abs(target.x - target_position[0])
-            distance_y = abs(target.y - target_position[1])
+            if isinstance(target, Units):
+                distance_x = abs(target.x - target_position[0])
+                distance_y = abs(target.y - target_position[1])
+                #On vérifie si l'unité a bougé
+                if distance_x > 1 or distance_y > 1:
+                    #logs(self.cplayer.player.name + " :  Unit is moving recalculate path to attack", logging.INFO)
+                    self.lstUnitAttack.remove(item)
+                    #On retire l'unité de la queue de déplacement
+                    if unit.action == "move":
+                        for tempunit in self.cplayer.queueMoving:
+                            if tempunit["unit"] == unit:
+                                self.cplayer.queueMoving.remove(tempunit)
+                                unit.action = None
+                                
+                    self.attack_target(unit, playerenemy)
+                    continue
             
             if unit.action is not None:
                 pass
@@ -422,8 +439,9 @@ class AI:
                 if check == -1:
                     self.lstUnitAttack.remove(item)
                     self.attack_target(unit, playerenemy)
+                #Si l'on attaque une unité alors celle-ci riposte
                 else:
-                    
+                    #Seul les unités peuvent attaquer
                     if isinstance(target, Units):
                     
                         for item in self.cplayer.queueMoving:
@@ -1106,10 +1124,7 @@ class AI:
                     minPlayer = cPlayer
 
         #if len(self.cplayer.player.units) >= minUnit:
-        
-        if AI.cpt < 1:
-            self.attack_strategie(minPlayer)
-            AI.cpt += 1
+        self.attack_strategie(minPlayer)
     
     def update(self):
         self.verifBuilding()
