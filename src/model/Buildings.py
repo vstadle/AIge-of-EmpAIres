@@ -11,6 +11,7 @@ class Buildings:
         self.x = 0
         self.y = 0
         self.color = color
+        self.is_constructing = False
         
         # Create health bar
         self.health_bar = HealthBar(
@@ -33,9 +34,8 @@ class Buildings:
         return self.health
 
     def setHp(self, hp):
-        self.health = hp
-        # Update health bar when health changes
-        self.health_bar.update(hp)
+        self.health = max(0, min(hp, self.max_health))
+        self.health_bar.update(self.health)
 
     def setX(self, x):
         self.x = x

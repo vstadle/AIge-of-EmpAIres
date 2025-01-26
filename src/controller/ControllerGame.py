@@ -207,6 +207,13 @@ class ControllerGame():
                         self.uiHandler.saveGame()
                         running = False
                         break
+                    if event.type == pygame.KEYDOWN and event.key == pygame.K_k:  # Réduire HP
+                        if self.lstcPlayers[0].player.buildings:
+                            building = self.lstcPlayers[0].player.buildings[0]
+                            building.setHp(building.getHp() - 100)
+                        if self.lstcPlayers[0].player.units:
+                            unit = self.lstcPlayers[0].player.units[0]
+                            unit.setHp(unit.getHp() - 10)
                     elif event.key == pygame.K_F1:
                         self.viewPygame.show_player_info = not self.viewPygame.show_player_info
                         pygame.display.flip()
@@ -254,7 +261,7 @@ class ControllerGame():
                             self.viewPygame.minimap_zoom = min(12.0, self.viewPygame.minimap_zoom * 1.1)
                         elif event.button == 5:  # Scroll down (zoom out)
                             self.viewPygame.minimap_zoom = max(4.5, self.viewPygame.minimap_zoom / 1.1)
-                
+            
             if not self.paused:
                 if keys[pygame.K_ESCAPE]:
                     webbrowser.open("https://www.youtube.com/watch?v=dQw4w9WgXcQ")
@@ -282,7 +289,9 @@ class ControllerGame():
                     cplayer.updating_moving()
                     cplayer.updating_attack()
                     if check == 0:
-                        check2 += 1
+                       check2 += 1
+
+                # Mise à jour de la minimap seulement s'il y a eu une construction ou destruction
                 if check2 != 0:
                     self.viewPygame.create_static_minimap()
             

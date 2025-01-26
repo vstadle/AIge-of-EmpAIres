@@ -37,11 +37,14 @@ class Units():
         print("Speed Atack: ", self.speedAtack)
         print("Speed: ", self.speed)
 
-
+    def setHp(self, hp):
+        self.health = max(0, min(hp, self.max_health))
+        self.health_bar.update(self.health)
     #Parameters target: Units
     def attack(self, target):
         target.health -= self.attack
-
+    def getHp(self):
+        return self.health
     #Parameters target: Building
     def attackBuildings(self, target):
         target.health -= self.attack

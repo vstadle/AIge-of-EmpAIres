@@ -957,7 +957,7 @@ class AI:
             self.collectWood()
 
     def attack_strategie(self, enemy):
-
+        
         logs(self.cplayer.player.name + " :  Attack strategie", logging.INFO)
 
         for unit in self.cplayer.player.units:
@@ -965,7 +965,7 @@ class AI:
             self.attack_target(unit, enemy)
 
     def attack_target(self, unit, enemy):
-
+        
         closest_enemy = self.find_target(unit, enemy)
 
         if closest_enemy is not None:
@@ -1123,14 +1123,14 @@ class AI:
         ''' Choix de la stratégie de l'IA '''
         ''' On choisit une stratégie en fonction de la situation de l'IA '''
 
-        #if self.cplayer.player.gold < 300 and self.cplayer.player.wood < 300:
-        #     self.collect_strategie()
+        if self.cplayer.player.gold < 300 and self.cplayer.player.wood < 300:
+             self.collect_strategie()
 
-        #elif self.cplayer.player.food < 300 and len(self.cplayer.player.units) < 30:
-        #    self.expansion_strategie()
+        elif self.cplayer.player.food < 300 and len(self.cplayer.player.units) < 30:
+            self.expansion_strategie()
 
-        #elif self.cplayer.player.food > 1000 and self.cplayer.player.gold > 1000 and self.cplayer.player.wood > 1000:
-        #    self.reforcement_strategie()
+        elif self.cplayer.player.food > 1000 and self.cplayer.player.gold > 1000 and self.cplayer.player.wood > 1000:
+            self.reforcement_strategie()
 
         lstNbUnitPerPlayer = []
         minUnit = float('inf')
@@ -1143,7 +1143,7 @@ class AI:
 
         #if len(self.cplayer.player.units) >= minUnit:
         #if AI.cpt < 1:
-        self.attack_strategie(minPlayer)
+        #self.attack_strategie(minPlayer)
             #AI.cpt += 1
             
     def update(self):
