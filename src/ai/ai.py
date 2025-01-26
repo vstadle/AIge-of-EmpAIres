@@ -399,12 +399,21 @@ class AI:
             target_position = item["target_position"]
             playerenemy = item["playerenemy"]
             
-            if target.health <= 0:
-                self.lstUnitAttack.remove(item)
-                continue
+            if isinstance(target, Units):
+                distance_x = abs(target.x - target_position[0])
+                distance_y = abs(target.y - target_position[1])
+                #On vérifie si l'unité a bougé
+                if distance_x > 1 or distance_y > 1:
+                    #logs(self.cplayer.player.name + " :  Unit is moving recalculate path to attack", logging.INFO)
+                    self.lstUnitAttack.remove(item)
+                    #On retire l'unité de la queue de déplacement
+                    if unit.action == "move":
+                        for tempunit in self.cplayer.queueMoving:
+                            if tempunit["unit"] == unit:
+                                self.cplayer.queueMoving.remove(tempunit)
+                                
+                    self.attack_target(unit, playerenemy)
             
-            distance_x = abs(target.x - target_position[0])
-            distance_y = abs(target.y - target_position[1])
             
             if unit.action is not None:
                 pass
@@ -422,22 +431,28 @@ class AI:
                 if check == -1:
                     self.lstUnitAttack.remove(item)
                     self.attack_target(unit, playerenemy)
+                #Si l'on attaque une unité alors celle-ci riposte
                 else:
-                    
+                    #Seul les unités peuvent attaquer
                     if isinstance(target, Units):
-                    
-                        for item in self.cplayer.queueMoving:
-                            if item["unit"] == target:
-                                self.cplayer.queueMoving.remove(item)
-                                break
+                        #On vérifie si l'unité attaquée est en mouvement
+                        #Si c'est le cas alors on l'arrête de bouger
+                        if target.action == "move":
+                            for temp in playerenemy.queueMoving:
+                                if temp["unit"] == target:
+                                    playerenemy.queueMoving.remove(temp)
+                                    break
+                        elif target.action == "collect":
+                            for item in self.lstVillagerCollect:
+                                if item["unit"] == target:
+                                    self.RessourceCollecting.remove(item["target"])
+                                    self.lstVillagerCollect.remove(item)
+                                    break
+                        #Si l'unité attaquée n'est pas déjà entrain d'attaquer
+                        #Alors on l'ajoute à la liste des unités attaquantes
+                        if target not in self.lstUnitAttack:
+                            self.lstUnitAttack.append({"unit": target, "target": unit, "target_position": (unit.x, unit.y), "playerenemy": self.cplayer})
                         
-                        for item in self.cplayer.queueAttack:
-                            if item["unit"] == target:
-                                self.cplayer.queueAttack.remove(item)
-                                break
-                        
-                        #playerenemy.attack(target, unit, self.cplayer)
-
     def find_adjacent_free_tile(self, resource):
         adjacent_positions = [
             (resource.x - 1, resource.y),
@@ -1009,7 +1024,7 @@ class AI:
 
         #if len(self.cplayer.player.units) >= minUnit:
         
-        if AI.cpt < 1:
+        if AI.cpt < 2:
             self.attack_strategie(minPlayer)
             AI.cpt += 1
     
