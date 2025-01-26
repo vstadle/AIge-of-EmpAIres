@@ -176,6 +176,7 @@ class ControllerGame():
                     cplayer.update_building()
                     cplayer.updating_collect()
                     cplayer.updating_moving()
+                    cplayer.updating_attack()
 
                 self.viewTerminal.draw_map(stdscr)
         
@@ -268,6 +269,7 @@ class ControllerGame():
                     check = cplayer.update_building()
                     cplayer.updating_collect()
                     cplayer.updating_moving()
+                    cplayer.updating_attack()
                     if check == 0:
                         check2 += 1
                 if check2 != 0:

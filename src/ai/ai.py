@@ -28,6 +28,9 @@ from model.Player import Player
 
 from controller import A_Star
 
+from model.Units import Units
+from model.Buildings import Buildings
+
 class AI:
 
     cpt = 0
@@ -44,7 +47,7 @@ class AI:
         
         self.RessourceCollecting = [] #ressource + case adjacente
         self.RessourceDeposit = [] #depot + case adjacente
-
+        self.caseAttack = [] #case attaque + case adjacente
 
     def villager_is_available(self):
         for unit in self.cplayer.player.units:
@@ -273,7 +276,13 @@ class AI:
 
         for item in self.lstVillagerCollect:
 
+
             unit = item["unit"]
+
+            if unit.health <= 0:
+                self.lstVillagerCollect.remove(item)
+                self.RessourceCollecting.remove(item["target"])
+                continue
 
             if unit.action is not None:
                 pass
@@ -381,24 +390,53 @@ class AI:
         for item in self.lstUnitAttack:
             unit = item["unit"]
             
+            if unit.health <= 0:
+                self.lstUnitAttack.remove(item)
+                continue
+            
+            
+            target = item["target"]
+            target_position = item["target_position"]
+            playerenemy = item["playerenemy"]
+            
+            if target.health <= 0:
+                self.lstUnitAttack.remove(item)
+                continue
+            
+            distance_x = abs(target.x - target_position[0])
+            distance_y = abs(target.y - target_position[1])
+            
             if unit.action is not None:
                 pass
         
-                target = item["target"]
-                target_position = item["target_position"]
-                playerenemy = item["playerenemy"]
-                
-                if unit.action is None and unit.x != target_position[0] and unit.y != target_position[1]:
-                    check = self.cplayer.move(unit, target_position[0], target_position[1])
-                    if check == -1:
-                        self.lstUnitAttack.remove(item)
-                        self.attack_target()
+            #logs(self.cplayer.player.name + " :  Unit attack", logging.INFO)
+            
+            if unit.action is None and unit.x != target_position[0] and unit.y != target_position[1]:
+                check = self.cplayer.move(unit, target_position[0], target_position[1])
+                if check == -1:
+                    self.lstUnitAttack.remove(item)
+                    self.attack_target(unit, playerenemy)
+                    
+            elif unit.action is None and (unit.x, unit.y == target_position):
+                check = self.cplayer.attack(unit, target, playerenemy)
+                if check == -1:
+                    self.lstUnitAttack.remove(item)
+                    self.attack_target(unit, playerenemy)
+                else:
+                    
+                    if isinstance(target, Units):
+                    
+                        for item in self.cplayer.queueMoving:
+                            if item["unit"] == target:
+                                self.cplayer.queueMoving.remove(item)
+                                break
                         
-                elif unit.action is None and (unit.x, unit.y == target_position):
-                    check = self.cplayer.attack(unit, target, playerenemy)
-                    if check == -1:
-                        self.lstUnitAttack.remove(item)
-                        self.attack_target(unit, playerenemy)
+                        for item in self.cplayer.queueAttack:
+                            if item["unit"] == target:
+                                self.cplayer.queueAttack.remove(item)
+                                break
+                        
+                        #playerenemy.attack(target, unit, self.cplayer)
 
     def find_adjacent_free_tile(self, resource):
         adjacent_positions = [
@@ -853,37 +891,64 @@ class AI:
         logs(self.cplayer.player.name + " :  Attack strategie", logging.INFO)
 
         for unit in self.cplayer.player.units:
-            if isinstance(unit, Swordsman) or isinstance(unit, Archer) or isinstance(unit, Horseman):
-                self.attack_target(unit, enemy)
+            #if isinstance(unit, Swordsman) or isinstance(unit, Archer) or isinstance(unit, Horseman):
+            self.attack_target(unit, enemy)
 
     def attack_target(self, unit, enemy):
 
         closest_enemy = self.find_target(unit, enemy)
 
         if closest_enemy is not None:
-            target_position = self.find_adjacent_free_tile(closest_enemy)
+            target_position = self.find_adjacent_free_tile_attack(closest_enemy)
             if target_position is not None:
                 self.lstUnitAttack.append({"unit": unit, "target": closest_enemy, "target_position": target_position, "playerenemy": enemy})
+                self.caseAttack.append(target_position)
+                #logs(self.cplayer.player.name + " :  Attack target", logging.INFO)
                 return 0
         else:
             return -1
 
-    def find_adjacent_free_tile(self, unitenemy):
-        adjacent_positions = [
-            (unitenemy.x - 1, unitenemy.y),
-            (unitenemy.x + 1, unitenemy.y),
-            (unitenemy.x, unitenemy.y - 1),
-            (unitenemy.x, unitenemy.y + 1),
-            (unitenemy.x - 1, unitenemy.y - 1),
-            (unitenemy.x + 1, unitenemy.y + 1),
-            (unitenemy.x - 1, unitenemy.y + 1),
-            (unitenemy.x + 1, unitenemy.y - 1),
-        ]
-        for x, y in adjacent_positions:
-            # Vérifie si la case est dans les limites de la carte et est libre
-            if 0 <= x < self.game.map.size_map_x and 0 <= y < self.game.map.size_map_y:
-                if self.game.map.map_entities[x][y] is None:  # La case est libre
-                    return (x, y)
+    def find_adjacent_free_tile_attack(self, unitenemy):
+        
+        if isinstance(unitenemy, Units):
+            
+            adjacent_positions = [
+                (unitenemy.x - 1, unitenemy.y),
+                (unitenemy.x + 1, unitenemy.y),
+                (unitenemy.x, unitenemy.y - 1),
+                (unitenemy.x, unitenemy.y + 1),
+                (unitenemy.x - 1, unitenemy.y - 1),
+                (unitenemy.x + 1, unitenemy.y + 1),
+                (unitenemy.x - 1, unitenemy.y + 1),
+                (unitenemy.x + 1, unitenemy.y - 1),
+            ]
+            for x, y in adjacent_positions:
+                # Vérifie si la case est dans les limites de la carte et est libre
+                if 0 <= x < self.game.map.size_map_x and 0 <= y < self.game.map.size_map_y:
+                    if self.game.map.map[x][y] == " " and unitenemy not in self.caseAttack:  # La case est libre
+                        return (x, y)
+        
+        elif isinstance(unitenemy, Buildings):
+            
+            adjacent_positions = []
+            for dx in range(-1, unitenemy.sizeMap + 1):
+                adjacent_positions.append((unitenemy.x + dx, unitenemy.y - 1))  # Haut
+                adjacent_positions.append((unitenemy.x + dx, unitenemy.y + unitenemy.sizeMap))  # Bas
+            for dy in range(-1, unitenemy.sizeMap + 1):
+                adjacent_positions.append((unitenemy.x - 1, unitenemy.y + dy))  # Gauche
+                adjacent_positions.append((unitenemy.x + unitenemy.sizeMap, unitenemy.y + dy))  # Droite
+
+                # Vérifie les cases adjacentes pour trouver une case libre
+                for adj_x, adj_y in adjacent_positions:
+                    if (
+                        0 <= adj_x < self.game.map.size_map_x and
+                        0 <= adj_y < self.game.map.size_map_y and
+                        self.game.map.map[adj_x][adj_y] == " " and
+                        (adj_x, adj_y) not in self.caseAttack 
+                         # Vérifie que la case est libre
+                    ):
+                        return (adj_x, adj_y)
+            
 
     def find_target(self, unit, enemy):
 
@@ -891,10 +956,18 @@ class AI:
         min_distance = float('inf')
 
         for enemy_unit in enemy.player.units:
+            
             distance = abs(unit.x - enemy_unit.x) + abs(unit.y - enemy_unit.y)
             if distance < min_distance:
                 min_distance = distance
                 closest_enemy = enemy_unit
+                
+        for building in enemy.player.buildings:
+         
+            distance = abs(unit.x - building.x) + abs(unit.y - building.y)
+            if distance < min_distance:
+                min_distance = distance
+                closest_enemy = building
 
         return closest_enemy
 
@@ -980,26 +1053,29 @@ class AI:
         ''' Choix de la stratégie de l'IA '''
         ''' On choisit une stratégie en fonction de la situation de l'IA '''
 
-        if self.cplayer.player.gold < 300 and self.cplayer.player.wood < 300:
-            self.collect_strategie()
+        #if self.cplayer.player.gold < 300 and self.cplayer.player.wood < 300:
+        #     self.collect_strategie()
 
-        elif self.cplayer.player.food < 300 and len(self.cplayer.player.units) < 30:
-            self.expansion_strategie()
+        #elif self.cplayer.player.food < 300 and len(self.cplayer.player.units) < 30:
+        #    self.expansion_strategie()
 
-        elif self.cplayer.player.food > 1000 and self.cplayer.player.gold > 1000 and self.cplayer.player.wood > 1000:
-            self.reforcement_strategie()
+        #elif self.cplayer.player.food > 1000 and self.cplayer.player.gold > 1000 and self.cplayer.player.wood > 1000:
+        #    self.reforcement_strategie()
 
         lstNbUnitPerPlayer = []
-        minUnit = 0
+        minUnit = float('inf')
         minPlayer = None
         for cPlayer in lstcPlayer:
             if cPlayer != self.cplayer:
-                if minUnit < len(cPlayer.player.units):
+                if minUnit > len(cPlayer.player.units):
                     minUnit = len(cPlayer.player.units)
                     minPlayer = cPlayer
 
-        if len(self.cplayer.player.units) > minUnit:
+        #if len(self.cplayer.player.units) >= minUnit:
+        
+        if AI.cpt < 1:
             self.attack_strategie(minPlayer)
+            AI.cpt += 1
     
     def update(self):
         self.verifBuilding()
