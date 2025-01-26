@@ -13,6 +13,7 @@ from model.TownCenter import TownCenter
 from view.Camera import Camera
 from model.Ressources import Ressources
 from model.Units import Units
+from model.Buildings import Buildings
 
 
 class ViewPygame:
@@ -68,6 +69,7 @@ class ViewPygame:
                 True,
                 (255, 255, 255)
             )
+        
     
     def _load_images(self):
         current_dir = os.path.dirname(os.path.abspath(__file__))
@@ -249,6 +251,26 @@ class ViewPygame:
                             self._add_building_to_render_list(
                                 entity, x, y, screen_x, screen_y, render_list
                             )
+                        if hasattr(entity, 'health_bar') and hasattr(entity, 'health') and not isinstance(entity, Buildings):
+                            # Specific offsets for different entity types
+                            offsets = {
+                                'Villager': (50, -30),
+                                'Swordsman': (40, -45),
+                                'Archer': (25, -15),
+                                'Horseman': (30, -25),
+                                
+                            }
+
+                            # Get class name and corresponding offset
+                            class_name = entity.__class__.__name__
+                            offset_x, offset_y = offsets.get(class_name, (25, -15))
+
+                            health_bar_x = screen_x + offset_x
+                            health_bar_y = screen_y + offset_y
+
+                            # Update and draw health bar
+                            entity.health_bar.update(entity.health)
+                            entity.health_bar.draw(self.screen, health_bar_x, health_bar_y)
 
         # Rendu trié par profondeur
         for _, (sprite, pos) in sorted(render_list, key=lambda x: x[0]):
@@ -285,80 +307,86 @@ class ViewPygame:
                 (255, 255, 255)
             )
     def _add_building_to_render_list(self, building, x, y, screen_x, screen_y, render_list):
-        #Méthode auxiliaire pour ajouter les bâtiments à la liste de rendu
-        
-        if isinstance(building, TownCenter):
-            if (y == 0 or not isinstance(self.map.get_map_entities()[x - 1][y], TownCenter)) and \
-               (x == 0 or not isinstance(self.map.get_map_entities()[x][y - 1], TownCenter)):
-                sprite_x = screen_x - self.cached_sprites['towncenter'].get_width()//2 + 1.5*self.TILE_SIZE
-                sprite_y = screen_y - self.cached_sprites['towncenter'].get_height() + 2.7 * self.TILE_SIZE
-                render_list.append((
-                    screen_y + self.TILE_SIZE * 4,
-                    (self.cached_sprites['towncenter'], (sprite_x, sprite_y))
-                ))
-        elif isinstance(building, Barracks):
-            if (x == 0 or not isinstance(self.map.get_map_entities()[x - 1][y], Barracks)) and \
-               (y == 0 or not isinstance(self.map.get_map_entities()[x][y - 1], Barracks)):
-                sprite_x = screen_x - self.cached_sprites['barracks'].get_width()//2 + self.TILE_SIZE
-                sprite_y = screen_y - self.cached_sprites['barracks'].get_height()//2 +0.5*self.TILE_SIZE
-                render_list.append((
-                    screen_y + self.TILE_SIZE * 2,
-                    (self.cached_sprites['barracks'], (sprite_x, sprite_y))
-                ))
-        elif isinstance(building, ArcheryRange):
-            if (x == 0 or not isinstance(self.map.get_map_entities()[x - 1][y], ArcheryRange)) and \
-            (y == 0 or not isinstance(self.map.get_map_entities()[x][y - 1], ArcheryRange)):
-                sprite_x = screen_x - self.cached_sprites['archeryrange'].get_width()//2 + 1.5*self.TILE_SIZE
-                sprite_y = screen_y - self.cached_sprites['archeryrange'].get_height()//2+0.5*self.TILE_SIZE
-                render_list.append((
-                    screen_y + self.TILE_SIZE * 2,
-                    (self.cached_sprites['archeryrange'], (sprite_x, sprite_y))
-                ))
-        elif isinstance(building, Stable):
-            if (y == 0 or not isinstance(self.map.get_map_entities()[x - 1][y], Stable)) and \
-            (x == 0 or not isinstance(self.map.get_map_entities()[x][y - 1], Stable)):
-                sprite_x = screen_x - self.cached_sprites['stable'].get_width()//2 + self.TILE_SIZE
-                sprite_y = screen_y - self.cached_sprites['stable'].get_height()//2 + 0.5*self.TILE_SIZE
-                render_list.append((
-                    screen_y + self.TILE_SIZE * 2,
-                    (self.cached_sprites['stable'], (sprite_x, sprite_y))
-                ))
-        elif isinstance(building, Farm):  # Ajout de la condition pour la ferme
-            if (y == 0 or not isinstance(self.map.get_map_entities()[x - 1][y], Farm)) and \
-            (x == 0 or not isinstance(self.map.get_map_entities()[x][y - 1], Farm)):
-                sprite_x = screen_x - self.cached_sprites['farm'].get_width()//2 + self.TILE_SIZE
-                sprite_y = screen_y - self.cached_sprites['farm'].get_height()//2 + 1.5*self.TILE_SIZE
-                render_list.append((
-                    screen_y + self.TILE_SIZE * 2,
-                    (self.cached_sprites['farm'], (sprite_x, sprite_y))
-                ))
-        elif isinstance(building, House):
-            if (y == 0 or not isinstance(self.map.get_map_entities()[x - 1][y], House)) and \
-            (x == 0 or not isinstance(self.map.get_map_entities()[x][y - 1], House)):
-                sprite_x = screen_x - self.cached_sprites['house'].get_width()//2 + self.TILE_SIZE
-                sprite_y = screen_y - self.cached_sprites['house'].get_height()//2 + self.TILE_SIZE//2
-                render_list.append((
-                    screen_y + self.TILE_SIZE * 2,
-                    (self.cached_sprites['house'], (sprite_x, sprite_y))
-                ))
-        elif isinstance(building, Camp):
-            if (y == 0 or not isinstance(self.map.get_map_entities()[x - 1][y], Camp)) and \
-            (x == 0 or not isinstance(self.map.get_map_entities()[x][y - 1], Camp)):
-                sprite_x = screen_x - self.cached_sprites['camp'].get_width()//2 + self.TILE_SIZE
-                sprite_y = screen_y - self.cached_sprites['camp'].get_height()//2 + self.TILE_SIZE//2
-                render_list.append((
-                    screen_y + self.TILE_SIZE * 2,
-                    (self.cached_sprites['camp'], (sprite_x, sprite_y))
-                ))
-        elif isinstance(building, Keep):
-            if (y == 0 or not isinstance(self.map.get_map_entities()[x - 1][y], Keep)) and \
-            (x == 0 or not isinstance(self.map.get_map_entities()[x][y - 1], Keep)):
-                sprite_x = screen_x - self.cached_sprites['keep'].get_width()//2 + self.TILE_SIZE
-                sprite_y = screen_y - self.cached_sprites['keep'].get_height()//2 - 0.5 * self.TILE_SIZE + 10
-                render_list.append((
-                    screen_y + self.TILE_SIZE * 2,
-                    (self.cached_sprites['keep'], (sprite_x, sprite_y))
-                ))
+        # Vérifie si c'est la tuile principale (en haut à gauche) du bâtiment
+        is_primary_tile = (
+            (y == 0 or not isinstance(self.map.get_map_entities()[x - 1][y], building.__class__)) and
+            (x == 0 or not isinstance(self.map.get_map_entities()[x][y - 1], building.__class__))
+        )
+
+        if is_primary_tile:
+            sprite_key = building.__class__.__name__.lower()
+            
+            # Ajustements spécifiques pour chaque type de bâtiment
+            offset_map = {
+                'towncenter': (
+                    -self.cached_sprites['towncenter'].get_width()//2 + 1.5*self.TILE_SIZE, 
+                    -self.cached_sprites['towncenter'].get_height() + 2.7 * self.TILE_SIZE
+                ),
+                'barracks': (
+                    -self.cached_sprites['barracks'].get_width()//2 + self.TILE_SIZE, 
+                    -self.cached_sprites['barracks'].get_height()//2 + 0.5*self.TILE_SIZE
+                ),
+                'archeryrange': (
+                    -self.cached_sprites['archeryrange'].get_width()//2 + 1.5*self.TILE_SIZE, 
+                    -self.cached_sprites['archeryrange'].get_height()//2 + 0.5*self.TILE_SIZE
+                ),
+                'stable': (
+                    -self.cached_sprites['stable'].get_width()//2 + self.TILE_SIZE, 
+                    -self.cached_sprites['stable'].get_height()//2 + 0.5*self.TILE_SIZE
+                ),
+                'farm': (
+                    -self.cached_sprites['farm'].get_width()//2 + self.TILE_SIZE, 
+                    -self.cached_sprites['farm'].get_height()//2 + 1.5*self.TILE_SIZE
+                ),
+                'house': (
+                    -self.cached_sprites['house'].get_width()//2 + self.TILE_SIZE, 
+                    -self.cached_sprites['house'].get_height()//2 + self.TILE_SIZE//2
+                ),
+                'camp': (
+                    -self.cached_sprites['camp'].get_width()//2 + self.TILE_SIZE, 
+                    -self.cached_sprites['camp'].get_height()//2 + self.TILE_SIZE//2
+                ),
+                'keep': (
+                    -self.cached_sprites['keep'].get_width()//2 + self.TILE_SIZE, 
+                    -self.cached_sprites['keep'].get_height()//2 - 0.5 * self.TILE_SIZE + 10
+                )
+            }
+
+            sprite_offset_x, sprite_offset_y = offset_map.get(sprite_key, (0, 0))
+            
+            sprite_x = screen_x + sprite_offset_x
+            sprite_y = screen_y + sprite_offset_y
+
+            render_list.append((
+                screen_y + self.TILE_SIZE * 2,
+                (self.cached_sprites[sprite_key], (sprite_x, sprite_y))
+            ))
+
+            # Dessiner la barre de vie centrée sur le bâtiment
+            sprite = self.cached_sprites[sprite_key]
+            
+            health_bar_offsets = {
+                'TownCenter': (-5, -5),
+                'Barracks': (-20, -15),
+                'ArcheryRange': (-25, -10),
+                'Stable': (-30, -15),
+                'Farm': (-20, -10),
+                'House': (-15, -10),
+                'Camp': (-20, -10),
+                'Keep': (-20, -15)
+            }
+
+            # Get the class name and corresponding offset
+            class_name = building.__class__.__name__
+            offset_x, offset_y = health_bar_offsets.get(class_name, (-25, -10))  # Default offset if not specified
+
+            if hasattr(building, 'health_bar') and hasattr(building, 'health'):
+                health_bar_x = sprite_x + sprite.get_width() // 2 + offset_x
+                health_bar_y = sprite_y + offset_y
+
+                building.health_bar.update(building.health)
+                building.health_bar.draw(self.screen, health_bar_x, health_bar_y)
+                building.health_bar.draw(self.screen, health_bar_x, health_bar_y)
 
     def grid_to_world(self, grid_x, grid_y):
         # Calculer les coordonnées cartésiennes de la tuile

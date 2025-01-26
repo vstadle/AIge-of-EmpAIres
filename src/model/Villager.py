@@ -1,4 +1,5 @@
 from model.Units import Units
+from view.HealthBar import HealthBar
 
 class Villager(Units):
 
@@ -9,6 +10,11 @@ class Villager(Units):
         self.carrying = 0
         self.carryingType = None
         self.attackNotUnit = 2
+        self.health_bar = HealthBar(
+            max_health=self.max_health, 
+            width=40,  # Adjust based on sprite size
+            height=5   # Adjust based on preference
+        )
     
     def __repr__(self):
         return "Villager :(HP : %r)" % (self.health)
@@ -23,3 +29,4 @@ class Villager(Units):
 
     def canCollectRessources(self):
         return self.carrying < self.carryingCapacity
+    

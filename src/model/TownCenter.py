@@ -1,5 +1,6 @@
 from model.Buildings import Buildings
 from model.Villager import Villager
+from view.HealthBar import HealthBar
 
 class TownCenter(Buildings):
 
@@ -7,6 +8,11 @@ class TownCenter(Buildings):
         super().__init__(350, 150, 1000, 4, 'T')
         self.competence2 = "Drop points of resources"
         self.population = 5
+        self.health_bar = HealthBar(
+            max_health=self.max_health, 
+            width=40,  # Adjust based on sprite size
+            height=5   # Adjust based on preference
+        )
 
     def __repr__(self):
         return "TownCenter(HP: %r, x: %r, y: %r)" % (self.health, self.x, self.y)
@@ -22,3 +28,5 @@ class TownCenter(Buildings):
 
     def spawnVillager(self):
         return Villager()
+
+    

@@ -1,13 +1,13 @@
+from view.HealthBar import HealthBar  # Assurez-vous que le chemin est correct
 
 class Units():
-
-
     #Parameters costF: int, costG: int, costW: int, health: int, trainingTime: int, attack: int, speedAtack: int, speed: int, range: int
     def __init__(self, costF, costG, costW, health, trainingTime, attack, speedAtack, speed, range, letter):
         self.costF = costF
         self.costG = costG
         self.costW = costW
-        self.health = health
+        self.max_health = health  # Define max_health first
+        self.health = health      # Current health starts at max
         self.trainingTime = trainingTime
         self.attack = attack
         self.speedAtack = speedAtack
@@ -17,6 +17,11 @@ class Units():
         self.action = None
         self.x = None
         self.y = None
+        self.health_bar = HealthBar(
+            max_health=self.max_health, 
+            width=40,  # Adjust width as needed
+            height=4   # Adjust height as needed
+        )
 
     def __repr__(self):
         return "Units(%r, %r, %r, %r, %r)" % (self.health, self.attack, self.speedAtack, self.speed, self.range)

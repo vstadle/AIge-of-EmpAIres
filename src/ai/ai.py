@@ -438,19 +438,46 @@ class AI:
                         
                         #playerenemy.attack(target, unit, self.cplayer)
 
-    def find_adjacent_free_tile(self, resource):
-        adjacent_positions = [
-            (resource.x - 1, resource.y),
-            (resource.x + 1, resource.y),
-            (resource.x, resource.y - 1),
-            (resource.x, resource.y + 1),
-        ]
-        for x, y in adjacent_positions:
-            # Vérifie si la case est dans les limites de la carte et est libre
-            if 0 <= x < self.game.map.size_map_x and 0 <= y < self.game.map.size_map_y:
-                if self.game.map.map[x][y] == " ":  # Vérifie qu'aucune ressource, batiment ou unité n'occupe cette case
-                    return (x, y)
-        return None
+    def find_adjacent_free_tile_attack(self, unitenemy):
+        
+        if isinstance(unitenemy, Units):
+            
+            adjacent_positions = [
+                (unitenemy.x - 1, unitenemy.y),
+                (unitenemy.x + 1, unitenemy.y),
+                (unitenemy.x, unitenemy.y - 1),
+                (unitenemy.x, unitenemy.y + 1),
+                (unitenemy.x - 1, unitenemy.y - 1),
+                (unitenemy.x + 1, unitenemy.y + 1),
+                (unitenemy.x - 1, unitenemy.y + 1),
+                (unitenemy.x + 1, unitenemy.y - 1),
+            ]
+            for x, y in adjacent_positions:
+                # Vérifie si la case est dans les limites de la carte et est libre
+                if 0 <= x < self.game.map.size_map_x and 0 <= y < self.game.map.size_map_y:
+                    if self.game.map.map[x][y] == " " and (x, y) not in self.caseAttack:  # La case est libre
+                        return (x, y)
+        
+        elif isinstance(unitenemy, Buildings):
+            
+            adjacent_positions = []
+            for dx in range(-1, unitenemy.sizeMap + 1):
+                adjacent_positions.append((unitenemy.x + dx, unitenemy.y - 1))  # Haut
+                adjacent_positions.append((unitenemy.x + dx, unitenemy.y + unitenemy.sizeMap))  # Bas
+            for dy in range(-1, unitenemy.sizeMap + 1):
+                adjacent_positions.append((unitenemy.x - 1, unitenemy.y + dy))  # Gauche
+                adjacent_positions.append((unitenemy.x + unitenemy.sizeMap, unitenemy.y + dy))  # Droite
+
+                # Vérifie les cases adjacentes pour trouver une case libre
+                for adj_x, adj_y in adjacent_positions:
+                    if (
+                        0 <= adj_x < self.game.map.size_map_x and
+                        0 <= adj_y < self.game.map.size_map_y and
+                        self.game.map.map[adj_x][adj_y] == " " and
+                        (adj_x, adj_y) not in self.caseAttack 
+                         # Vérifie que la case est libre
+                    ):
+                        return (adj_x, adj_y)
 
     def is_gold_accessible(self, resource):
         adjacent_positions = [
@@ -891,8 +918,9 @@ class AI:
         logs(self.cplayer.player.name + " :  Attack strategie", logging.INFO)
 
         for unit in self.cplayer.player.units:
+            if not isinstance(unit, Keep):
             #if isinstance(unit, Swordsman) or isinstance(unit, Archer) or isinstance(unit, Horseman):
-            self.attack_target(unit, enemy)
+                self.attack_target(unit, enemy)
 
     def attack_target(self, unit, enemy):
 
@@ -901,6 +929,8 @@ class AI:
         if closest_enemy is not None:
             target_position = self.find_adjacent_free_tile_attack(closest_enemy)
             if target_position is not None:
+                print(f"Attacking {enemy} with {unit}")
+                
                 self.lstUnitAttack.append({"unit": unit, "target": closest_enemy, "target_position": target_position, "playerenemy": enemy})
                 self.caseAttack.append(target_position)
                 #logs(self.cplayer.player.name + " :  Attack target", logging.INFO)
@@ -951,24 +981,28 @@ class AI:
             
 
     def find_target(self, unit, enemy):
-
         closest_enemy = None
         min_distance = float('inf')
 
-        for enemy_unit in enemy.player.units:
-            
-            distance = abs(unit.x - enemy_unit.x) + abs(unit.y - enemy_unit.y)
-            if distance < min_distance:
-                min_distance = distance
-                closest_enemy = enemy_unit
-                
-        for building in enemy.player.buildings:
-         
-            distance = abs(unit.x - building.x) + abs(unit.y - building.y)
-            if distance < min_distance:
-                min_distance = distance
-                closest_enemy = building
+        if isinstance(unit, Keep):
+            for enemy_unit in enemy.player.units:
+                distance = abs(unit.x - enemy_unit.x) + abs(unit.y - enemy_unit.y)
+                if distance <= 5 and distance < min_distance:
+                    min_distance = distance
+                    closest_enemy = enemy_unit
+        else:
+            for enemy_unit in enemy.player.units:
+                distance = abs(unit.x - enemy_unit.x) + abs(unit.y - enemy_unit.y)
+                if distance < min_distance:
+                    min_distance = distance
+                    closest_enemy = enemy_unit
 
+            for building in enemy.player.buildings:
+                distance = abs(unit.x - building.x) + abs(unit.y - building.y)
+                if distance < min_distance:
+                    min_distance = distance
+                    closest_enemy = building
+        
         return closest_enemy
 
     def reforcement_strategie(self):
@@ -1053,14 +1087,14 @@ class AI:
         ''' Choix de la stratégie de l'IA '''
         ''' On choisit une stratégie en fonction de la situation de l'IA '''
 
-        #if self.cplayer.player.gold < 300 and self.cplayer.player.wood < 300:
-        #     self.collect_strategie()
+        '''if self.cplayer.player.gold < 300 and self.cplayer.player.wood < 300:
+            self.collect_strategie()
 
-        #elif self.cplayer.player.food < 300 and len(self.cplayer.player.units) < 30:
-        #    self.expansion_strategie()
+        elif self.cplayer.player.food < 300 and len(self.cplayer.player.units) < 30:
+            self.expansion_strategie()
 
-        #elif self.cplayer.player.food > 1000 and self.cplayer.player.gold > 1000 and self.cplayer.player.wood > 1000:
-        #    self.reforcement_strategie()
+        elif self.cplayer.player.food > 1000 and self.cplayer.player.gold > 1000 and self.cplayer.player.wood > 1000:
+            self.reforcement_strategie()'''
 
         lstNbUnitPerPlayer = []
         minUnit = float('inf')
@@ -1082,3 +1116,19 @@ class AI:
         self.verifCollectVillager()
         self.verifUnit()
         self.verifUnitAttack()
+        self.keep_attack_target(self.game.lstPlayer)
+    
+    def keep_attack_target(self, players_list):
+        """
+        Gère les attaques des keeps. Chaque keep attaque si des unités ennemies sont à portée.
+        """
+        for building in self.cplayer.player.buildings:
+            if isinstance(building, Keep):
+                for player_enemy in players_list:
+                    if player_enemy != self.cplayer.player: # On compare avec self.cplayer.player
+                        for enemy_unit in player_enemy.units:
+                            distance = abs(building.x - enemy_unit.x) + abs(building.y - enemy_unit.y)
+                            if distance <= 5:
+                                logs(self.cplayer.player.name + f" :  Keep attaque {enemy_unit}", logging.INFO)
+                                self.cplayer.attack(building, enemy_unit, player_enemy)
+                                break
