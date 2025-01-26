@@ -637,7 +637,7 @@ class ControllerPlayer():
                         if enemy.health > 0:
                             enemy.health -= unit.attack
                             item["start_time"] = time.time()
-                        if enemy.health <= 0:
+                        if enemy.health == 0:
                             
                             #On supprime l'ennemi de la carte
                             self.cmap.map.map_entities[enemy.x][enemy.y] = None

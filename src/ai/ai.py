@@ -473,7 +473,9 @@ class AI:
                 #On vérifie si l'unité a bougé
                 if distance_x > 1 or distance_y > 1:
                     #logs(self.cplayer.player.name + " :  Unit is moving recalculate path to attack", logging.INFO)
-                    self.lstUnitAttack.remove(item)
+                    for item in self.lstUnitAttack:
+                        if item["unit"] == unit:
+                            self.lstUnitAttack.remove(item)
                     #On retire l'unité de la queue de déplacement
                     self.cplayer.stopMoving(unit)
                     self.attack_target(unit, playerenemy)
@@ -487,18 +489,16 @@ class AI:
             #Si l'unité n'est pas à coté de l'unité cible alors on la déplace
             if unit.action is None and unit.x != target_position[0] and unit.y != target_position[1]:
                 check = self.cplayer.move(unit, target_position[0], target_position[1])
-                #Si aucun chemin n'est trouvé alors on retire l'unité de la liste des unités attaquantes
-                #Et on la remet dans la liste des unités qui veulent attaquer
-                if check == -1:
-                    self.lstUnitAttack.remove(item)
-                    self.attack_target(unit, playerenemy)
                     
             #Si l'unité est arrivée à destination alors on attaque a troupe ennemie
             elif unit.action is None and (unit.x, unit.y == target_position) and target.health > 0 and unit.health > 0:
                 check = self.cplayer.attack(unit, target, playerenemy)
                 if check == -1:
-                    self.lstUnitAttack.remove(item)
-                    self.attack_target(unit, playerenemy)
+                    for item in self.lstUnitAttack:
+                        if item["unit"] == unit:
+                            self.lstUnitAttack.remove(item)
+                            self.attack_target(unit, playerenemy)
+                            break
                 #Si l'on attaque une unité alors celle-ci riposte
                 else:
                     #Seul les unités peuvent attaquer
