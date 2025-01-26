@@ -404,12 +404,6 @@ class AI:
                         if unit.action == "attack":
                             self.cplayer.stopAttacking(unit)
                         break
-                for item in self.lstUnitAttack:
-                    if item["target"] == unit:
-                        self.lstUnitAttack.remove(item)
-                        if target.action == "attack":
-                            playerenemy.stopAttacking(target)
-                        break
                     
             #On vérifie si l'enemy est mort
             #Si il est mort alors on arrête de vouloir l'attaquer
@@ -1148,8 +1142,10 @@ class AI:
                     minPlayer = cPlayer
 
         #if len(self.cplayer.player.units) >= minUnit:
+        #if AI.cpt < 1:
         self.attack_strategie(minPlayer)
-    
+            #AI.cpt += 1
+            
     def update(self):
         self.verifBuilding()
         self.verifCollectVillager()
