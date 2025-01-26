@@ -391,7 +391,14 @@ class AI:
             unit = item["unit"]
             
             if unit.health <= 0:
-                self.lstUnitAttack.remove(item)
+                for item in self.lstUnitAttack:
+                    if item["unit"] == unit:
+                        self.lstUnitAttack.remove(item)
+                        break
+                for item in self.cplayer.queueAttack:
+                    if item["unit"] == unit:
+                        self.cplayer.queueAttack.remove(item)
+                        break
                 continue
             
             
@@ -411,9 +418,10 @@ class AI:
                         for tempunit in self.cplayer.queueMoving:
                             if tempunit["unit"] == unit:
                                 self.cplayer.queueMoving.remove(tempunit)
+                                unit.action = None
                                 
                     self.attack_target(unit, playerenemy)
-            
+                    continue
             
             if unit.action is not None:
                 pass
@@ -441,26 +449,20 @@ class AI:
                             for temp in playerenemy.queueMoving:
                                 if temp["unit"] == target:
                                     playerenemy.queueMoving.remove(temp)
+                                    target.action = None
                                     break
                         elif target.action == "collect":
                             for item in self.lstVillagerCollect:
                                 if item["unit"] == target:
                                     self.RessourceCollecting.remove(item["target"])
                                     self.lstVillagerCollect.remove(item)
+                                    target.action = None
                                     break
                         #Si l'unité attaquée n'est pas déjà entrain d'attaquer
                         #Alors on l'ajoute à la liste des unités attaquantes
-                        if target.action == "attack":
-                            for temp in playerenemy.queueAttacking:
-                                if temp["unit"] == target:
-                                    playerenemy.queueAttacking.remove(temp)
-                                    break
-                            for temp in self.lstUnitAttack:
-                                if temp["unit"] == target:
-                                    self.lstUnitAttack.remove(temp)
-                                    break
-                        self.lstUnitAttack.append({"unit": target, "target": unit, "target_position": (unit.x, unit.y), "playerenemy": self.cplayer})
-                        
+                        if target.action != "attack":
+                            self.attack_target(target, self.cplayer)
+                            
     def find_adjacent_free_tile(self, resource):
         adjacent_positions = [
             (resource.x - 1, resource.y),
@@ -985,12 +987,12 @@ class AI:
                 min_distance = distance
                 closest_enemy = enemy_unit
                 
-        for building in enemy.player.buildings:
+        #for building in enemy.player.buildings:
          
-            distance = abs(unit.x - building.x) + abs(unit.y - building.y)
-            if distance < min_distance:
-                min_distance = distance
-                closest_enemy = building
+        #    distance = abs(unit.x - building.x) + abs(unit.y - building.y)
+        #    if distance < min_distance:
+        #        min_distance = distance
+        #        closest_enemy = building
 
         return closest_enemy
 
@@ -1096,9 +1098,7 @@ class AI:
 
         #if len(self.cplayer.player.units) >= minUnit:
         
-        if AI.cpt < 2:
-            self.attack_strategie(minPlayer)
-            AI.cpt += 1
+        self.attack_strategie(minPlayer)
     
     def update(self):
         self.verifBuilding()

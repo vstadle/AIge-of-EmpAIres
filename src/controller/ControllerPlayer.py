@@ -600,7 +600,7 @@ class ControllerPlayer():
             distance_y = abs(enemy.y - unit.y)
         
         if distance_x <= unit.range and distance_y <= unit.range:
-            logs(self.player.name + " : " + str(unit) + " is attacking", level=logging.INFO)
+            logs(self.player.name + " : " + str(unit) + " is attacking : + " + str(enemy), level=logging.INFO)
             unit.action = "attack"
             start_time = time.time()
             self.queueAttack.append({"unit": unit, "start_time": start_time, "enemy": enemy, "playerenemy": playerenemy})
