@@ -404,12 +404,6 @@ class AI:
                         if unit.action == "attack":
                             self.cplayer.stopAttacking(unit)
                         break
-                for item in self.lstUnitAttack:
-                    if item["target"] == unit:
-                        self.lstUnitAttack.remove(item)
-                        if target.action == "attack":
-                            playerenemy.stopAttacking(target)
-                        break
                     
             #On vérifie si l'enemy est mort
             #Si il est mort alors on arrête de vouloir l'attaquer
@@ -473,7 +467,9 @@ class AI:
                 #On vérifie si l'unité a bougé
                 if distance_x > 1 or distance_y > 1:
                     #logs(self.cplayer.player.name + " :  Unit is moving recalculate path to attack", logging.INFO)
-                    self.lstUnitAttack.remove(item)
+                    for item in self.lstUnitAttack:
+                        if item["unit"] == unit:
+                            self.lstUnitAttack.remove(item)
                     #On retire l'unité de la queue de déplacement
                     self.cplayer.stopMoving(unit)
                     self.attack_target(unit, playerenemy)
@@ -487,18 +483,16 @@ class AI:
             #Si l'unité n'est pas à coté de l'unité cible alors on la déplace
             if unit.action is None and unit.x != target_position[0] and unit.y != target_position[1]:
                 check = self.cplayer.move(unit, target_position[0], target_position[1])
-                #Si aucun chemin n'est trouvé alors on retire l'unité de la liste des unités attaquantes
-                #Et on la remet dans la liste des unités qui veulent attaquer
-                if check == -1:
-                    self.lstUnitAttack.remove(item)
-                    self.attack_target(unit, playerenemy)
                     
             #Si l'unité est arrivée à destination alors on attaque a troupe ennemie
             elif unit.action is None and (unit.x, unit.y == target_position) and target.health > 0 and unit.health > 0:
                 check = self.cplayer.attack(unit, target, playerenemy)
                 if check == -1:
-                    self.lstUnitAttack.remove(item)
-                    self.attack_target(unit, playerenemy)
+                    for item in self.lstUnitAttack:
+                        if item["unit"] == unit:
+                            self.lstUnitAttack.remove(item)
+                            self.attack_target(unit, playerenemy)
+                            break
                 #Si l'on attaque une unité alors celle-ci riposte
                 else:
                     #Seul les unités peuvent attaquer
@@ -963,7 +957,7 @@ class AI:
             self.collectWood()
 
     def attack_strategie(self, enemy):
-
+        
         logs(self.cplayer.player.name + " :  Attack strategie", logging.INFO)
 
         for unit in self.cplayer.player.units:
@@ -971,7 +965,7 @@ class AI:
             self.attack_target(unit, enemy)
 
     def attack_target(self, unit, enemy):
-
+        
         closest_enemy = self.find_target(unit, enemy)
 
         if closest_enemy is not None:
@@ -1129,14 +1123,14 @@ class AI:
         ''' Choix de la stratégie de l'IA '''
         ''' On choisit une stratégie en fonction de la situation de l'IA '''
 
-        #if self.cplayer.player.gold < 300 and self.cplayer.player.wood < 300:
-        #     self.collect_strategie()
+        if self.cplayer.player.gold < 300 and self.cplayer.player.wood < 300:
+             self.collect_strategie()
 
-        #elif self.cplayer.player.food < 300 and len(self.cplayer.player.units) < 30:
-        #    self.expansion_strategie()
+        elif self.cplayer.player.food < 300 and len(self.cplayer.player.units) < 30:
+            self.expansion_strategie()
 
-        #elif self.cplayer.player.food > 1000 and self.cplayer.player.gold > 1000 and self.cplayer.player.wood > 1000:
-        #    self.reforcement_strategie()
+        elif self.cplayer.player.food > 1000 and self.cplayer.player.gold > 1000 and self.cplayer.player.wood > 1000:
+            self.reforcement_strategie()
 
         lstNbUnitPerPlayer = []
         minUnit = float('inf')
@@ -1148,8 +1142,10 @@ class AI:
                     minPlayer = cPlayer
 
         #if len(self.cplayer.player.units) >= minUnit:
-        self.attack_strategie(minPlayer)
-    
+        #if AI.cpt < 1:
+        #self.attack_strategie(minPlayer)
+            #AI.cpt += 1
+            
     def update(self):
         self.verifBuilding()
         self.verifCollectVillager()

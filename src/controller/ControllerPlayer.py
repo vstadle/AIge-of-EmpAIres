@@ -236,20 +236,6 @@ class ControllerPlayer():
 
     def update_building(self):
         current_time = time.time()
-        
-        # Liste pour stocker les bâtiments à supprimer
-        buildings_to_remove = []
-    
-        for building in self.player.buildings:
-            if building.getHp() <= 0:
-                buildings_to_remove.append(building)
-            # Remove buildings with 0 HP
-        if len(buildings_to_remove) > 0:
-            for building in buildings_to_remove:
-                self.cmap.rmBuilding(building)
-                self.player.buildings.remove(building)
-            return 0 # On retourne 0 quand un bâtiment est supprimé
-
         for item in self.player.getBuildingQueue()[:]:
             building = item["building"]
             player = item["player"]
@@ -645,7 +631,7 @@ class ControllerPlayer():
                         if enemy.health > 0:
                             enemy.health -= unit.attack
                             item["start_time"] = time.time()
-                        if enemy.health <= 0:
+                        if enemy.health == 0:
                             
                             #On supprime l'ennemi de la carte
                             self.cmap.map.map_entities[enemy.x][enemy.y] = None
