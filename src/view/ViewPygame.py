@@ -88,7 +88,8 @@ class ViewPygame:
             "camp": os.path.join(project_root, "Sprite_aoe/buildings/lumber_camp.png"),
             "keep": os.path.join(project_root, "Sprite_aoe/buildings/keep.png"),
             "horseman": os.path.join(project_root, "Sprite_aoe/villager/Horsearcherstand011.png"),
-            "archer": os.path.join(project_root, "Sprite_aoe/villager/Archerstand001.png")
+            "archer": os.path.join(project_root, "Sprite_aoe/villager/Archerstand001.png"),
+            "swordsman": os.path.join(project_root, "Sprite_aoe/villager/Longswordstand001.png"),
         }
         
         return {name: pygame.image.load(path).convert_alpha() 
@@ -147,6 +148,9 @@ class ViewPygame:
             'gold':pygame.transform.scale(self.tiles["gold"],
                 (1.76*self.TILE_SIZE,1.08* self.TILE_SIZE) 
             ),
+            'swordsman':pygame.transform.scale(self.tiles["swordsman"],
+                (0.99*self.TILE_SIZE,1.62* self.TILE_SIZE) 
+            ),
 
         }
 
@@ -186,8 +190,8 @@ class ViewPygame:
         max_grid_x, max_grid_y = self.world_to_grid(camera_x + self.width/2, camera_y + self.height/2)
 
         # Calculer des bornes supplémentaires avec un padding plus large
-        padding_x = int(self.width / self.TILE_SIZE) + 4  # Augmenté de 2 à 4
-        padding_y = int(self.height / self.TILE_SIZE) + 4  # Augmenté de 2 à 4
+        padding_x = int(self.width / self.TILE_SIZE) + 4 
+        padding_y = int(self.height / self.TILE_SIZE) + 4 
 
         min_grid_x = max(0, min_grid_x - padding_x)
         min_grid_y = max(0, min_grid_y - padding_y)
@@ -235,9 +239,9 @@ class ViewPygame:
                                 render_list.append((
                                     screen_y + self.TILE_SIZE//2,
                                     (self.cached_sprites[sprite_key],
-                                    (screen_x - self.TILE_SIZE//2 + self.TILE_SIZE, 
-                                    screen_y - self.TILE_SIZE//2 + 10))
-                                ))
+                                    (screen_x - self.TILE_SIZE//2 + self.TILE_SIZE - (10 if sprite_key == 'swordsman' else 0), 
+                                    screen_y - self.TILE_SIZE//2 - (20 if sprite_key == 'swordsman' else -10))
+                                )))
                         
                         # Gestion des bâtiments
                         elif isinstance(entity, (TownCenter, Barracks, ArcheryRange, Stable, 

@@ -214,8 +214,12 @@ class Map():
         return self.mapRessources
     
     def is_free(self, x, y):
-        return self.map_entities[x][y] is None
-        return self.mapBuildings[x][y] is None and self.mapUnits[x][y] is None and self.mapRessources[x][y] is None
+        
+        return (
+            0 <= x < len(self.map_entities) and 
+            0 <= y < len(self.map_entities[0]) and
+            self.map_entities[x][y] is None
+        )
     
     def getColor(self, x, y):
         return self.lstColor[x][y]

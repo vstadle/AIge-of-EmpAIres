@@ -455,32 +455,96 @@ class AI:
             if isinstance(building, Keep) and self.game.map.mapType == MapType.CENTER_RESOURCES:
                 map_center_x = self.game.map.size_map_x // 2
                 map_center_y = self.game.map.size_map_y // 2
+                building_size = building.sizeMap # Important de récupérer la taille de la Keep
 
-                # Trouver le bâtiment du joueur le plus proche des ressources
-                closest_building = None
-                min_distance = float('inf')
+
+                # 1. Calculer le centre des bâtiments du joueur
+                if not self.cplayer.player.buildings:
+                    return None # Aucun bâtiment, on ne peut pas placer de Keep
+
+                total_x = 0
+                total_y = 0
                 for b in self.cplayer.player.buildings:
-                    distance = ((b.x + b.sizeMap // 2 - map_center_x) ** 2 +
-                                (b.y + b.sizeMap // 2 - map_center_y) ** 2) ** 0.5
-                    if distance < min_distance:
-                        min_distance = distance
-                        closest_building = b
+                    total_x += b.x + b.sizeMap // 2
+                    total_y += b.y + b.sizeMap // 2
+                
+                buildings_center_x = total_x // len(self.cplayer.player.buildings)
+                buildings_center_y = total_y // len(self.cplayer.player.buildings)
 
-                if closest_building:
-                    # Calcul d'une zone stratégique autour du bâtiment le plus proche
-                    start_x = closest_building.x + closest_building.sizeMap // 2
-                    start_y = closest_building.y + closest_building.sizeMap // 2
-                    
-                    # Exploration d'une zone en forme de croix autour du bâtiment
-                    offsets = [(-3, 0), (3, 0), (0, -3), (0, 3), (-3, -3), (-3, 3), (3, -3), (3, 3)]
+                # 2. Calculer la direction vers le centre de la carte
+                direction_x = map_center_x - buildings_center_x
+                direction_y = map_center_y - buildings_center_y
+
+                # Normaliser le vecteur (pour avoir une direction)
+                magnitude = (direction_x ** 2 + direction_y ** 2) ** 0.5
+                if magnitude > 0:
+                    direction_x /= magnitude
+                    direction_y /= magnitude
+
+
+                # 3. Positionner le keep entre les deux centres
+                # Déterminer une distance raisonnable. Peut être ajustée selon la taille de la carte
+                distance_factor = 0.4 # 40% entre le centre de la base et le centre de la map
+                candidate_x = int(buildings_center_x + direction_x * magnitude * distance_factor)
+                candidate_y = int(buildings_center_y + direction_y * magnitude * distance_factor)
+
+
+                # On cherche une position de placement valide
+                if (0 <= candidate_x < self.game.map.size_map_x and
+                    0 <= candidate_y < self.game.map.size_map_y):
+                    # Recherche d'une position valide
+                    for offset_x in range(-2, 3):
+                        for offset_y in range(-2,3):
+                            placement_x = candidate_x + offset_x
+                            placement_y = candidate_y + offset_y
+                            if (0 <= placement_x < self.game.map.size_map_x and
+                                0 <= placement_y < self.game.map.size_map_y and
+                                self.isPositionFree(placement_x, placement_y, building_size)):
+                                    return placement_x, placement_y
+
+                return None # Si aucun emplacement valide n'est trouvé
+            if isinstance(building, Keep) and self.game.map.mapType == MapType.GENEROUS_RESOURCES:
+                # Récupérer le town center du joueur
+                town_centers = [b for b in self.cplayer.player.buildings if isinstance(b, TownCenter)]
+                
+                if not town_centers:
+                    return None
+                
+                town_center = town_centers[0]
+                
+                # Coordonnées du centre de la carte
+                map_center_x = self.game.map.size_map_x // 2
+                map_center_y = self.game.map.size_map_y // 2
+                
+                # Calculer la direction du vecteur entre le town center et le centre de la carte
+                dx = map_center_x - town_center.x
+                dy = map_center_y - town_center.y
+                
+                # Normaliser et étendre le vecteur pour positionner le keep
+                # entre le town center et le centre de la carte
+                keep_x = town_center.x + int(dx * 0.40)
+                keep_y = town_center.y + int(dy * 0.40)
+                
+                # Ajuster pour rester dans les limites de la carte
+                keep_x = max(0, min(keep_x, self.game.map.size_map_x - building_size))
+                keep_y = max(0, min(keep_y, self.game.map.size_map_y - building_size))
+                
+                # Vérifier et ajuster si nécessaire pour trouver un emplacement libre
+                max_attempts = 10
+                for attempt in range(max_attempts):
+                    # Essayer des petits décalages autour du point calculé
+                    offsets = [(0,0), (-1,0), (1,0), (0,-1), (0,1), (-1,-1), (1,1), (-1,1), (1,-1)]
                     for dx, dy in offsets:
-                        candidate_x = start_x + dx
-                        candidate_y = start_y + dy
+                        candidate_x = keep_x + dx * attempt
+                        candidate_y = keep_y + dy * attempt
+                        
+                        # Vérifier que le candidat reste dans la carte
                         if (0 <= candidate_x < self.game.map.size_map_x and
                             0 <= candidate_y < self.game.map.size_map_y and
                             self.isPositionFree(candidate_x, candidate_y, building_size)):
                             return candidate_x, candidate_y
-
+                
+                return None
             # Logique spécifique pour les bâtiments non-Keep sur une carte avec ressources au centre
             if self.game.map.mapType == MapType.CENTER_RESOURCES and not isinstance(building, Keep):
                 map_center_x = self.game.map.size_map_x // 2
