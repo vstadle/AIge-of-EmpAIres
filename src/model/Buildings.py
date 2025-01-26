@@ -1,7 +1,7 @@
 from view.HealthBar import HealthBar
 
 class Buildings:
-    def __init__(self, costW, bTime, hp, sizeMap, letter):
+    def __init__(self, costW, bTime, hp, sizeMap, letter,color= None):
         self.costW = costW
         self.bTime = bTime
         self.max_health = hp
@@ -10,6 +10,7 @@ class Buildings:
         self.letter = letter
         self.x = 0
         self.y = 0
+        self.color = color
         
         # Create health bar
         self.health_bar = HealthBar(

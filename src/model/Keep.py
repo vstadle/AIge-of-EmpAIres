@@ -2,7 +2,7 @@ from model.Buildings import Buildings
 from view.HealthBar import HealthBar
 class Keep(Buildings):
 
-    def __init__(self):
+    def __init__(self, color=None):
         super().__init__(35, 80, 80, 1, 'K')
         self.costG = 125
         self.attack = 5
@@ -12,6 +12,7 @@ class Keep(Buildings):
             width=40,  # Adjust based on sprite size
             height=5   # Adjust based on preference
         )
+        
 
     def __repr__(self):
         return "Keep(HP: %r, Damage : %r, Range: %r, x: %r, y: %r)" % (self.health, self.attack, self.range, self.x, self.y)

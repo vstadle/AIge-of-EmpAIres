@@ -590,7 +590,6 @@ class ControllerPlayer():
         return self.player
     
     def attack(self, unit, enemy, playerenemy):
-        
         #Vérification de la distance entre l'unité et l'ennemi
         if isinstance(enemy, Buildings):
             distance_x = abs(enemy.x - unit.x) - enemy.sizeMap // 2
@@ -601,9 +600,14 @@ class ControllerPlayer():
         
         if distance_x <= unit.range and distance_y <= unit.range:
             logs(self.player.name + " : " + str(unit) + " is attacking : + " + str(enemy), level=logging.INFO)
+            
             unit.action = "attack"
+            # On applique les damages directement ici, et on met à jour la queue
+            self.apply_damage(unit, enemy, playerenemy)
             start_time = time.time()
             self.queueAttack.append({"unit": unit, "start_time": start_time, "enemy": enemy, "playerenemy": playerenemy})
+            
+            
             return 0
         else:
             return -1

@@ -3,7 +3,7 @@ from view.HealthBar import HealthBar
 
 class Swordsman(Units):
 
-      def __init__(self):
+      def __init__(self, color=None):
         super().__init__(50, 20, 0,40, 20, 4, 1, 0.9, 1,'s')
         self.health_bar = HealthBar(
             max_health=self.max_health, 

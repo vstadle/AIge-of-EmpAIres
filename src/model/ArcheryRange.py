@@ -4,7 +4,7 @@ from view.HealthBar import HealthBar
 
 class ArcheryRange(Buildings):
 
-    def __init__(self):
+    def __init__(self, color=None):
         super().__init__(175, 50, 500, 3, 'A')
         self.health_bar = HealthBar(
             max_health=self.max_health, 
