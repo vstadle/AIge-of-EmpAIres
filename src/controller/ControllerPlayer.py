@@ -602,8 +602,6 @@ class ControllerPlayer():
             logs(self.player.name + " : " + str(unit) + " is attacking : + " + str(enemy), level=logging.INFO)
             
             unit.action = "attack"
-            # On applique les damages directement ici, et on met à jour la queue
-            self.apply_damage(unit, enemy, playerenemy)
             start_time = time.time()
             self.queueAttack.append({"unit": unit, "start_time": start_time, "enemy": enemy, "playerenemy": playerenemy})
             
@@ -644,7 +642,6 @@ class ControllerPlayer():
                             #On supprime l'ennemi de la carte
                             self.cmap.map.map_entities[enemy.x][enemy.y] = None
                             self.cmap.map.map[enemy.x][enemy.y] = " "
-                            self.cmap.map.lstColor[enemy.x][enemy.y] = None
                             
                             #Si c'est un bâtiment, l'affichage de tout le bâtiment est supprimé
                             if isinstance(enemy, Buildings):
@@ -652,7 +649,6 @@ class ControllerPlayer():
                                     for y in range(enemy.sizeMap):
                                         self.cmap.map.map_entities[enemy.x + x][enemy.y + y] = None
                                         self.cmap.map.map[enemy.x + x][enemy.y + y] = " "
-                                        self.cmap.map.lstColor[enemy.x + x][enemy.y + y] = None
                                 #On supprime le bâtiment de la liste des bâtiments de l'ennemi
                                 if enemy in playerenemy.player.buildings:
                                     playerenemy.player.buildings.remove(enemy)
