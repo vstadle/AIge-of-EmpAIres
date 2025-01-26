@@ -191,6 +191,7 @@ class ControllerGame():
         tab_pressed = False
         p_pressed = False
         running = True
+        time_to_update = 60
     
         while running:
             self.viewPygame.camera.handle_input()            
@@ -260,6 +261,16 @@ class ControllerGame():
             
                 self.viewPygame.draw_map_2_5D()
                 pygame.display.flip()
+                
+                current_time = time.time()
+                
+                if current_time - start_time > time_to_update:
+                    start_time = time.time()
+                    for ai in self.lstAI:
+                        lsttemp = self.lstcPlayers.copy()
+                        lsttemp.remove(ai.cplayer)
+                        ai.choose_strategie(lsttemp)
+                
                 
                 # Game update logic remains the same
                 check = 0
