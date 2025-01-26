@@ -450,8 +450,16 @@ class AI:
                                     break
                         #Si l'unité attaquée n'est pas déjà entrain d'attaquer
                         #Alors on l'ajoute à la liste des unités attaquantes
-                        if target not in self.lstUnitAttack:
-                            self.lstUnitAttack.append({"unit": target, "target": unit, "target_position": (unit.x, unit.y), "playerenemy": self.cplayer})
+                        if target.action == "attack":
+                            for temp in playerenemy.queueAttacking:
+                                if temp["unit"] == target:
+                                    playerenemy.queueAttacking.remove(temp)
+                                    break
+                            for temp in self.lstUnitAttack:
+                                if temp["unit"] == target:
+                                    self.lstUnitAttack.remove(temp)
+                                    break
+                        self.lstUnitAttack.append({"unit": target, "target": unit, "target_position": (unit.x, unit.y), "playerenemy": self.cplayer})
                         
     def find_adjacent_free_tile(self, resource):
         adjacent_positions = [
