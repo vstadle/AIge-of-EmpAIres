@@ -4,7 +4,7 @@ class Buildings():
     def __init__(self, costW, bTime, hp, sizeMap, letter):
         self.costW = costW
         self.bTime = bTime
-        self.hp = hp
+        self.health = hp
         self.sizeMap = sizeMap
         self.letter = letter
         self.x = 0

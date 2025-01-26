@@ -22,6 +22,8 @@ from logs.logger import logs
 from model.Buildings import Buildings
 from model.House import House
 
+from model.Units import Units
+
 class ControllerPlayer():
     
     def __init__(self, player, cmap):
@@ -590,10 +592,14 @@ class ControllerPlayer():
     def attack(self, unit, enemy, playerenemy):
         
         #Vérification de la distance entre l'unité et l'ennemi
-        distance_x = abs(enemy.x - unit.x)
-        distance_y = abs(enemy.y - unit.y)
+        if isinstance(enemy, Buildings):
+            distance_x = abs(enemy.x - unit.x) - enemy.sizeMap // 2
+            distance_y = abs(enemy.y - unit.y) - enemy.sizeMap // 2
+        else:
+            distance_x = abs(enemy.x - unit.x)
+            distance_y = abs(enemy.y - unit.y)
         
-        if distance_x <= unit.attackRange and distance_y <= unit.attackRange:
+        if distance_x <= unit.range and distance_y <= unit.range:
             logs(self.player.name + " : " + str(unit) + " is attacking", level=logging.INFO)
             unit.action = "attack"
             start_time = time.time()
@@ -601,32 +607,47 @@ class ControllerPlayer():
             return 0
         else:
             return -1
-            
+                
     def updating_attack(self):
         
         current_time = time.time()
         
-        for item in self.queueMoving[:]:
+        for item in self.queueAttack[:]:
             unit = item["unit"]
             start_time = item["start_time"]
             enemy = item["enemy"]
             playerenemy = item["playerenemy"]
             
-            if current_time - start_time >= unit.attackSpeed:
+            if current_time - start_time >= unit.speedAtack:
                 #vérification de la distance entre l'unité et l'ennemi
-                distance_x = abs(enemy.x - unit.x)
-                distance_y = abs(enemy.y - unit.y)
+                if isinstance(enemy, Buildings):
+                    distance_x = abs(enemy.x - unit.x) - enemy.sizeMap // 2
+                    distance_y = abs(enemy.y - unit.y) - enemy.sizeMap // 2
+                else:
+                    distance_x = abs(enemy.x - unit.x)
+                    distance_y = abs(enemy.y - unit.y)
                 
                 #Si l'ennemi est à portée d'attaque, l'unité attaque
-                if distance_x <= unit.attackRange and distance_y <= unit.attackRange:
+                if distance_x <= unit.range and distance_y <= unit.range:
                     
-                    logs(self.player.name + " : " + str(unit) + " is attacking", level=logging.INFO)
+                    #logs(self.player.name + " : " + str(unit) + " is attacking", level=logging.INFO)
                     enemy.health -= unit.attack
-                    if enemy.health <= 0:
+                    item["start_time"] = time.time()
+                    if enemy.health == 0:
                         self.cmap.map.map_entities[enemy.x][enemy.y] = None
                         self.cmap.map.map[enemy.x][enemy.y] = " "
-                        playerenemy.removeUnit(enemy)
-                        logs(self.player.name + " : " + str(enemy) + " is dead", level=logging.INFO)
+                        if isinstance(enemy, Buildings):
+                            for x in range(enemy.sizeMap):
+                                for y in range(enemy.sizeMap):
+                                    self.cmap.map.map_entities[enemy.x + x][enemy.y + y] = None
+                                    self.cmap.map.map[enemy.x + x][enemy.y + y] = " "
+                            if enemy in playerenemy.player.buildings:
+                                playerenemy.player.buildings.remove(enemy)
+                            logs(self.player.name + " : " + str(enemy) + " is destroyed", level=logging.INFO)
+                        elif isinstance(enemy, Units):
+                            if enemy in playerenemy.player.units:
+                                playerenemy.player.units.remove(enemy) 
+                            logs(self.player.name + " : " + str(enemy) + " is dead", level=logging.INFO)
                         self.queueAttack.remove(item)
                         unit.action = None
                 #Si l'ennemi est trop loin, l'unité arrête d'attaquer
