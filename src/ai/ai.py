@@ -1097,7 +1097,6 @@ class AI:
                     minPlayer = cPlayer
 
         #if len(self.cplayer.player.units) >= minUnit:
-        
         self.attack_strategie(minPlayer)
     
     def update(self):
