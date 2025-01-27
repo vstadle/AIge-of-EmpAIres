@@ -584,6 +584,7 @@ class AI:
                     self.lstUnitAttack.remove(item)
                     if target_position in self.caseAttack:
                         self.caseAttack.remove(target_position)
+                    self.attack_target(unit, playerenemy)
                     
     def find_adjacent_free_tile(self, resource):
         adjacent_positions = [
