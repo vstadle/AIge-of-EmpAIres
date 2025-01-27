@@ -279,6 +279,9 @@ class ControllerGame():
                         ai.choose_strategie(lsttemp)
                 
                 
+                for ai in self.lstAI:
+                    ai.update()
+                
                 # Game update logic remains the same
                 check = 0
                 check2 = 0
