@@ -192,7 +192,7 @@ class ControllerGame():
         p_pressed = False
         running = True
         time_to_update = 60
-    
+        start_time = time.time()
         while running:
             self.viewPygame.camera.handle_input()            
             keys = pygame.key.get_pressed()
@@ -290,7 +290,8 @@ class ControllerGame():
                     cplayer.updating_attack()
                     if check == 0:
                        check2 += 1
-
+                for ai in self.lstAI:
+                        ai.update()
                 # Mise à jour de la minimap seulement s'il y a eu une construction ou destruction
                 if check2 != 0:
                     self.viewPygame.create_static_minimap()
