@@ -1032,12 +1032,12 @@ class AI:
                 min_distance = distance
                 closest_enemy = enemy_unit
                 
-        #for building in enemy.player.buildings:
+        for building in enemy.player.buildings:
          
-        #    distance = abs(unit.x - building.x) + abs(unit.y - building.y)
-        #    if distance < min_distance:
-        #        min_distance = distance
-        #        closest_enemy = building
+            distance = abs(unit.x - building.x) + abs(unit.y - building.y)
+            if distance < min_distance:
+                min_distance = distance
+                closest_enemy = building
 
         return closest_enemy
 
