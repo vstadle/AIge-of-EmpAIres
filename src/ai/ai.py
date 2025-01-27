@@ -412,12 +412,13 @@ class AI:
                     if item["target"] == target:
                         self.lstUnitAttack.remove(item)
                         break
-                if target.action == "attack":
-                    playerenemy.stopAttacking(target)
-                for item in self.lstUnitAttack:
-                    if item["unit"] == target:
-                        self.lstUnitAttack.remove(item)
-                        break
+                if isinstance(target, Units):
+                    if target.action == "attack":
+                        playerenemy.stopAttacking(target)
+                    for item in self.lstUnitAttack:
+                        if item["unit"] == target:
+                            self.lstUnitAttack.remove(item)
+                            break
                 if unit.action == "attack":
                     self.cplayer.stopAttacking(unit)
                 continue
@@ -1151,3 +1152,55 @@ class AI:
         self.verifCollectVillager()
         self.verifUnit()
         self.verifUnitAttack()
+        self.keep_attack_strategy()
+
+
+    def find_targets_in_keep_range(self, keep):
+        """
+        Trouve toutes les unités et bâtiments ennemis dans le rayon d'attaque du Keep.
+        
+        """
+        targets = []
+        attack_range = 5  # Rayon d'attaque du Keep
+        
+        # Parcourir toutes les cases dans le rayon d'attaque
+        for dx in range(-attack_range, attack_range + 1):
+            for dy in range(-attack_range, attack_range + 1):
+                # Calculer la position à vérifier
+                check_x = keep.x + dx
+                check_y = keep.y + dy
+                
+                # Vérifier si la position est dans les limites de la carte
+                if (0 <= check_x < self.game.map.size_map_x and 
+                    0 <= check_y < self.game.map.size_map_y):
+                    
+                    # Calculer la distance Manhattan
+                    distance = abs(dx) + abs(dy)
+                    if distance <= attack_range:
+                        # Vérifier s'il y a une entité à cette position
+                        entity = self.game.map.map_entities[check_x][check_y]
+                        if entity is not None:
+                            # Vérifier si c'est une unité ou un bâtiment ennemi
+                            for enemy in self.game.lstPlayer:
+                                if enemy != self.cplayer:
+                                    if entity in enemy.units or entity in enemy.buildings:
+                                        targets.append((entity, enemy))
+        
+        return targets
+
+    def keep_attack_strategy(self):
+        """
+        Stratégie d'attaque pour les Keeps.
+        Fait attaquer tous les Keeps qui ont des cibles dans leur rayon d'attaque.
+        """
+        # Parcourir tous les Keeps du joueur
+        for building in self.cplayer.player.buildings:
+            if isinstance(building, Keep):
+                # Trouver toutes les cibles potentielles
+                targets = self.find_targets_in_keep_range(building)
+                
+                # Si des cibles sont trouvées, attaquer la première
+                if targets and building.action is None:  # Vérifier que le Keep n'est pas déjà en train d'attaquer
+                    target, enemy = targets[0]  # Prendre la première cible
+                    self.cplayer.attack(building, target, enemy)
+                    building.action = "attack"

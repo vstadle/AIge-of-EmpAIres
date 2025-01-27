@@ -4,9 +4,11 @@ class Keep(Buildings):
 
     def __init__(self, color=None):
         super().__init__(35, 80, 80, 1, 'K')
+        self.action = None  # Initialise l'action comme None au départ
         self.costG = 125
-        self.attack = 5
+        self.attack = 10
         self.range = 8
+        self.speedAtack = 2000  # Ajout de la vitesse d'attaque (en millisecondes)
         self.health_bar = HealthBar(
             max_health=self.max_health, 
             width=40,  # Adjust based on sprite size
