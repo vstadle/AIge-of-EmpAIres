@@ -283,6 +283,7 @@ class ControllerGame():
                 
                 for ai in self.lstAI:
                     ai.update()
+                    ai.verifLifeUnit()
                 
                 # Game update logic remains the same
                 check = 0

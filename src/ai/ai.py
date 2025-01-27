@@ -31,6 +31,7 @@ from controller import A_Star
 from model.Units import Units
 from model.Buildings import Buildings
 
+
 adjacent_positions = [
     (-1,-1),
     (-1, 0),
@@ -41,6 +42,9 @@ adjacent_positions = [
     (0, -1),
     (1,-1)
 ]
+class MOD_AI:
+    AI_OFFENSIVE = 1 
+    AI_DEFENSIVE = 2
 
 class AI:
 
