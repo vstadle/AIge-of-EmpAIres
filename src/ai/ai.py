@@ -582,7 +582,8 @@ class AI:
                 #Si on ne peut pas attaquer alors on arrête d'attaquer
                 elif verifAttack == -1:
                     self.lstUnitAttack.remove(item)
-                    self.caseAttack.remove(item["target_position"])
+                    if target_position in self.caseAttack:
+                        self.caseAttack.remove(target_position)
                     
     def find_adjacent_free_tile(self, resource):
         adjacent_positions = [
