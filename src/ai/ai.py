@@ -61,6 +61,8 @@ class AI:
         self.caseAttack = [] #case attaque + case adjacente
         
         self.lstcPlayer = [cplayer for cplayer in lstcPlayer if cplayer != self.cplayer]
+        
+        self.mode = "defensive"
 
     def villager_is_available(self):
         for unit in self.cplayer.player.units:
@@ -479,6 +481,22 @@ class AI:
                     self.cplayer.stopMoving(unit)
                 
                 #On cherche un nouvelle cible
+                
+                #On regarde d'abord si il y a une unité ennemi à coté de notre unité
+                for x, y in adjacent_positions:
+                    entity = self.game.map.map_entities[unit.x + x][unit.y + y]
+                    if isinstance(entity, Units) or isinstance(entity, Buildings):
+                        if entity.player != self.cplayer.player:
+                            for cplayer in self.lstcPlayer:
+                                if cplayer.player == entity.player:
+                                    tempcplayer = cplayer
+                        #Si l'unité est bien juste à coté de nous alors on l'attaque
+                        if unit.x + x == entity.x and unit.y + y == entity.y:
+                            self.lstUnitAttack.append({"unit": unit, "playerenemy": tempcplayer, "target": entity, "target_position": (unit.x, unit.y)})
+                            self.caseAttack.append((unit.x, unit.y))
+                            continue
+                
+                #Si on ne trouve pas d'unité à coté de notre unité
                 self.attack_target(unit, playerenemy)
                 continue
             
@@ -831,34 +849,6 @@ class AI:
         for building in self.lstBuildingWaiting:
             if isinstance(building, name):
                 return building
-
-    def start_strategie(self):
-        
-        townCenter = self.findBuildings(TownCenter)
-        
-        for i in range(0, 2):
-            self.cplayer.trainVillager(townCenter)
-        
-            
-        villager = self.villager_is_available()
-        if villager is not None:
-            self.collectGold()
-        
-        villager = self.villager_is_available()
-        if villager is not None:
-            self.collectWood()
-        
-        farm = Farm()
-        position = self.findPlaceForBuildings(farm)
-        if position is not None:
-            self.cplayer.addBuilding(Farm(), position[0], position[1])
-        
-        self.lstBuildingWaiting.append(House())
-        self.lstBuildingWaiting.append(House())
-        self.lstBuildingWaiting.append(Barracks())
-        self.lstBuildingWaiting.append(ArcheryRange())
-        self.lstBuildingWaiting.append(Stable())
-        self.lstBuildingWaiting.append(Camp())
         
     def count_Unit(self):
         cpt_villager = 0
@@ -1202,21 +1192,130 @@ class AI:
                         self.lstBuildingWaiting.append(keep)
             cpt += 1
 
+    def offensive_strategie(self):
+        
+        logs(self.cplayer.player.name + " :  Offensive strategie", logging.INFO)
+
+        ''' Stratégie offensive de l'IA '''
+        ''' On entraine beaucoup d'unités pour attaquer l'adversaire '''
+        ''' On construit des batiments pour pouvoir entrainer des unités '''
+        ''' On construit des batiments pour augmenter la population '''
+
+        cpt_villager, cpt_swordsman, cpt_archer, cpt_horseman = self.count_Unit()
+        
+        ration_sworsman = cpt_swordsman / len(self.cplayer.player.units)
+        ration_archer = cpt_archer / len(self.cplayer.player.units)
+        ration_horseman = cpt_horseman / len(self.cplayer.player.units)
+
+        logs(self.cplayer.player.name + " :  Ration swordsman : " + str(ration_sworsman), logging.INFO)
+        logs(self.cplayer.player.name + " :  Ration archer : " + str(ration_archer), logging.INFO)
+        logs(self.cplayer.player.name + " :  Ration horseman : " + str(ration_horseman), logging.INFO)
+
+        barracks = self.findBuildings(Barracks)
+        while ration_sworsman < 0.34:
+            if barracks is None:
+                break
+            if barracks is not None:
+                check = self.cplayer.trainSwordsman(barracks)
+                if check == 1:
+                    self.lstUnitWaiting.append("swordsman")
+            cpt_swordsman += 1
+            ration_sworsman = cpt_swordsman / len(self.cplayer.player.units) + len(self.lstUnitWaiting)
+        
+        archery = self.findBuildings(ArcheryRange)
+        while ration_archer < 0.34:
+            if archery is None:
+                break
+            if archery is not None:
+                check = self.cplayer.trainArcher(archery)
+                if check == 1:
+                    self.lstUnitWaiting.append("archer")
+            cpt_archer += 1
+            ration_archer = cpt_archer / len(self.cplayer.player.units) + len(self.lstUnitWaiting)
+
+        stable = self.findBuildings(Stable)
+        while ration_horseman < 0.34:
+            if stable is None:
+                break
+            if stable is not None:
+                check = self.cplayer.trainHorseman(stable)
+                if check == 1:
+                    self.lstUnitWaiting.append("horseman")
+            cpt_horseman += 1
+            ration_horseman = cpt_horseman + 1 / len(self.cplayer.player.units) + len(self.lstUnitWaiting)
+
+        if self.cplayer.player.population <= 200:
+
+            if self.cplayer.player.population == len(self.cplayer.player.units):
+                for i in range (0, 9):
+                    house = House()
+                    if self.cplayer.player.canAffordBuilding(house):
+                        position = self.findPlaceForBuildings(house)
+                        if position is not None:
+                            check = self.cplayer.addBuilding(house, position[0], position[1])
+                            if check == 2:
+                                self.lstBuildingWaiting.insert(0,house)
+
     def choose_strategie(self, lstcPlayer):
 
         ''' Choix de la stratégie de l'IA '''
         ''' On choisit une stratégie en fonction de la situation de l'IA '''
 
-        #if self.cplayer.player.gold < 300 and self.cplayer.player.wood < 300:
-        #     self.collect_strategie()
+        if self.mode == "defensive" :
 
-        #elif self.cplayer.player.food < 300 and len(self.cplayer.player.units) < 30:
-        #    self.expansion_strategie()
+            if self.cplayer.player.gold < 300 and self.cplayer.player.wood < 300:
+                self.collect_strategie()
 
-        #elif self.cplayer.player.food > 1000 and self.cplayer.player.gold > 1000 and self.cplayer.player.wood > 1000:
-        #    self.reforcement_strategie()
+            elif self.cplayer.player.food < 300 and len(self.cplayer.player.units) < 30:
+                self.expansion_strategie()
 
-        lstNbUnitPerPlayer = []
+            elif self.cplayer.player.food > 1000 and self.cplayer.player.gold > 1000 and self.cplayer.player.wood > 1000:
+                self.reforcement_strategie()
+
+            #On calcule le nombre d'unité des adversaires
+            #Pour attaquer celui qui a le moins d'unité
+            min = self.minUnitUser(lstcPlayer)
+
+            minUnit = min[0]
+            minPlayer = min[1]
+
+            #Si j'ai 3 fois plus de troupes que le joueur qui a le moins de troupes
+            #Alors j'attaque
+            if len(self.cplayer.player.units) >= 3 * minUnit:
+                self.attack_strategie(minPlayer)
+            
+        elif self.mode == "offensive":
+            
+            if self.cplayer.player.gold < 300 and self.cplayer.player.wood < 300:
+                #self.collect_strategie()
+                pass
+            
+            elif self.cplayer.player.food < 300 and len(self.cplayer.player.units) < 30:
+                #self.expansion_strategie()
+                pass
+
+            elif self.cplayer.player.food > 1000 and self.cplayer.player.gold > 1000 and self.cplayer.player.wood > 1000:
+                #self.reforcement_strategie()
+                pass
+        
+            #On calcule le nombre d'unité des adversaires
+            min = self.minUnitUser(lstcPlayer)
+            
+            minUnit = min[0]
+            minPlayer = min[1]
+            
+            #Si j'ai 1,5 fois plus de troupes que le joueur qui a le moins de troupes
+            #Alors j'attaque
+            if len(self.cplayer.player.units) >= 1.5 * minUnit:
+                self.attack_strategie(minPlayer)
+        
+    def update(self):
+        self.verifBuilding()
+        self.verifCollectVillager()
+        self.verifUnit()
+        self.verifUnitAttack()
+        
+    def minUnitUser(self, lstcPlayer):
         minUnit = float('inf')
         minPlayer = None
         for cPlayer in lstcPlayer:
@@ -1224,14 +1323,4 @@ class AI:
                 if minUnit > len(cPlayer.player.units):
                     minUnit = len(cPlayer.player.units)
                     minPlayer = cPlayer
-
-        #if len(self.cplayer.player.units) >= minUnit:
-        #if AI.cpt < 1:
-        self.attack_strategie(minPlayer)
-            #AI.cpt += 1
-            
-    def update(self):
-        self.verifBuilding()
-        self.verifCollectVillager()
-        self.verifUnit()
-        self.verifUnitAttack()
+        return minUnit, minPlayer
