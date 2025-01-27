@@ -487,6 +487,7 @@ class AI:
                 #On cherche un nouvelle cible
                 
                 #On regarde d'abord si il y a une unité ennemi à coté de notre unité
+                tempcplayer = None
                 for x, y in adjacent_positions:
                     entity = self.game.map.map_entities[unit.x + x][unit.y + y]
                     if isinstance(entity, Units) or isinstance(entity, Buildings):
@@ -506,6 +507,7 @@ class AI:
             
             #On vérife si un ennemi est à coté de notre unité
             #Si c'est le cas alors on l'attaque
+            tempcplayer = None
             for x, y in adjacent_positions:
                 entity = self.game.map.map_entities[unit.x + x][unit.y + y]
                 if isinstance(entity, Units) or isinstance(entity, Buildings):
