@@ -1020,6 +1020,8 @@ class AI:
         ''' On collecte des ressources pour pouvoir construire des batiments et entrainer des unités '''
         ''' On récupère le nombre de villageois inactifs pour les faire collecter des ressources'''
 
+        
+
         cpt_inactive_villager = self.count_villager_inactivity()
         if cpt_inactive_villager > 0:
             cpt_inactive_villager = cpt_inactive_villager // 2
@@ -1286,9 +1288,10 @@ class AI:
             #Si j'ai 3 fois plus de troupes que le joueur qui a le moins de troupes
             #Alors j'attaque
             if len(self.cplayer.player.units) >= 3 * minUnit:
-                self.attack_strategie(minPlayer)
+                self.mode = "offensive"
+                self.cplayer.player.setModeIA("offensive")
             
-        elif self.mode == "offensive":
+        if self.mode == "offensive":
             
             if self.cplayer.player.gold < 300 and self.cplayer.player.wood < 300:
                 #self.collect_strategie()
