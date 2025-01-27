@@ -66,7 +66,10 @@ class AI:
         
         self.lstcPlayer = [cplayer for cplayer in lstcPlayer if cplayer != self.cplayer]
         
-        self.mode = "defensive"
+        if self.cplayer.player.mode_ia == 1:
+            self.mode = MOD_AI.AI_OFFENSIVE
+        elif self.cplayer.player.mode_ia == 2:
+            self.mode = MOD_AI.AI_DEFENSIVE
 
     def villager_is_available(self):
         for unit in self.cplayer.player.units:
@@ -487,7 +490,7 @@ class AI:
                 #On cherche un nouvelle cible
                 
                 #On regarde d'abord si il y a une unité ennemi à coté de notre unité
-                tempcplayer = None
+                #tempcplayer = None
                 for x, y in adjacent_positions:
                     entity = self.game.map.map_entities[unit.x + x][unit.y + y]
                     if isinstance(entity, Units) or isinstance(entity, Buildings):
@@ -507,7 +510,7 @@ class AI:
             
             #On vérife si un ennemi est à coté de notre unité
             #Si c'est le cas alors on l'attaque
-            tempcplayer = None
+            #tempcplayer = None
             for x, y in adjacent_positions:
                 entity = self.game.map.map_entities[unit.x + x][unit.y + y]
                 if isinstance(entity, Units) or isinstance(entity, Buildings):
@@ -525,7 +528,7 @@ class AI:
                             #On change de cible et de case d'attaque
                             if target_position in self.caseAttack:
                                 self.caseAttack.remove(item["target_position"])
-                                
+                            
                             item["target"] = entity
                             item["target_position"] = (unit.x, unit.y)
                             item["playerenemy"] = tempcplayer
@@ -1022,15 +1025,36 @@ class AI:
         ''' On collecte des ressources pour pouvoir construire des batiments et entrainer des unités '''
         ''' On récupère le nombre de villageois inactifs pour les faire collecter des ressources'''
 
-        
+        #On regarde si on entraine ou non des villegois pour aider à la collecte
+        cpt_villager = self.nbVillager()
 
+        if cpt_villager < 20:
+
+            costVillager = Villager().costF
+            cpt = 0
+
+            while cpt < 5 and self.cplayer.player.food < costVillager and self.cplayer.player.population > len(self.cplayer.player.units) + len(self.lstUnitWaiting):
+                towncenter = self.findBuildings(TownCenter)
+                if towncenter is not None:
+                    check = self.cplayer.trainVillager(towncenter)
+                    if check == 1:
+                        self.lstUnitWaiting.append("villager")
+                    cpt += 1
+
+        #On regarde si on a des villageois inactifs
+        #Si c'est le cas alors on les fait collecter des ressources de manière équilibrée
         cpt_inactive_villager = self.count_villager_inactivity()
         if cpt_inactive_villager > 0:
             cpt_inactive_villager = cpt_inactive_villager // 2
             for i in range(0, cpt_inactive_villager):
                 self.collectGold()
                 self.collectWood()
-            self.collectWood()
+
+            #Si l'ia est en mode offensive alors on la fait collecter des golds en priorité
+            if self.mode == MOD_AI.AI_OFFENSIVE:
+                self.collectGold()
+            else :    
+                self.collectWood()
 
     def attack_strategie(self, enemy):
         
@@ -1269,7 +1293,7 @@ class AI:
         ''' Choix de la stratégie de l'IA '''
         ''' On choisit une stratégie en fonction de la situation de l'IA '''
 
-        if self.mode == "defensive" :
+        if self.mode == MOD_AI.AI_DEFENSIVE :
 
             if self.cplayer.player.gold < 300 and self.cplayer.player.wood < 300:
                 self.collect_strategie()
@@ -1290,10 +1314,10 @@ class AI:
             #Si j'ai 3 fois plus de troupes que le joueur qui a le moins de troupes
             #Alors j'attaque
             if len(self.cplayer.player.units) >= 3 * minUnit:
-                self.mode = "offensive"
-                self.cplayer.player.setModeIA("offensive")
+                self.mode = MOD_AI.AI_OFFENSIVE
+                self.cplayer.player.setModeIA(1)
             
-        if self.mode == "offensive":
+        if self.mode == MOD_AI.AI_OFFENSIVE:
             
             if self.cplayer.player.gold < 300 and self.cplayer.player.wood < 300:
                 #self.collect_strategie()
@@ -1318,6 +1342,9 @@ class AI:
             if len(self.cplayer.player.units) >= 1.5 * minUnit:
                 self.attack_strategie(minPlayer)
         
+        elif self.mode is None:
+            logs(self.cplayer.player.name + " :  l'IA n'est dans aucun mode", logging.INFO)
+        
     def update(self):
         self.verifBuilding()
         self.verifCollectVillager()
@@ -1333,3 +1360,10 @@ class AI:
                     minUnit = len(cPlayer.player.units)
                     minPlayer = cPlayer
         return minUnit, minPlayer
+    
+    def nbVillager(self):
+        cpt = 0
+        for unit in self.cplayer.player.units:
+            if isinstance(unit, Villager):
+                cpt += 1
+        return cpt

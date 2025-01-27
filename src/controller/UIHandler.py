@@ -384,6 +384,7 @@ class UIHandler():
                             for i, player in enumerate(self.lstPlayers):
                                 player_obj = player.getPlayer()
                                 player_obj.setModeIA(config['ai_modes'][i])
+                                logs(f"Joueur {player_obj.name} en mode {config['ai_modes'][i]}", level=logging.INFO)
                                 lsttemp.append(player_obj)
                             
                             self.game.setLstPlayer(lsttemp)
