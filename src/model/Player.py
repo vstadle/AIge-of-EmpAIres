@@ -97,4 +97,7 @@ class Player():
         return self.color
     
     def removeUnit(self, unit):
-        self.units.remove(unit)
+        if unit.health <= 0:
+            self.units.remove(unit)
+        
+    

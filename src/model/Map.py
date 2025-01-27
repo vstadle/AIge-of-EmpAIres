@@ -112,6 +112,7 @@ class Map():
         building.setX(x)
         building.setY(y)
         building.color = player.getColor()
+        building.player = player
         building.is_constructing = False
         for i in range(building.sizeMap):
             for j in range(building.sizeMap):
@@ -120,6 +121,7 @@ class Map():
         
         if isinstance(building, TownCenter) or isinstance(building, House):
             player.population += building.population
+            
     def addBuildingTemp(self, building, x, y):
         building.setX(x)
         building.setY(y)
@@ -133,10 +135,11 @@ class Map():
         self.map_entities[x][y] = units
         self.map[x][y] = units.letter
         units.setPosition(x, y)
+        units.player = player
 
     
     def generateForest(self):
-        max_percentage_wood = 0.1
+        max_percentage_wood = 0.05
         total_cells = self.size_map_x * self.size_map_y
         max_trees = int(total_cells * max_percentage_wood)
         total_trees_planted = 0

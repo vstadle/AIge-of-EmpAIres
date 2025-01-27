@@ -474,6 +474,12 @@ class ControllerPlayer():
             return -1
 
     def move(self, unit, x, y):
+        
+        #On vérfie que l'unité n'est pas déjà en train de se déplacer
+        for item in self.queueMoving[:]:
+            if item["unit"] == unit:
+                return -1
+        
         start = unit.getPosition()
         end = (x,y)
         #logs(self.player.name + " : " + str(unit) + " is moving", level=logging.INFO)
@@ -585,6 +591,9 @@ class ControllerPlayer():
     
     def attack(self, unit, enemy, playerenemy):
         #Vérification de la distance entre l'unité et l'ennemi
+        if playerenemy == self.player:
+            return -1
+        
         if isinstance(enemy, Buildings):
             distance_x = abs(enemy.x - unit.x) - enemy.sizeMap // 2
             distance_y = abs(enemy.y - unit.y) - enemy.sizeMap // 2
@@ -643,14 +652,14 @@ class ControllerPlayer():
                                         self.cmap.map.map_entities[enemy.x + nx][enemy.y + ny] = None
                                         self.cmap.map.map[enemy.x + nx][enemy.y + ny] = " "
                                 #On supprime le bâtiment de la liste des bâtiments de l'ennemi
-                                if enemy in playerenemy.player.buildings:
-                                    playerenemy.player.buildings.remove(enemy)
+                                if enemy in playerenemy.buildings:
+                                    playerenemy.buildings.remove(enemy)
                             #Si l'ennemi est une unité, on le supprime de la liste des unités de l'ennemi
                             elif isinstance(enemy, Units):
                                 self.cmap.map.map_entities[enemy.x][enemy.y] = None
                                 self.cmap.map.map[enemy.x][enemy.y] = " "
-                                if enemy in playerenemy.player.units:
-                                    playerenemy.player.units.remove(enemy)
+                                if enemy in playerenemy.units:
+                                    playerenemy.removeUnit(enemy)
                             
                             self.queueAttack.remove(item)
                             unit.action = None
@@ -663,7 +672,7 @@ class ControllerPlayer():
                 #self.queueAttack.remove(item)
                 #unit.action = None
                 if unit in self.player.units:
-                    self.player.units.remove(unit)
+                    self.player.removeUnit(unit)
                 #self.cmap.map.map_entities[unit.x][unit.y] = None
                 #self.cmap.map.map[unit.x][unit.y] = " "
             

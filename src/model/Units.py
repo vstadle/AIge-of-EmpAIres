@@ -23,6 +23,7 @@ class Units():
             height=4   # Adjust height as needed
         )
         self.color = color
+        self.player = None
 
     def __repr__(self):
         return "Units(%r, %r, %r, %r, %r)" % (self.health, self.attack, self.speedAtack, self.speed, self.range)
@@ -69,3 +70,6 @@ class Units():
         if self.x == None or self.y == None:
             return None
         return self.x, self.y
+    
+    def setPlayer(self, player):
+        self.player = player

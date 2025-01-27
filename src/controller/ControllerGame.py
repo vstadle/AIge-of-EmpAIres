@@ -49,7 +49,7 @@ class ControllerGame():
 
         self.lstAI = []
         for cplayer in lstcPlayers:
-            self.lstAI.append(AI(self.game, cplayer))
+            self.lstAI.append(AI(self.game, cplayer, lstcPlayers))
 
         self.stdscr = None
 
@@ -170,6 +170,7 @@ class ControllerGame():
 
                 for ai in self.lstAI:
                         ai.update()
+                        ai.verifLifeUnit()
                 
                 for cplayer in self.lstcPlayers:
                     cplayer.update_training()
@@ -279,7 +280,6 @@ class ControllerGame():
                         lsttemp = self.lstcPlayers.copy()
                         lsttemp.remove(ai.cplayer)
                         ai.choose_strategie(lsttemp)
-                
                 
                 for ai in self.lstAI:
                     ai.update()

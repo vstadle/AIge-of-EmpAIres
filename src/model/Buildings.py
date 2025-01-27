@@ -12,6 +12,7 @@ class Buildings:
         self.y = 0
         self.color = color
         self.is_constructing = False
+        self.player = None
         
         # Create health bar
         self.health_bar = HealthBar(
@@ -54,3 +55,6 @@ class Buildings:
    
     def getBuildingTime(self):
         return self.bTime
+    
+    def setPlayer(self, player):
+        self.player = player
