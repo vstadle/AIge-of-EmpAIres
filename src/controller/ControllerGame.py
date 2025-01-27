@@ -169,8 +169,8 @@ class ControllerGame():
 
 
                 for ai in self.lstAI:
-                        ai.update()
-                        ai.verifLifeUnit()
+                    ai.verifLifeUnit()
+                    ai.update()
                 
                 for cplayer in self.lstcPlayers:
                     cplayer.update_training()
@@ -308,8 +308,8 @@ class ControllerGame():
                         ai.choose_strategie(lsttemp)
                 
                 for ai in self.lstAI:
-                    ai.update()
                     ai.verifLifeUnit()
+                    ai.update()
                 
                 # Game update logic remains the same
                 check = 0
