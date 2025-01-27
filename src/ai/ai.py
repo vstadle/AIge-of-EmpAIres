@@ -1143,7 +1143,7 @@ class AI:
 
         #if len(self.cplayer.player.units) >= minUnit:
         #if AI.cpt < 1:
-        #self.attack_strategie(minPlayer)
+        self.attack_strategie(minPlayer)
             #AI.cpt += 1
             
     def update(self):

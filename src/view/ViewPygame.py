@@ -122,7 +122,7 @@ class ViewPygame:
             ),
             'villager': pygame.transform.scale(
                 self.tiles["villager"],
-                (self.TILE_SIZE, self.TILE_SIZE) 
+                (0.84 * self.TILE_SIZE, 1.38 * self.TILE_SIZE) 
             ),
             'house': pygame.transform.scale(
                 self.tiles["house"],
@@ -256,8 +256,8 @@ class ViewPygame:
                             offsets = {
                                 'Villager': (50, -30),
                                 'Swordsman': (40, -45),
-                                'Archer': (25, -15),
-                                'Horseman': (30, -25),
+                                'Archer': (45, -25),
+                                'Horseman': (55, -25),
                                 
                             }
 
