@@ -192,6 +192,8 @@ class ControllerGame():
         p_pressed = False
         running = True
         time_to_update = 60
+        
+        start_time = time.time()
     
         while running:
             self.viewPygame.camera.handle_input()            

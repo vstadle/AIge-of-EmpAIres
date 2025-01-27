@@ -392,122 +392,125 @@ class AI:
             unit = item["unit"]
             playerenemy = item["playerenemy"]
             target = item["target"]
+            target_position = item["target_position"]
         
             #REVOIR CETTE PARTIE
             
             #On vérifie si notre unité est morte
-            #Si c'est le cas alors on arrête de l'attaquer
+            #Si c'est le cas alors on la supprime de la liste des unités attaquantes
             if unit.health <= 0:
+                #On retire l'unité de la liste des unités attaquantes
                 for item in self.lstUnitAttack:
-                    if item["unit"] == unit:
-                        self.lstUnitAttack.remove(item)
-                        if unit.action == "attack":
-                            self.cplayer.stopAttacking(unit)
-                        break
-                    
-            #On vérifie si l'enemy est mort
-            #Si il est mort alors on arrête de vouloir l'attaquer
-            if target.health <= 0:
-                for item in self.lstUnitAttack:
-                    if item["target"] == target:
-                        self.lstUnitAttack.remove(item)
-                        break
-                if target.action == "attack":
-                    playerenemy.stopAttacking(target)
-                for item in self.lstUnitAttack:
-                    if item["unit"] == target:
-                        self.lstUnitAttack.remove(item)
-                        break
+                    self.lstUnitAttack.remove(item)
+                    if target_position in self.caseAttack:
+                        self.caseAttack.remove(item["target_position"])
+                #Si l'unité attaquait
                 if unit.action == "attack":
                     self.cplayer.stopAttacking(unit)
-                continue
-            target_position = item["target_position"]
-            
-            #Si notre unité est en mouvement mais que l'unité cible est à coté
-            #Alors on arrête le mouvement de notre unité et on l'attaque
-            if isinstance(unit, Units) and unit.action == "move":
-                distance_x = abs(target.x - unit.x)
-                distance_y = abs(target.y - unit.y)
-                #On vérifie si l'on est à coté de l'unité
-                #Si c'est le cas alors on attaque
-                if distance_x <= 1 and distance_y <= 1:
-                    #On arrete le mouvement de l'unité
+                    unit.action = None
+                elif unit.action == "move":
                     self.cplayer.stopMoving(unit)
-                    #On attaque l'unité
-                    if unit.health > 0 and target.health > 0:
-                        check = self.cplayer.attack(unit, target, playerenemy)
-                        if check == -1:
-                            self.lstUnitAttack.remove(item)
-                            self.attack_target(unit, playerenemy)
-                        else:
-                            if isinstance(target, Units):
-                                #On vérifie si l'unité attaquée est en mouvement
-                                #Si c'est le cas alors on l'arrête de bouger
-                                if target.action == "move":
-                                    playerenemy.stopMoving(target)
-                                #Si elle collecte alors on l'arrête de collecter
-                                elif target.action == "collect":
-                                    self.cplayer.stopCollecting(target)
-                                    for item in self.lstVillagerCollect:
-                                        if item["unit"] == target:
-                                            self.RessourceCollecting.remove(item["target"])
-                                            self.lstVillagerCollect.remove(item)
-                                            target.action = None
-                                            break
-                                #Si l'unité attaquée n'est pas déjà entrain d'attaquer
-                                #Alors on l'ajoute à la liste des unités attaquantes pour riposter
-                                if target.action != "attack" and unit.health > 0 and target.health > 0:
-                                    self.attack_target(target, self.cplayer)
-                            continue
-                    
-            
-            if isinstance(target, Units):
-                distance_x = abs(target.x - target_position[0])
-                distance_y = abs(target.y - target_position[1])
-                #On vérifie si l'unité a bougé
-                if distance_x > 1 or distance_y > 1:
-                    #logs(self.cplayer.player.name + " :  Unit is moving recalculate path to attack", logging.INFO)
-                    for item in self.lstUnitAttack:
+                    unit.action = None
+                elif unit.action == "collect":
+                    self.cplayer.stopCollecting(unit)
+                    for item in self.lstVillagerCollect:
                         if item["unit"] == unit:
-                            self.lstUnitAttack.remove(item)
-                    #On retire l'unité de la queue de déplacement
-                    self.cplayer.stopMoving(unit)
-                    self.attack_target(unit, playerenemy)
-                    continue
-            #Si l'unité fait quelque chose alors on ne fait rien
-            if unit.action is not None:
-                continue
-        
-            #logs(self.cplayer.player.name + " :  Unit attack", logging.INFO)
-            
-            #Si l'unité n'est pas à coté de l'unité cible alors on la déplace
-            if unit.action is None and unit.x != target_position[0] and unit.y != target_position[1]:
-                check = self.cplayer.move(unit, target_position[0], target_position[1])
-                    
-            #Si l'unité est arrivée à destination alors on attaque a troupe ennemie
-            elif unit.action is None and (unit.x, unit.y == target_position) and target.health > 0 and unit.health > 0:
-                check = self.cplayer.attack(unit, target, playerenemy)
-                if check == -1:
-                    for item in self.lstUnitAttack:
-                        if item["unit"] == unit:
-                            self.lstUnitAttack.remove(item)
-                            self.attack_target(unit, playerenemy)
+                            self.RessourceCollecting.remove(item["target"])
+                            self.lstVillagerCollect.remove(item)
+                            unit.action = None
                             break
-                #Si l'on attaque une unité alors celle-ci riposte
-                else:
-                    #Seul les unités peuvent attaquer
-                    if isinstance(target, Units):
-                        #On vérifie si l'unité attaquée est en mouvement
-                        #Si c'est le cas alors on l'arrête de bouger
-                        if target.action == "move":
-                            playerenemy.stopMoving(target)
-                        elif target.action == "collect":
-                            playerenemy.stopCollecting(target)
-                        #Si l'unité attaquée n'est pas déjà entrain d'attaquer
-                        #Alors on l'ajoute à la liste des unités attaquantes
-                        if target.action != "attack" and unit.health > 0 and target.health > 0:
-                            self.attack_target(target, self.cplayer)
+                continue
+                        
+            #On vérifie si notre cible est morte
+            #Si c'est le cas alors on trouve une nouvelle cible
+            if target.health <= 0:
+                #On retire mon unité de la liste des unités attaquantes
+                self.lstUnitAttack.remove(item)
+                if target_position in self.caseAttack:
+                    self.caseAttack.remove(item["target_position"])
+                #Si mon unité attaquait
+                if unit.action == "attack":
+                    self.cplayer.stopAttacking(unit)
+                #Si mon unité était en mouvement
+                elif unit.action == "move":
+                    self.cplayer.stopMoving(unit)
+                
+                #On cherche un nouvelle cible
+                self.attack_target(unit, playerenemy)
+                continue
+            '''
+            #On vérifie si l'unité enemi est en mouvement
+            #Si c'est le cas alors on recalcule le chemin pour l'attaquer
+            if isinstance(target, Units):
+                if target.action == "move":
+                    #Si notre unité est en mouvement alors on l'arrête
+                    if unit.action == "move":
+                        self.cplayer.stopMoving(unit)
+                    #On retire notre case de la liste des cases attaquantes
+                    self.caseAttack.remove(item["target_position"])
+                    #On recalcule le chemin pour attaquer l'unité
+                    target_position = self.find_adjacent_free_tile_attack(target)
+                    if target_position is not None:
+                        item["target_position"] = target_position
+                        self.caseAttack.append(target_position)
+                        self.cplayer.move(unit, target_position[0], target_position[1])
+                    #Si on ne trouve pas de case pour attaquer alors on arrête d'attaquer
+                    else:
+                        self.lstUnitAttack.remove(item)
+                        logs(self.cplayer.player.name + " :  No case to attack", logging.INFO)
+                        #self.attack_target(unit, playerenemy)
+            '''         
                             
+            #Si notre unité est en mouvement ou en combat alors on ne fait rien
+            #if unit.action is not None:
+            #    continue
+            
+            #Si notre unité ne fait rien et qu'elle n'est pas à coté de l'unité cible
+            #Alors on la déplace
+            if unit.action is None and (unit.x, unit.y) != item["target_position"]:
+                check = self.cplayer.move(unit, item["target_position"][0], item["target_position"][1])
+                if check == -1:
+                    if target_position in self.caseAttack:
+                        self.caseAttack.remove(target_position)
+                    target_position = self.find_adjacent_free_tile_attack(target)
+                    if target_position is not None:
+                        item["target_position"] = target_position
+                        self.caseAttack.append(target_position)
+                        self.cplayer.move(unit, target_position[0], target_position[1])
+                    
+            #Si notre unité est arrivée à coté de l'enemi alors on l'attaque
+            elif unit.action is None and (unit.x, unit.y) == item["target_position"]:
+                verifAttack = self.cplayer.attack(unit, target, playerenemy)
+                #Si on arrive à attaquer alors l'unité attaquée riposte
+                if verifAttack == 0:
+                    #On vérifie d'abord si l'unité attaquée n'est pas déjà entrain de vouloir nous attaquer
+                    check = False
+                    for item in self.lstUnitAttack:
+                        if item["unit"] == target:
+                            check = True
+                            break
+                    #Si elle n'est pas déjà entrain d'attaquer alors on l'ajoute la fait attaquer
+                    if not check:
+                        if isinstance(target, Units):
+                            #Si l'unité attaquée est en mouvement alors on l'arrête
+                            if target.action == "move":
+                                self.cplayer.stopMoving(target)
+                            elif target.action == "collect":
+                                self.cplayer.stopCollecting(target)
+                                for item in self.lstVillagerCollect:
+                                    if item["unit"] == target:
+                                        self.RessourceCollecting.remove(item["target"])
+                                        self.lstVillagerCollect.remove(item)
+                                        target.action = None
+                                        break
+                            self.lstUnitAttack.append({"unit": target, "playerenemy": self.cplayer, "target": unit, "target_position": (target.x, target.y)})
+                            playerenemy.attack(target, unit, self.cplayer)
+                            self.caseAttack.append(target_position)
+                #Si on ne peut pas attaquer alors on arrête d'attaquer
+                elif verifAttack == -1:
+                    self.lstUnitAttack.remove(item)
+                    self.caseAttack.remove(item["target_position"])
+                    
     def find_adjacent_free_tile(self, resource):
         adjacent_positions = [
             (resource.x - 1, resource.y),
@@ -973,6 +976,12 @@ class AI:
             if target_position is not None:
                 self.lstUnitAttack.append({"unit": unit, "target": closest_enemy, "target_position": target_position, "playerenemy": enemy})
                 self.caseAttack.append(target_position)
+                distance_x = abs(unit.x - closest_enemy.x)
+                distance_y = abs(unit.y - closest_enemy.y)
+                if distance_x <= 1 and distance_y <= 1:
+                    self.cplayer.attack(unit, closest_enemy, enemy)
+                else:
+                    self.cplayer.move(unit, target_position[0], target_position[1])
                 #logs(self.cplayer.player.name + " :  Attack target", logging.INFO)
                 return 0
         else:
@@ -1123,14 +1132,14 @@ class AI:
         ''' Choix de la stratégie de l'IA '''
         ''' On choisit une stratégie en fonction de la situation de l'IA '''
 
-        if self.cplayer.player.gold < 300 and self.cplayer.player.wood < 300:
-             self.collect_strategie()
+        #if self.cplayer.player.gold < 300 and self.cplayer.player.wood < 300:
+        #     self.collect_strategie()
 
-        elif self.cplayer.player.food < 300 and len(self.cplayer.player.units) < 30:
-            self.expansion_strategie()
+        #elif self.cplayer.player.food < 300 and len(self.cplayer.player.units) < 30:
+        #    self.expansion_strategie()
 
-        elif self.cplayer.player.food > 1000 and self.cplayer.player.gold > 1000 and self.cplayer.player.wood > 1000:
-            self.reforcement_strategie()
+        #elif self.cplayer.player.food > 1000 and self.cplayer.player.gold > 1000 and self.cplayer.player.wood > 1000:
+        #    self.reforcement_strategie()
 
         lstNbUnitPerPlayer = []
         minUnit = float('inf')

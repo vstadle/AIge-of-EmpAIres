@@ -614,7 +614,8 @@ class ControllerPlayer():
             enemy = item["enemy"]
             playerenemy = item["playerenemy"]
             
-            if unit.health > 0: 
+            #On vérifie que notre unité est toujours en vie pour attaquer
+            if unit.health > 0:
                 if current_time - start_time >= unit.speedAtack:
                     #vérification de la distance entre l'unité et l'ennemi
                     if isinstance(enemy, Buildings):
@@ -631,53 +632,41 @@ class ControllerPlayer():
                         if enemy.health > 0:
                             enemy.health -= unit.attack
                             item["start_time"] = time.time()
+                        #Si l'enemi est mort, alors on le supprime de la carte et de la liste des unités de l'ennemi
                         if enemy.health <= 0:
                             
                             #On supprime l'ennemi de la carte
-                            self.cmap.map.map_entities[enemy.x][enemy.y] = None
-                            self.cmap.map.map[enemy.x][enemy.y] = " "
-                            
-                            #Si c'est un bâtiment, l'affichage de tout le bâtiment est supprimé
+                            #Si l'ennemi est un bâtiment, on supprime tout le bâtiment
                             if isinstance(enemy, Buildings):
-                                for x in range(enemy.sizeMap):
-                                    for y in range(enemy.sizeMap):
-                                        self.cmap.map.map_entities[enemy.x + x][enemy.y + y] = None
-                                        self.cmap.map.map[enemy.x + x][enemy.y + y] = " "
+                                for nx in range(enemy.sizeMap):
+                                    for ny in range(enemy.sizeMap):
+                                        self.cmap.map.map_entities[enemy.x + nx][enemy.y + ny] = None
+                                        self.cmap.map.map[enemy.x + nx][enemy.y + ny] = " "
                                 #On supprime le bâtiment de la liste des bâtiments de l'ennemi
                                 if enemy in playerenemy.player.buildings:
                                     playerenemy.player.buildings.remove(enemy)
-                                logs(playerenemy.player.name + " : " + str(enemy) + " is destroyed", level=logging.INFO)
-                            
-                            #Si c'est une unité, l'unité est supprimée de la liste des unités de l'ennemi
+                            #Si l'ennemi est une unité, on le supprime de la liste des unités de l'ennemi
                             elif isinstance(enemy, Units):
+                                self.cmap.map.map_entities[enemy.x][enemy.y] = None
+                                self.cmap.map.map[enemy.x][enemy.y] = " "
                                 if enemy in playerenemy.player.units:
-                                    playerenemy.player.units.remove(enemy) 
-                                logs(playerenemy.player.name + " : " + str(enemy) + " is dead", level=logging.INFO)
-                                #Si l'unité enemi est en train d'attaquer, on l'arrête d'attaquer
-                                if enemy.action == "attack":
-                                    for item in playerenemy.queueAttack[:]:
-                                        if item["unit"] == enemy:
-                                            playerenemy.queueAttack.remove(item)
-                                            enemy.action = None
-                                            break
-                            if item in self.queueAttack:
-                                self.queueAttack.remove(item)
+                                    playerenemy.player.units.remove(enemy)
+                            
+                            self.queueAttack.remove(item)
                             unit.action = None
+                    
                     #Si l'ennemi est trop loin, l'unité arrête d'attaquer
                     else:
                         self.queueAttack.remove(item)
                         unit.action = None
             else:
-                if item in self.queueAttack:
-                                self.queueAttack.remove(item)
-                unit.action = None
+                #self.queueAttack.remove(item)
+                #unit.action = None
                 if unit in self.player.units:
                     self.player.units.remove(unit)
-                #On supprime l'ennemi de la carte
-                self.cmap.map.map_entities[enemy.x][enemy.y] = None
-                self.cmap.map.map[enemy.x][enemy.y] = " "
-                logs(self.player.name + " : " + str(unit) + " can't attack because is dead ", level=logging.INFO)
-                
+                #self.cmap.map.map_entities[unit.x][unit.y] = None
+                #self.cmap.map.map[unit.x][unit.y] = " "
+            
     def stopAttacking(self, unit):
         for item in self.queueAttack[:]:
             if item["unit"] == unit:
