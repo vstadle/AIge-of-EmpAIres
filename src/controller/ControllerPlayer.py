@@ -671,6 +671,11 @@ class ControllerPlayer():
                 if item in self.queueAttack:
                                 self.queueAttack.remove(item)
                 unit.action = None
+                if unit in self.cplayer.player.units:
+                    self.cplayer.player.units.remove(unit)
+                #On supprime l'ennemi de la carte
+                self.cmap.map.map_entities[enemy.x][enemy.y] = None
+                self.cmap.map.map[enemy.x][enemy.y] = " "
                 logs(self.player.name + " : " + str(unit) + " can't attack because is dead ", level=logging.INFO)
                 
     def stopAttacking(self, unit):
