@@ -28,7 +28,7 @@ class HealthBar:
             elif player_color == curses.COLOR_CYAN:
                 self.health_color = (0, 255, 255)
             else:
-                self.health_color = (255, 255, 255)  # <---  CORRECTION : Mettre BLANC par défaut (ou gris, ou la couleur par défaut souhaitée)
+                self.health_color = (255, 255, 255) 
         else:
             self.health_color = (0, 0, 0) 
 
