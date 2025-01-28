@@ -73,6 +73,8 @@ class AI:
             self.mode = MOD_AI.AI_OFFENSIVE
         elif self.cplayer.player.mode_ia == 2:
             self.mode = MOD_AI.AI_DEFENSIVE
+            
+        self.isAttacking = False
 
     def villager_is_available(self):
         for unit in self.cplayer.player.units:
@@ -1286,8 +1288,7 @@ class AI:
 
         if self.cplayer.player.population <= 200:
 
-            if self.cplayer.player.population == len(self.cplayer.player.units):
-                player_color = self.cplayer.player.getColor()
+            player_color = self.cplayer.player.getColor()
             ratio_population = len(self.cplayer.player.units) / self.cplayer.player.population
             if ratio_population < 0.8:
                 for i in range (0, 9):
@@ -1490,9 +1491,9 @@ class AI:
 
             #Si j'ai 3 fois plus de troupes que le joueur qui a le moins de troupes
             #Alors j'attaque
-            #if len(self.cplayer.player.units) >= 3 * minUnit:
-            self.mode = MOD_AI.AI_OFFENSIVE
-            self.cplayer.player.setModeIA(1)
+            if (len(self.cplayer.player.units) >= 3 * minUnit or self.isAttacking) and len(self.cplayer.player.units) >= 45:
+                self.attack_strategie(minPlayer)
+                self.isAttacking = True
             
         if self.mode == MOD_AI.AI_OFFENSIVE:
             
@@ -1518,8 +1519,9 @@ class AI:
             
             #Si j'ai 1,5 fois plus de troupes que le joueur qui a le moins de troupes
             #Alors j'attaque
-            #if len(self.cplayer.player.units) >= 1.5 * minUnit:
-            self.attack_strategie(minPlayer)
+            if (len(self.cplayer.player.units) >= 1.5 * minUnit or self.isAttacking) and len(self.cplayer.player.units) >= 45:
+                self.attack_strategie(minPlayer)
+                self.isAttacking = True
         
             if self.game.map.mapType == MapType.CENTER_RESOURCES:
                 self.protectionCenter()
