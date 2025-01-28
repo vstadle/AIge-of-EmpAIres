@@ -518,27 +518,28 @@ class AI:
             #Si c'est le cas alors on l'attaque
             tempcplayer = None
             for x, y in adjacent_positions:
-                entity = self.game.map.map_entities[unit.x + x][unit.y + y]
-                if isinstance(entity, Units) or isinstance(entity, Buildings):
-                    if entity.player != self.cplayer.player:
-                        for cplayer in self.lstcPlayer:
-                                if cplayer.player == entity.player:
-                                    tempcplayer = cplayer
-                        if unit.x + x == entity.x and unit.y + y == entity.y:
-                            #On arrête de bouger
-                            if unit.action == "move":
-                                self.cplayer.stopMoving(unit)
-                            if isinstance(entity, Units):
-                                if entity.action == "move":
-                                    tempcplayer.stopMoving(entity)
-                            #On change de cible et de case d'attaque
-                            if target_position in self.caseAttack:
-                                self.caseAttack.remove(item["target_position"])
-                            
-                            item["target"] = entity
-                            item["target_position"] = (unit.x, unit.y)
-                            item["playerenemy"] = tempcplayer
-                            self.caseAttack.append((unit.x, unit.y))
+                if 0 <= unit.x + x < self.game.map.size_map_x and 0 <= unit.y + y < self.game.map.size_map_y:
+                    entity = self.game.map.map_entities[unit.x + x][unit.y + y]
+                    if isinstance(entity, Units) or isinstance(entity, Buildings):
+                        if entity.player != self.cplayer.player:
+                            for cplayer in self.lstcPlayer:
+                                    if cplayer.player == entity.player:
+                                        tempcplayer = cplayer
+                            if unit.x + x == entity.x and unit.y + y == entity.y:
+                                #On arrête de bouger
+                                if unit.action == "move":
+                                    self.cplayer.stopMoving(unit)
+                                if isinstance(entity, Units):
+                                    if entity.action == "move":
+                                        tempcplayer.stopMoving(entity)
+                                #On change de cible et de case d'attaque
+                                if target_position in self.caseAttack:
+                                    self.caseAttack.remove(item["target_position"])
+                                
+                                item["target"] = entity
+                                item["target_position"] = (unit.x, unit.y)
+                                item["playerenemy"] = tempcplayer
+                                self.caseAttack.append((unit.x, unit.y))
                     
                     
             
@@ -1249,12 +1250,17 @@ class AI:
         ration_archer = cpt_archer / len(self.cplayer.player.units)
         ration_horseman = cpt_horseman / len(self.cplayer.player.units)
 
-        logs(self.cplayer.player.name + " :  Ration swordsman : " + str(ration_sworsman), logging.INFO)
-        logs(self.cplayer.player.name + " :  Ration archer : " + str(ration_archer), logging.INFO)
-        logs(self.cplayer.player.name + " :  Ration horseman : " + str(ration_horseman), logging.INFO)
+        if ration_archer < 0.34 and ration_sworsman < 0.34 and ration_horseman < 0.34:
+            cpt_total = len(self.cplayer.player.units) + 20
+        else:
+            cpt_total = len(self.cplayer.player.units)
+
+        #logs(self.cplayer.player.name + " :  Ration swordsman : " + str(ration_sworsman), logging.INFO)
+        #logs(self.cplayer.player.name + " :  Ration archer : " + str(ration_archer), logging.INFO)
+        #logs(self.cplayer.player.name + " :  Ration horseman : " + str(ration_horseman), logging.INFO)
 
         barracks = self.findBuildings(Barracks)
-        while ration_sworsman < 0.34 and cpt_swordsman < 45:
+        while ration_sworsman < 0.34:
             if barracks is None:
                 break
             if barracks is not None:
@@ -1262,10 +1268,10 @@ class AI:
                 if check == 1:
                     self.lstUnitWaiting.append("swordsman")
             cpt_swordsman += 1
-            ration_sworsman = cpt_swordsman / len(self.cplayer.player.units) + len(self.lstUnitWaiting)
+            ration_sworsman = cpt_swordsman / cpt_total + len(self.lstUnitWaiting)
         
         archery = self.findBuildings(ArcheryRange)
-        while ration_archer < 0.34 and cpt_archer < 45:
+        while ration_archer < 0.34:
             if archery is None:
                 break
             if archery is not None:
@@ -1273,10 +1279,10 @@ class AI:
                 if check == 1:
                     self.lstUnitWaiting.append("archer")
             cpt_archer += 1
-            ration_archer = cpt_archer / len(self.cplayer.player.units) + len(self.lstUnitWaiting)
+            ration_archer = cpt_archer / cpt_total + len(self.lstUnitWaiting)
 
         stable = self.findBuildings(Stable)
-        while ration_horseman < 0.34 and cpt_horseman < 45:
+        while ration_horseman < 0.34:
             if stable is None:
                 break
             if stable is not None:
@@ -1284,7 +1290,7 @@ class AI:
                 if check == 1:
                     self.lstUnitWaiting.append("horseman")
             cpt_horseman += 1
-            ration_horseman = cpt_horseman + 1 / len(self.cplayer.player.units) + len(self.lstUnitWaiting)
+            ration_horseman = cpt_horseman + 1 / cpt_total + len(self.lstUnitWaiting)
 
         if self.cplayer.player.population <= 200:
 
@@ -1405,10 +1411,6 @@ class AI:
                                 self.cplayer.move(unit, regiment_unit[0], regiment_unit[1])
                             else:
                                 self.verificationRegiment.remove(unit)
-                else:
-                    regiment.remove(unit)
-            if len(regiment) == 0:
-                self.regiment.remove(regiment)
 
     def move_regiment(self, lstUnit, target_position):
     
@@ -1491,7 +1493,7 @@ class AI:
 
             #Si j'ai 3 fois plus de troupes que le joueur qui a le moins de troupes
             #Alors j'attaque
-            if (len(self.cplayer.player.units) >= 3 * minUnit or self.isAttacking) and len(self.cplayer.player.units) >= 45:
+            if len(self.cplayer.player.units) >= 3 * minUnit or self.isAttacking or len(self.cplayer.player.units) >= 50:
                 self.attack_strategie(minPlayer)
                 self.isAttacking = True
             
@@ -1519,7 +1521,7 @@ class AI:
             
             #Si j'ai 1,5 fois plus de troupes que le joueur qui a le moins de troupes
             #Alors j'attaque
-            if (len(self.cplayer.player.units) >= 1.5 * minUnit or self.isAttacking) and len(self.cplayer.player.units) >= 45:
+            if (len(self.cplayer.player.units) >= 1.5 * minUnit) or self.isAttacking or (len(self.cplayer.player.units) >= 50):
                 self.attack_strategie(minPlayer)
                 self.isAttacking = True
         
@@ -1528,7 +1530,8 @@ class AI:
             elif self.game.map.mapType == MapType.GENEROUS_RESOURCES:
                 nbInactive = self.unit_inactive()
                 if nbInactive > 20:
-                    self.formateRegiment()
+                    pass
+                    #self.formateRegiment()
 
         elif self.mode is None:
             logs(self.cplayer.player.name + " :  l'IA n'est dans aucun mode", logging.INFO)
