@@ -510,7 +510,9 @@ class UIHandler():
         if not pygame.display.get_surface():
             pygame.init()
             self.screen = pygame.display.set_mode((800, 600))
-        
+        else:
+            self.screen = pygame.display.get_surface()
+            pygame.display.set_mode((800, 600))
 
         pygame.display.set_caption("Charger une partie")
 
