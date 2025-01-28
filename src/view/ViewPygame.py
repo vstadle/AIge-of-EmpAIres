@@ -239,12 +239,21 @@ class ViewPygame:
                             sprite_key = sprite_mapping.get(entity.__class__.__name__, None)
                             
                             if sprite_key and sprite_key in self.cached_sprites:
+                                if sprite_key == 'swordsman':
+                                    offset_x_unit = 20
+                                    offset_y_unit = 20
+                                elif sprite_key == 'horseman':
+                                    offset_x_unit = 15
+                                    offset_y_unit = 15
+                                else:
+                                    offset_x_unit = 0
+                                    offset_y_unit = 0
                                 render_list.append((
                                     screen_y + self.TILE_SIZE//2,
                                     (self.cached_sprites[sprite_key],
-                                    (screen_x - self.TILE_SIZE//2 + self.TILE_SIZE - (10 if sprite_key == 'swordsman' else 0), 
-                                    screen_y - self.TILE_SIZE//2 - (20 if sprite_key == 'swordsman' else -10))
-                                )))
+                                    (screen_x - self.TILE_SIZE//2 + self.TILE_SIZE - offset_x_unit, 
+                                    screen_y - self.TILE_SIZE//2 - offset_y_unit))
+                                ))
                         
                         # Gestion des bâtiments
                         elif isinstance(entity, (TownCenter, Barracks, ArcheryRange, Stable, 
@@ -321,8 +330,8 @@ class ViewPygame:
             # Ajustements spécifiques pour chaque type de bâtiment
             offset_map = {
                 'towncenter': (
-                    -self.cached_sprites['towncenter'].get_width()//2 + 1.5*self.TILE_SIZE, 
-                    -self.cached_sprites['towncenter'].get_height() + 2.7 * self.TILE_SIZE
+                    -self.cached_sprites['towncenter'].get_width()//2 + 1.5*self.TILE_SIZE-20, 
+                    -self.cached_sprites['towncenter'].get_height() + 2.7 * self.TILE_SIZE+10
                 ),
                 'barracks': (
                     -self.cached_sprites['barracks'].get_width()//2 + self.TILE_SIZE, 
@@ -333,8 +342,8 @@ class ViewPygame:
                     -self.cached_sprites['archeryrange'].get_height()//2 + 0.5*self.TILE_SIZE
                 ),
                 'stable': (
-                    -self.cached_sprites['stable'].get_width()//2 + self.TILE_SIZE, 
-                    -self.cached_sprites['stable'].get_height()//2 + 0.5*self.TILE_SIZE
+                    -self.cached_sprites['stable'].get_width()//2 + self.TILE_SIZE-20, 
+                    -self.cached_sprites['stable'].get_height()//2 + 0.5*self.TILE_SIZE+10
                 ),
                 'farm': (
                     -self.cached_sprites['farm'].get_width()//2 + self.TILE_SIZE, 
@@ -675,8 +684,8 @@ class ViewPygame:
                 self.screen,
                 resources_text,
                 16,
-                (200, 200, 200),
-                (text_x + 5, text_y + 25)
+                (0, 0, 0),
+                (text_x + 5, text_y + 15)
             )
             
             # Unités
@@ -685,7 +694,7 @@ class ViewPygame:
                 self.screen,
                 units_text,
                 16,
-                (200, 200, 200),
+                (0, 0, 0),
                 (text_x + self.panel_rect.width - 80, text_y + 15)
             )
             text_y += 55
