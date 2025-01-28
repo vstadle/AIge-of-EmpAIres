@@ -669,18 +669,22 @@ class ControllerPlayer():
                             
                             self.queueAttack.remove(item)
                             unit.action = None
+                            return 1
                     
                     #Si l'ennemi est trop loin, l'unité arrête d'attaquer
                     else:
                         self.queueAttack.remove(item)
                         unit.action = None
+                        return 1
             else:
                 #self.queueAttack.remove(item)
                 #unit.action = None
                 if unit in self.player.units:
                     self.player.removeUnit(unit)
+                return 1
                 #self.cmap.map.map_entities[unit.x][unit.y] = None
                 #self.cmap.map.map[unit.x][unit.y] = " "
+        return 0
             
     def stopAttacking(self, unit):
         for item in self.queueAttack[:]:

@@ -143,21 +143,24 @@ class ControllerGame():
                 self.uiHandler.saveGame()
             elif key == curses.KEY_F12:
                 self.paused = True
-                #pygame.quit()
-                self.uiHandler.show_load_game_menu()
+                pygame.quit()
+                self.uiHandler.show_menu()
 
+
+            if key == ord('z') or key == curses.KEY_UP:
+                self.viewTerminal.camera.move(0, -1, stdscr)
+            elif key == ord('s') or key == curses.KEY_DOWN:
+                self.viewTerminal.camera.move(0, 1, stdscr)
+            elif key == ord('q') or key == curses.KEY_LEFT:
+                self.viewTerminal.camera.move(-1, 0, stdscr)
+            elif key == ord('d') or key == curses.KEY_RIGHT:
+                self.viewTerminal.camera.move(1, 0, stdscr)
+
+            self.viewTerminal.draw_map(stdscr)
 
             if not self.paused:
 
-                if key == ord('z') or key == curses.KEY_UP:
-                    self.viewTerminal.camera.move(0, -1, stdscr)
-                elif key == ord('s') or key == curses.KEY_DOWN:
-                    self.viewTerminal.camera.move(0, 1, stdscr)
-                elif key == ord('q') or key == curses.KEY_LEFT:
-                    self.viewTerminal.camera.move(-1, 0, stdscr)
-                elif key == ord('d') or key == curses.KEY_RIGHT:
-                    self.viewTerminal.camera.move(1, 0, stdscr)
-                elif key == curses.KEY_F2 or key == curses.KEY_F9:
+                if key == curses.KEY_F2 or key == curses.KEY_F9:
                     self.change_mode()
 
                 if current_time - start_time > time_to_update:
@@ -197,8 +200,6 @@ class ControllerGame():
                     return
 
                  ###### FIN ASM #############
-
-                self.viewTerminal.draw_map(stdscr)
         
     def change_mode(self):
         pygame.init()
@@ -303,19 +304,17 @@ class ControllerGame():
                     ai.update()
                 
                 # Game update logic remains the same
-                check = 0
-                check2 = 0
+                checkBuilding = 0
+                checkAttack = 0
                 for cplayer in self.lstcPlayers:
                     cplayer.update_training()
-                    check = cplayer.update_building()
+                    checkBuilding = cplayer.update_building()
                     cplayer.updating_collect()
                     cplayer.updating_moving()
-                    cplayer.updating_attack()
-                    if check == 0:
-                       check2 += 1
+                    checkAttack = cplayer.updating_attack()
 
                 # Mise à jour de la minimap seulement s'il y a eu une construction ou destruction
-                if check2 != 0:
+                if checkBuilding == 0 or checkAttack == 1:
                     self.viewPygame.create_static_minimap()
 
 
