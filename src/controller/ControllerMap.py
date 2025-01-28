@@ -62,8 +62,9 @@ class ControllerMap():
 
         cpt = 0
         for i in position:
-            self.map.addBuilding(TownCenter(), int(i[0]), int(i[1]), lstPlayers[cpt].getPlayer())
-            lstPlayers[cpt].addBuildingInitialize(TownCenter(), int(i[0]), int(i[1]))
+            town_center = TownCenter(color=lstPlayers[cpt].getPlayer().getColor())
+            self.map.addBuilding(town_center, int(i[0]), int(i[1]), lstPlayers[cpt].getPlayer())
+            lstPlayers[cpt].addBuildingInitialize(town_center, int(i[0]), int(i[1])) # Passer l'instance créée
             cpt += 1
 
     def genRessources(self, map_type):

@@ -1,31 +1,55 @@
 import pygame
+import curses
 
 class HealthBar:
-    def __init__(self, max_health, width=50, height=5, border_color=(0,0,0), health_color=(0,255,0), background_color=(255,0,0)):
+    def __init__(self, max_health, width=50, height=5, player_color=None):
+        print(f"HealthBar.__init__ - player_color reçu: {player_color}, Type: {type(player_color)}")
         self.max_health = max_health
         self.current_health = max_health
         self.width = width
         self.height = height
-        self.border_color = border_color
-        self.health_color = health_color
-        self.background_color = background_color
+        
+        # Définir les couleurs de base
+        self.border_color = (0, 0, 0)
+        self.background_color = (127, 0, 0)  # Fond rouge pour la partie "vide"
+        
+        # Mapper les couleurs curses aux couleurs RGB pour la partie "pleine"
+        if player_color is not None:
+            if player_color == curses.COLOR_RED:
+                self.health_color = (255, 0, 0)
+            elif player_color == curses.COLOR_GREEN:
+                self.health_color = (0, 255, 0)
+            elif player_color == curses.COLOR_BLUE:
+                self.health_color = (0, 0, 255)
+            elif player_color == curses.COLOR_YELLOW:
+                self.health_color = (255, 255, 0)
+            elif player_color == curses.COLOR_MAGENTA:
+                self.health_color = (255, 0, 255)
+            elif player_color == curses.COLOR_CYAN:
+                self.health_color = (0, 255, 255)
+            else:
+                self.health_color = (255, 255, 255)  # <---  CORRECTION : Mettre BLANC par défaut (ou gris, ou la couleur par défaut souhaitée)
+        else:
+            self.health_color = (0, 0, 0) 
 
     def update(self, current_health):
         self.current_health = max(0, min(current_health, self.max_health))
 
     def draw(self, screen, x, y):
-        # On affiche uniquement si des dégâts ont été subis
+        print(f"HealthBar.draw() appelée - self.health_color: {self.health_color}, x: {x}, y: {y}") # Gardez ce print
+
+        print(f"  Couleurs RGB: border={self.border_color}, background={self.background_color}, health={self.health_color}") # AJOUTEZ CETTE LIGNE
+
         if self.current_health < self.max_health:
-            # Calculate health percentage
             ratio = self.current_health / self.max_health
-            
-            # Draw border
+
+            # Draw border (NOIR)
             pygame.draw.rect(screen, self.border_color, (x-1, y-1, self.width+2, self.height+2))
-            
-            # Draw background (depleted health)
+
+            # Draw background (ROUGE)
             pygame.draw.rect(screen, self.background_color, (x, y, self.width, self.height))
-            
-            # Draw current health
+
+            # Draw current health with player color (COULEUR DU JOUEUR ou BLANC par défaut)
             health_width = int(self.width * ratio)
-            if health_width > 0:  # S'assurer qu'il y a encore de la vie à afficher
+            if health_width > 0:
                 pygame.draw.rect(screen, self.health_color, (x, y, health_width, self.height))

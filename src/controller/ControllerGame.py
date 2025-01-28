@@ -185,23 +185,16 @@ class ControllerGame():
                 # Vérification des joueurs restants
                 active_players = []
                 for cplayer in self.lstcPlayers:
-                    if len(cplayer.player.getBuildings()) > 0 or cplayer.player.units > 0:
+                    if len(cplayer.player.getBuildings()) > 0 or len(cplayer.player.units) > 0:
                         active_players.append(cplayer.player)
 
                 # Si un seul joueur reste, afficher son nom et terminer le jeu
                 if len(active_players) == 1:
                     winner = active_players[0]
-                    print(f"Le joueur {winner.name} a gagné !")
-                    
-                    # Affichage graphique de la victoire si nécessaire
-                    winner = active_players[0]
-                    print(f"Le joueur {winner.name} a gagné !")
-                    self.uiHandler.display_winner(winner.name)  # Délégation à UIHandler
-
-                    #pygame.display.flip()
-                    #pygame.time.wait(5000)  # Attend 5 secondes avant de fermer                  
-                    #pygame.quit()
-                    self.uiHandler.show_menu()
+                    curses.endwin()  # Fermer proprement le mode terminal
+                    self.uiHandler.display_winner(winner.name)
+                    pygame.quit()
+                    return
 
                  ###### FIN ASM #############
 
@@ -237,9 +230,7 @@ class ControllerGame():
                         running = False
                         break
                     if event.type == pygame.KEYDOWN and event.key == pygame.K_k:  # Réduire HP
-                        if self.lstcPlayers[0].player.buildings:
-                            building = self.lstcPlayers[0].player.buildings[0]
-                            building.setHp(building.getHp() - 100)
+                        
                         if self.lstcPlayers[0].player.units:
                             unit = self.lstcPlayers[0].player.units[0]
                             unit.setHp(unit.getHp() - 10)
@@ -326,6 +317,20 @@ class ControllerGame():
                 # Mise à jour de la minimap seulement s'il y a eu une construction ou destruction
                 if check2 != 0:
                     self.viewPygame.create_static_minimap()
+
+
+                active_players = []
+                for cplayer in self.lstcPlayers:
+                    if len(cplayer.player.getBuildings()) > 0 or len(cplayer.player.units) > 0:
+                        active_players.append(cplayer.player)
+
+                # Si un seul joueur reste, afficher son nom et terminer le jeu
+                if len(active_players) == 1:
+                    winner = active_players[0]
+                    curses.endwin()  # Fermer proprement le mode terminal
+                    self.uiHandler.display_winner(winner.name)
+                    pygame.quit()
+                    return
             
             self.clock.tick(200)  # Limited to 200 FPS
         

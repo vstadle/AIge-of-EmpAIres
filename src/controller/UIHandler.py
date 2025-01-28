@@ -208,7 +208,7 @@ class UIHandler():
         
         game_types = ['LEAN', 'MEAN', 'MARINES']
         map_types = ['GENEROUS', 'CENTER']
-        player_range = range(2, 13)
+        player_range = range(2, 7)
         ai_types = {1: 'Offensive', 2: 'Defensive'}
         
         config['ai_modes'] = [1] * config['nb_players']
@@ -462,8 +462,10 @@ class UIHandler():
             self.controllerMap.placementTownCenter(len(self.lstPlayers), self.lstPlayers)
             
             for cplayer in self.lstPlayers:
+                player_color = cplayer.player.getColor()
+
                 for j in range(3):
-                    cplayer.addUnitInitialize(Villager(), cplayer.getPlayer().getBuildings()[0])
+                    cplayer.addUnitInitialize(Villager(color = player_color), cplayer.getPlayer().getBuildings()[0])
                     
         elif(typeGame == "MEAN"):
             
@@ -473,8 +475,10 @@ class UIHandler():
             self.controllerMap.placementTownCenter(len(self.lstPlayers), self.lstPlayers)
             
             for cplayer in self.lstPlayers:
+                player_color = cplayer.player.getColor()
+
                 for j in range(3):
-                    cplayer.addUnitInitialize(Villager(), cplayer.getPlayer().getBuildings()[0])
+                    cplayer.addUnitInitialize(Villager(color = player_color), cplayer.getPlayer().getBuildings()[0])
 
         elif(typeGame ==  "MARINES"):
 
@@ -485,10 +489,11 @@ class UIHandler():
             
             for cplayer in self.lstPlayers:
                 cplayer.initializeTownCenter(2)
+                player_color = cplayer.player.getColor()
                 for t in range(5):
-                    cplayer.addUnitInitialize(Villager(), cplayer.getPlayer().getBuildings()[0])
-                    cplayer.addUnitInitialize(Villager(), cplayer.getPlayer().getBuildings()[1])
-                    cplayer.addUnitInitialize(Villager(), cplayer.getPlayer().getBuildings()[2])
+                    cplayer.addUnitInitialize(Villager(color = player_color), cplayer.getPlayer().getBuildings()[0])#ICI INTEGRER COULEUR PAR EXEMPLE
+                    cplayer.addUnitInitialize(Villager(color = player_color), cplayer.getPlayer().getBuildings()[1])
+                    cplayer.addUnitInitialize(Villager(color = player_color), cplayer.getPlayer().getBuildings()[2])
     
             '''
             self.lstPlayers[0].addBuilding(Farm(), 10, 10)
@@ -750,13 +755,30 @@ class UIHandler():
                 elif event.type == pygame.VIDEORESIZE:
                     screen = pygame.display.set_mode(event.size, pygame.RESIZABLE)
 
-    def display_winner(self, winner_name): #ASM
+    def display_winner(self, winner_name):
         pygame.init()
-        screen = pygame.display.set_mode((800, 600))
-        screen.fill((0, 0, 0))  # Efface l'écran
-        font = pygame.font.Font(None, 74)
-        text = font.render(f"Le joueur {winner_name} a gagné !", True, (255, 255, 255))
-        text_rect = text.get_rect(center=(400, 300))
-        screen.blit(text, text_rect)
-        pygame.display.flip()
-        pygame.time.wait(5000)  # Attend 5 secondes avant de fermer
+        screen = pygame.display.set_mode((1550, 865))
+        background = pygame.image.load("../data/img/background.png")
+       
+        # Afficher pendant 5 secondes
+        start_time = pygame.time.get_ticks()
+        showing = True
+       
+        while showing and pygame.time.get_ticks() - start_time < 5000:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    showing = False
+           
+            # Afficher le fond
+            screen.blit(pygame.transform.scale(background, (1550, 865)), (0, 0))
+           
+            # Afficher le texte de victoire
+            font = pygame.font.Font("../data/font/CinzelDecorative-Regular.ttf", 48)
+            text = font.render(f"Le joueur {winner_name} a gagné !", True, (255, 215, 0))
+            text_rect = text.get_rect(center=(1550 // 2, 865 // 2))  # Centre le texte par rapport à la taille de la fenêtre
+            screen.blit(text, text_rect)
+           
+            pygame.display.flip()
+       
+        pygame.quit()
+        self.show_menu()  # Retour au menu principal

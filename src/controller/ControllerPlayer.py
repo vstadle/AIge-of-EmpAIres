@@ -41,33 +41,33 @@ class ControllerPlayer():
         return cls(Player(name, f, w, g), cmap)
 
     def initializeTownCenter(self, nb):
-
+        player_color = self.player.getColor()
         for i in range(nb):
             #Placement du TownCenter
-            position = self.findPlaceForBuildings(TownCenter())
+            position = self.findPlaceForBuildings(TownCenter(color=player_color))
             if position is not None:
-                self.addBuildingInitialize(TownCenter(), position[0], position[1])
+                self.addBuildingInitialize(TownCenter(color=player_color), position[0], position[1])
 
         position = None
 
         #Placement des Barracks
         for i in range(nb):
-            position = self.findPlaceForBuildings(Barracks())
+            position = self.findPlaceForBuildings(Barracks(color=player_color))
             if position is not None:
-                self.addBuildingInitialize(Barracks(), position[0], position[1])
+                self.addBuildingInitialize(Barracks(color=player_color), position[0], position[1])
 
 
         #Placement des Stable
         for i in range(nb):
-            position = self.findPlaceForBuildings(Stable())
+            position = self.findPlaceForBuildings(Stable(color=player_color))
             if position is not None:
-                self.addBuildingInitialize(Stable(), position[0], position[1])
+                self.addBuildingInitialize(Stable(color=player_color), position[0], position[1])
         
         #Placement des ArcheryRange
         for i in range(nb):
-            position = self.findPlaceForBuildings(ArcheryRange())
+            position = self.findPlaceForBuildings(ArcheryRange(color=player_color))
             if position is not None:
-                self.addBuildingInitialize(ArcheryRange(), position[0], position[1])
+                self.addBuildingInitialize(ArcheryRange(color=player_color), position[0], position[1])
 
         '''
         logs(self.player.name, level=logging.INFO)
@@ -343,7 +343,7 @@ class ControllerPlayer():
 
 
     def trainVillager(self, building):
-        villager = Villager()
+        villager = Villager(color=self.player.getColor()) # ADD color=self.player.getColor()
         if self.player.population < 200 and (len(self.player.units)+len(self.player.training_queue)) < self.player.population:
             if self.player.canAffordUnit(villager):
                 self.player.removeResourcesForUnit(villager)
@@ -356,7 +356,7 @@ class ControllerPlayer():
             return -1
     
     def trainArcher(self, building):
-        archer = Archer()
+        archer = Archer(color=self.player.getColor()) # ADD color=self.player.getColor()
         if self.player.population < 200 and (len(self.player.units)+len(self.player.training_queue)) < self.player.population:
             if self.player.canAffordUnit(archer):
                 self.addUnit(archer, building)
@@ -369,7 +369,7 @@ class ControllerPlayer():
             return -1
 
     def trainHorseman(self, building):
-        horseman = Horseman()
+        horseman = Horseman(color=self.player.getColor()) # ADD color=self.player.getColor()
         if self.player.population < 200 and (len(self.player.units)+len(self.player.training_queue)) < self.player.population:
             if self.player.canAffordUnit(horseman):
                 self.addUnit(horseman, building)
@@ -382,7 +382,7 @@ class ControllerPlayer():
             return -1
     
     def trainSwordsman(self, building):
-        swordsman = Swordsman()
+        swordsman = Swordsman(color=self.player.getColor()) # ADD color=self.player.getColor()
         if self.player.population < 200 and (len(self.player.units)+len(self.player.training_queue)) < self.player.population:
             if self.player.canAffordUnit(swordsman):
                 self.addUnit(swordsman, building)

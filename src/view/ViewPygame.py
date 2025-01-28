@@ -272,6 +272,7 @@ class ViewPygame:
                             entity.health_bar.update(entity.health)
                             entity.health_bar.draw(self.screen, health_bar_x, health_bar_y)
 
+
         # Rendu trié par profondeur
         for _, (sprite, pos) in sorted(render_list, key=lambda x: x[0]):
             self.screen.blit(sprite, pos)
