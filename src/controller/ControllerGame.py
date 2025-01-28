@@ -304,19 +304,17 @@ class ControllerGame():
                     ai.update()
                 
                 # Game update logic remains the same
-                check = 0
-                check2 = 0
+                checkBuilding = 0
+                checkAttack = 0
                 for cplayer in self.lstcPlayers:
                     cplayer.update_training()
-                    check = cplayer.update_building()
+                    checkBuilding = cplayer.update_building()
                     cplayer.updating_collect()
                     cplayer.updating_moving()
-                    cplayer.updating_attack()
-                    if check == 0:
-                       check2 += 1
+                    checkAttack = cplayer.updating_attack()
 
                 # Mise à jour de la minimap seulement s'il y a eu une construction ou destruction
-                if check2 != 0:
+                if checkBuilding == 0 or checkAttack == 1:
                     self.viewPygame.create_static_minimap()
 
 
