@@ -1,4 +1,5 @@
 import pygame
+import curses
 import sys
 import os
 import random
@@ -593,6 +594,7 @@ class ViewPygame:
         
         self.panel_surface = pygame.Surface((panel_width, panel_height), pygame.SRCALPHA)
         
+        # Fond du panel avec dégradé
         for y in range(panel_height):
             alpha = 180
             blue_value = int(15 * (y / panel_height))
@@ -640,21 +642,31 @@ class ViewPygame:
         for player in self.game.lstPlayer:
             player_bg_rect = pygame.Rect(text_x, text_y, self.panel_rect.width - 20, 45)
             player_color = player.getColor()
+            if player_color is not None:
+                if player_color == curses.COLOR_RED:
+                    color = (255, 0, 0)
+                elif player_color == curses.COLOR_GREEN:
+                    color = (0, 255, 0)
+                elif player_color == curses.COLOR_BLUE:
+                    color = (0, 0, 255)
+                elif player_color == curses.COLOR_YELLOW:
+                    color = (255, 255, 0)
+                elif player_color == curses.COLOR_MAGENTA:
+                    color = (255, 0, 255)
+                elif player_color == curses.COLOR_CYAN:
+                    color = (0, 255, 255)
+                else:
+                    color = (255, 255, 255)
             
-            r = (player_color >> 16) & 255
-            g = (player_color >> 8) & 255
-            b = player_color & 255
-            bg_color = (r, g, b, 30)
-            
-            pygame.draw.rect(self.screen, bg_color, player_bg_rect, 0, 3)
+            pygame.draw.rect(self.screen, color, player_bg_rect, 0, 3)
             
             # Nom du joueur
             self.draw_text(
                 self.screen,
                 player.name,
                 20,
-                player_color,
-                (text_x + 5, text_y + 20)
+                color,  # Utilisation des composantes RGB extraites
+                (text_x + 5, text_y + 5)
             )
             
             # Ressources avec texte simple
@@ -664,17 +676,17 @@ class ViewPygame:
                 resources_text,
                 16,
                 (200, 200, 200),
-                (text_x + 5, text_y + 20)
+                (text_x + 5, text_y + 25)
             )
             
             # Unités
             units_text = f"Units: {player.countUnits()}"
-            units_text_rect = self.draw_text(
+            self.draw_text(
                 self.screen,
                 units_text,
                 16,
                 (200, 200, 200),
-                (text_x + self.panel_rect.width - 80, text_y + 20)  # Décalage ajusté pour éviter les dépassements
+                (text_x + self.panel_rect.width - 80, text_y + 15)
             )
             text_y += 55
     def draw_full_minimap(self):
