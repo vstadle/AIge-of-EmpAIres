@@ -18,7 +18,8 @@ class Buildings:
         self.health_bar = HealthBar(
             max_health=self.max_health, 
             width=50,  # Adjust width as needed
-            height=5   # Adjust height as needed
+            height=5,   # Adjust height as needed
+            player_color=color
         )
 
     def __repr__(self):

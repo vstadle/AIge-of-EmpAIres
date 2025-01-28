@@ -21,10 +21,11 @@ class Player():
         self.id = Player.cptPlayer
         Player.cptPlayer += 1
         self.color = None
+        
         try:
-            self.color = Player.lstColor[self.id]
+            self.color = Player.lstColor[self.id]  
         except IndexError:
-            self.color = Player.lstColor[0]
+            self.color = Player.lstColor[0] 
 
     def setModeIA(self, mode_ia):
         self.mode_ia = mode_ia
@@ -83,9 +84,9 @@ class Player():
         return self.buildings_queue
 
     def getColor(self):
-        return self.color
-    
-    def removeUnit(self, unit):
+        print(f"Player {self.name} getColor() returning: {self.color}, Type: {type(self.color)}") # VERIFIER CECI - Utilisez self.color maintenant        return self.color
+        return self.color # Retournez self.color (sans underscore)   
+    def removeUnit(self, unit): 
         if unit.health <= 0:
             self.units.remove(unit)
         

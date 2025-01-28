@@ -73,6 +73,8 @@ class AI:
             self.mode = MOD_AI.AI_OFFENSIVE
         elif self.cplayer.player.mode_ia == 2:
             self.mode = MOD_AI.AI_DEFENSIVE
+            
+        self.isAttacking = False
 
     def villager_is_available(self):
         for unit in self.cplayer.player.units:
@@ -496,6 +498,7 @@ class AI:
                 #tempcplayer = None
                 for x, y in adjacent_positions:
                     entity = self.game.map.map_entities[unit.x + x][unit.y + y]
+
                     if isinstance(entity, Units) or isinstance(entity, Buildings):
                         if entity.player != self.cplayer.player:
                             for cplayer in self.lstcPlayer:
@@ -513,29 +516,30 @@ class AI:
             
             #On vérife si un ennemi est à coté de notre unité
             #Si c'est le cas alors on l'attaque
-            #tempcplayer = None
+            tempcplayer = None
             for x, y in adjacent_positions:
-                entity = self.game.map.map_entities[unit.x + x][unit.y + y]
-                if isinstance(entity, Units) or isinstance(entity, Buildings):
-                    if entity.player != self.cplayer.player:
-                        for cplayer in self.lstcPlayer:
-                                if cplayer.player == entity.player:
-                                    tempcplayer = cplayer
-                        if unit.x + x == entity.x and unit.y + y == entity.y:
-                            #On arrête de bouger
-                            if unit.action == "move":
-                                self.cplayer.stopMoving(unit)
-                            if isinstance(entity, Units):
-                                if entity.action == "move":
-                                    tempcplayer.stopMoving(entity)
-                            #On change de cible et de case d'attaque
-                            if target_position in self.caseAttack:
-                                self.caseAttack.remove(item["target_position"])
-                            
-                            item["target"] = entity
-                            item["target_position"] = (unit.x, unit.y)
-                            item["playerenemy"] = tempcplayer
-                            self.caseAttack.append((unit.x, unit.y))
+                if 0 <= unit.x + x < self.game.map.size_map_x and 0 <= unit.y + y < self.game.map.size_map_y:
+                    entity = self.game.map.map_entities[unit.x + x][unit.y + y]
+                    if isinstance(entity, Units) or isinstance(entity, Buildings):
+                        if entity.player != self.cplayer.player:
+                            for cplayer in self.lstcPlayer:
+                                    if cplayer.player == entity.player:
+                                        tempcplayer = cplayer
+                            if unit.x + x == entity.x and unit.y + y == entity.y:
+                                #On arrête de bouger
+                                if unit.action == "move":
+                                    self.cplayer.stopMoving(unit)
+                                if isinstance(entity, Units):
+                                    if entity.action == "move":
+                                        tempcplayer.stopMoving(entity)
+                                #On change de cible et de case d'attaque
+                                if target_position in self.caseAttack:
+                                    self.caseAttack.remove(item["target_position"])
+                                
+                                item["target"] = entity
+                                item["target_position"] = (unit.x, unit.y)
+                                item["playerenemy"] = tempcplayer
+                                self.caseAttack.append((unit.x, unit.y))
                     
                     
             
@@ -890,29 +894,31 @@ class AI:
         return cpt
 
     def build(self, typeOfBuilding):
-            if typeOfBuilding == TownCenter:
-                building = TownCenter()
-            elif typeOfBuilding == Camp:
-                building = Camp()
-            elif typeOfBuilding == Barracks:
-                building = Barracks()
-            elif typeOfBuilding == ArcheryRange:
-                building = ArcheryRange()
-            elif typeOfBuilding == Stable:
-                building = Stable()
-            elif typeOfBuilding == House:
-                building = House()
-            elif typeOfBuilding == Farm:
-                building = Farm()
-            elif typeOfBuilding == Keep:
-                building = Keep()
-            else:
-                return None
-            position = self.findPlaceForBuildings(building)
-            if position is not None:
-                check = self.cplayer.addBuilding(building, position[0], position[1])
-                if check == 2:
-                    self.lstBuildingWaiting.append(building)
+        player_color = self.cplayer.player.getColor() # Récupérer la couleur du joueur UNE FOIS
+
+        if typeOfBuilding == TownCenter:
+            building = TownCenter(color=player_color) 
+        elif typeOfBuilding == Camp:
+            building = Camp(color=player_color)
+        elif typeOfBuilding == Barracks:
+            building = Barracks(color=player_color) 
+        elif typeOfBuilding == ArcheryRange:
+            building = ArcheryRange(color=player_color) 
+        elif typeOfBuilding == Stable:
+            building = Stable(color=player_color) 
+        elif typeOfBuilding == House:
+            building = House(color=player_color) 
+        elif typeOfBuilding == Farm:
+            building = Farm(color=player_color) 
+        elif typeOfBuilding == Keep:
+            building = Keep(color=player_color) 
+        else:
+            return None
+        position = self.findPlaceForBuildings(building)
+        if position is not None:
+            check = self.cplayer.addBuilding(building, position[0], position[1])
+            if check == 2:
+                self.lstBuildingWaiting.append(building)
 
     def expansion_strategie(self):
 
@@ -934,9 +940,10 @@ class AI:
             for i in range (0, 2):
                 farm = Farm()
                 if self.cplayer.player.canAffordBuilding(farm):
+                    player_color = self.cplayer.player.getColor()
                     position = self.findPlaceForBuildings(farm)
                     if position is not None:
-                        check = self.cplayer.addBuilding(Farm(), position[0], position[1])
+                        check = self.cplayer.addBuilding(Farm(color = player_color), position[0], position[1])
                         if check == 2:
                             self.lstBuildingWaiting.append(farm)
 
@@ -945,11 +952,13 @@ class AI:
         ratio_unit = nb_unit // self.cplayer.player.population
 
         if ratio_unit < 0.8:
-            house = House()
+            player_color = self.cplayer.player.getColor() # Récupérer la couleur du joueur UNE FOIS
+
+            house = House(color=player_color)
             if self.cplayer.player.canAffordBuilding(house):
                 position = self.findPlaceForBuildings(house)
                 if position is not None:
-                    check = self.cplayer.addBuilding(House(), position[0], position[1])
+                    check = self.cplayer.addBuilding(House(color=player_color), position[0], position[1])
                     if check == 2:
                         self.lstBuildingWaiting.append(house)
 
@@ -1202,8 +1211,9 @@ class AI:
         costWoodKeep = Keep().costW
 
         if self.cplayer.player.population == len(self.cplayer.player.units):
+            player_color = self.cplayer.player.getColor()
             for i in range (0, 9):
-                house = House()
+                house = House(color=player_color)
                 if self.cplayer.player.canAffordBuilding(house):
                     position = self.findPlaceForBuildings(house)
                     if position is not None:
@@ -1214,7 +1224,9 @@ class AI:
         cpt = 0
 
         while self.cplayer.player.gold > costGoldKeep and self.cplayer.player.wood > costWoodKeep and cpt < 10:
-            keep = Keep()
+            player_color = self.cplayer.player.getColor() # Récupérer la couleur du joueur UNE FOIS
+
+            keep = Keep(color=player_color)
             if self.cplayer.player.canAffordBuilding(keep):
                 position = self.findPlaceForBuildings(keep)
                 if position is not None:
@@ -1238,12 +1250,17 @@ class AI:
         ration_archer = cpt_archer / len(self.cplayer.player.units)
         ration_horseman = cpt_horseman / len(self.cplayer.player.units)
 
-        logs(self.cplayer.player.name + " :  Ration swordsman : " + str(ration_sworsman), logging.INFO)
-        logs(self.cplayer.player.name + " :  Ration archer : " + str(ration_archer), logging.INFO)
-        logs(self.cplayer.player.name + " :  Ration horseman : " + str(ration_horseman), logging.INFO)
+        if ration_archer < 0.34 and ration_sworsman < 0.34 and ration_horseman < 0.34:
+            cpt_total = len(self.cplayer.player.units) + 20
+        else:
+            cpt_total = len(self.cplayer.player.units)
+
+        #logs(self.cplayer.player.name + " :  Ration swordsman : " + str(ration_sworsman), logging.INFO)
+        #logs(self.cplayer.player.name + " :  Ration archer : " + str(ration_archer), logging.INFO)
+        #logs(self.cplayer.player.name + " :  Ration horseman : " + str(ration_horseman), logging.INFO)
 
         barracks = self.findBuildings(Barracks)
-        while ration_sworsman < 0.34 and cpt_swordsman < 45:
+        while ration_sworsman < 0.34:
             if barracks is None:
                 break
             if barracks is not None:
@@ -1251,10 +1268,10 @@ class AI:
                 if check == 1:
                     self.lstUnitWaiting.append("swordsman")
             cpt_swordsman += 1
-            ration_sworsman = cpt_swordsman / len(self.cplayer.player.units) + len(self.lstUnitWaiting)
+            ration_sworsman = cpt_swordsman / cpt_total + len(self.lstUnitWaiting)
         
         archery = self.findBuildings(ArcheryRange)
-        while ration_archer < 0.34 and cpt_archer < 45:
+        while ration_archer < 0.34:
             if archery is None:
                 break
             if archery is not None:
@@ -1262,10 +1279,10 @@ class AI:
                 if check == 1:
                     self.lstUnitWaiting.append("archer")
             cpt_archer += 1
-            ration_archer = cpt_archer / len(self.cplayer.player.units) + len(self.lstUnitWaiting)
+            ration_archer = cpt_archer / cpt_total + len(self.lstUnitWaiting)
 
         stable = self.findBuildings(Stable)
-        while ration_horseman < 0.34 and cpt_horseman < 45:
+        while ration_horseman < 0.34:
             if stable is None:
                 break
             if stable is not None:
@@ -1273,13 +1290,15 @@ class AI:
                 if check == 1:
                     self.lstUnitWaiting.append("horseman")
             cpt_horseman += 1
-            ration_horseman = cpt_horseman + 1 / len(self.cplayer.player.units) + len(self.lstUnitWaiting)
+            ration_horseman = cpt_horseman + 1 / cpt_total + len(self.lstUnitWaiting)
 
         if self.cplayer.player.population <= 200:
+
+            player_color = self.cplayer.player.getColor()
             ratio_population = len(self.cplayer.player.units) / self.cplayer.player.population
             if ratio_population < 0.8:
                 for i in range (0, 9):
-                    house = House()
+                    house = House(color=player_color)
                     if self.cplayer.player.canAffordBuilding(house):
                         position = self.findPlaceForBuildings(house)
                         if position is not None:
@@ -1392,10 +1411,6 @@ class AI:
                                 self.cplayer.move(unit, regiment_unit[0], regiment_unit[1])
                             else:
                                 self.verificationRegiment.remove(unit)
-                else:
-                    regiment.remove(unit)
-            if len(regiment) == 0:
-                self.regiment.remove(regiment)
 
     def move_regiment(self, lstUnit, target_position):
     
@@ -1478,9 +1493,9 @@ class AI:
 
             #Si j'ai 3 fois plus de troupes que le joueur qui a le moins de troupes
             #Alors j'attaque
-            if len(self.cplayer.player.units) >= 3 * minUnit:
-                self.mode = MOD_AI.AI_OFFENSIVE
-                self.cplayer.player.setModeIA(1)
+            if len(self.cplayer.player.units) >= 3 * minUnit or self.isAttacking or len(self.cplayer.player.units) >= 50:
+                self.attack_strategie(minPlayer)
+                self.isAttacking = True
             
         if self.mode == MOD_AI.AI_OFFENSIVE:
             
@@ -1506,15 +1521,17 @@ class AI:
             
             #Si j'ai 1,5 fois plus de troupes que le joueur qui a le moins de troupes
             #Alors j'attaque
-            if len(self.cplayer.player.units) >= 1.5 * minUnit:
+            if (len(self.cplayer.player.units) >= 1.5 * minUnit) or self.isAttacking or (len(self.cplayer.player.units) >= 50):
                 self.attack_strategie(minPlayer)
+                self.isAttacking = True
         
             if self.game.map.mapType == MapType.CENTER_RESOURCES:
                 self.protectionCenter()
             elif self.game.map.mapType == MapType.GENEROUS_RESOURCES:
                 nbInactive = self.unit_inactive()
                 if nbInactive > 20:
-                    self.formateRegiment()
+                    pass
+                    #self.formateRegiment()
 
         elif self.mode is None:
             logs(self.cplayer.player.name + " :  l'IA n'est dans aucun mode", logging.INFO)

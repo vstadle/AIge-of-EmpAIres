@@ -8,7 +8,8 @@ class Horseman(Units):
         self.health_bar = HealthBar(
             max_health=self.max_health, 
             width=40,  # Adjust based on sprite size
-            height=5   # Adjust based on preference
+            height=5 ,  # Adjust based on preference
+            player_color=color
         )
     def __repr__(self):
         return "Horseman :(HP : %r)" % (self.health)

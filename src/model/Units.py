@@ -1,3 +1,4 @@
+import curses
 from view.HealthBar import HealthBar  # Assurez-vous que le chemin est correct
 
 class Units():
@@ -6,8 +7,8 @@ class Units():
         self.costF = costF
         self.costG = costG
         self.costW = costW
-        self.max_health = health  # Define max_health first
-        self.health = health      # Current health starts at max
+        self.max_health = health
+        self.health = health
         self.trainingTime = trainingTime
         self.attack = attack
         self.speedAtack = speedAtack
@@ -17,14 +18,15 @@ class Units():
         self.action = None
         self.x = None
         self.y = None
+        couleur_verte_forcee_curses = curses.COLOR_GREEN # <--- COULEUR CURSES VERTE FORCÉE
         self.health_bar = HealthBar(
-            max_health=self.max_health, 
-            width=40,  # Adjust width as needed
-            height=4   # Adjust height as needed
+            max_health=self.max_health,
+            width=40,
+            height=4,
+            player_color=couleur_verte_forcee_curses # <--- UTILISER LA COULEUR VERTE FORCÉE ICI
         )
         self.color = color
         self.player = None
-
     def __repr__(self):
         return "Units(%r, %r, %r, %r, %r)" % (self.health, self.attack, self.speedAtack, self.speed, self.range)
 

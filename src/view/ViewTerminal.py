@@ -66,13 +66,12 @@ class ViewTerminal:
         stdscr.refresh()
 
     def _initialize_colors(self, stdscr):
-        # Initialiser les paires de couleurs une seule fois
         curses.start_color()
-        curses.init_pair(7, curses.COLOR_WHITE, curses.COLOR_BLACK)  # Couleur par défaut
-
-        for color in ViewTerminal.lstColor:
-            curses.init_pair(color, color, curses.COLOR_BLACK)  # Initialise chaque couleur définie dans lstColor
-
+        # Initialiser les 6 paires de couleurs pour les joueurs
+        for i, color in enumerate(ViewTerminal.lstColor, 1):
+            curses.init_pair(i, color, curses.COLOR_BLACK)
+        # Couleur par défaut (blanc)
+        curses.init_pair(7, curses.COLOR_WHITE, curses.COLOR_BLACK)
 
     def deplacer_camera(self, dx, dy):
         map_data = self.map.getMap()
