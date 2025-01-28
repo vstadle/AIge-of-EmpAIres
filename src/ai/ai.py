@@ -63,6 +63,9 @@ class AI:
         self.RessourceCollecting = [] #ressource + case adjacente
         self.RessourceDeposit = [] #depot + case adjacente
         self.caseAttack = [] #case attaque + case adjacente
+
+        self.regiment = []
+        self.verificationRegiment = []
         
         self.lstcPlayer = [cplayer for cplayer in lstcPlayer if cplayer != self.cplayer]
         
@@ -498,11 +501,11 @@ class AI:
                             for cplayer in self.lstcPlayer:
                                 if cplayer.player == entity.player:
                                     tempcplayer = cplayer
-                        #Si l'unité est bien juste à coté de nous alors on l'attaque
-                        if unit.x + x == entity.x and unit.y + y == entity.y:
-                            self.lstUnitAttack.append({"unit": unit, "playerenemy": tempcplayer, "target": entity, "target_position": (unit.x, unit.y)})
-                            self.caseAttack.append((unit.x, unit.y))
-                            continue
+                            #Si l'unité est bien juste à coté de nous alors on l'attaque
+                            if unit.x + x == entity.x and unit.y + y == entity.y:
+                                self.lstUnitAttack.append({"unit": unit, "playerenemy": tempcplayer, "target": entity, "target_position": (unit.x, unit.y)})
+                                self.caseAttack.append((unit.x, unit.y))
+                                continue
                 
                 #Si on ne trouve pas d'unité à coté de notre unité
                 self.attack_target(unit, playerenemy)
@@ -877,11 +880,6 @@ class AI:
             elif isinstance(unit, Horseman):
                 cpt_horseman += 1
         
-        logs(self.cplayer.player.name + " :  Villager : " + str(cpt_villager), logging.INFO)
-        logs(self.cplayer.player.name + " :  Swordsman : " + str(cpt_swordsman), logging.INFO)
-        logs(self.cplayer.player.name + " :  Archer : " + str(cpt_archer), logging.INFO)
-        logs(self.cplayer.player.name + " :  Horseman : " + str(cpt_horseman), logging.INFO)
-
         return cpt_villager, cpt_swordsman, cpt_archer, cpt_horseman
 
     def count_villager_inactivity(self):
@@ -1062,7 +1060,8 @@ class AI:
 
         for unit in self.cplayer.player.units:
             #if isinstance(unit, Swordsman) or isinstance(unit, Archer) or isinstance(unit, Horseman):
-            self.attack_target(unit, enemy)
+            if unit.action is None and unit not in self.lstUnitAttack:
+                self.attack_target(unit, enemy)
 
     def attack_target(self, unit, enemy):
         
@@ -1167,7 +1166,7 @@ class AI:
         logs(self.cplayer.player.name + " :  Ration horseman : " + str(ration_horseman), logging.INFO)
 
         barracks = self.findBuildings(Barracks)
-        while ration_sworsman < 0.34:
+        while ration_sworsman < 0.34 and cpt_swordsman < 45:
             if barracks is None:
                 break
             if barracks is not None:
@@ -1178,7 +1177,7 @@ class AI:
             ration_sworsman = cpt_swordsman / len(self.cplayer.player.units) + len(self.lstUnitWaiting)
         
         archery = self.findBuildings(ArcheryRange)
-        while ration_archer < 0.34:
+        while ration_archer < 0.34 and cpt_archer < 45:
             if archery is None:
                 break
             if archery is not None:
@@ -1189,7 +1188,7 @@ class AI:
             ration_archer = cpt_archer / len(self.cplayer.player.units) + len(self.lstUnitWaiting)
 
         stable = self.findBuildings(Stable)
-        while ration_horseman < 0.34:
+        while ration_horseman < 0.34 and cpt_horseman < 45:
             if stable is None:
                 break
             if stable is not None:
@@ -1244,7 +1243,7 @@ class AI:
         logs(self.cplayer.player.name + " :  Ration horseman : " + str(ration_horseman), logging.INFO)
 
         barracks = self.findBuildings(Barracks)
-        while ration_sworsman < 0.34:
+        while ration_sworsman < 0.34 and cpt_swordsman < 45:
             if barracks is None:
                 break
             if barracks is not None:
@@ -1255,7 +1254,7 @@ class AI:
             ration_sworsman = cpt_swordsman / len(self.cplayer.player.units) + len(self.lstUnitWaiting)
         
         archery = self.findBuildings(ArcheryRange)
-        while ration_archer < 0.34:
+        while ration_archer < 0.34 and cpt_archer < 45:
             if archery is None:
                 break
             if archery is not None:
@@ -1266,7 +1265,7 @@ class AI:
             ration_archer = cpt_archer / len(self.cplayer.player.units) + len(self.lstUnitWaiting)
 
         stable = self.findBuildings(Stable)
-        while ration_horseman < 0.34:
+        while ration_horseman < 0.34 and cpt_horseman < 45:
             if stable is None:
                 break
             if stable is not None:
@@ -1277,8 +1276,8 @@ class AI:
             ration_horseman = cpt_horseman + 1 / len(self.cplayer.player.units) + len(self.lstUnitWaiting)
 
         if self.cplayer.player.population <= 200:
-
-            if self.cplayer.player.population == len(self.cplayer.player.units):
+            ratio_population = len(self.cplayer.player.units) / self.cplayer.player.population
+            if ratio_population < 0.8:
                 for i in range (0, 9):
                     house = House()
                     if self.cplayer.player.canAffordBuilding(house):
@@ -1287,6 +1286,172 @@ class AI:
                             check = self.cplayer.addBuilding(house, position[0], position[1])
                             if check == 2:
                                 self.lstBuildingWaiting.insert(0,house)
+
+    def protectionCenter(self):
+
+        ''' Stratégie de protection du centre de la carte '''
+        ''' On envoie des unités pour protéger le centre de la carte '''
+
+        center = (self.game.map.size_map_x // 2, self.game.map.size_map_y // 2)
+
+        #On récupère le radius en fonction de la taille des ressources au centre de la carte
+        #Pour placer des troupes autour de ces ressources
+        radius = 10
+
+        #On récupère les unités de combat de l'IA qui sont inactives pour les envoyer au centre de la carte
+        lstUnit = []
+        for unit in self.cplayer.player.units:
+            if unit.action is None and unit not in self.lstUnitAttack and isinstance(unit, Swordsman) or isinstance(unit, Archer) or isinstance(unit, Horseman):
+                lstUnit.append(unit)
+        
+        #On envoie les unités autour du centre de la carte pour protéger les ressources en fonction de la position des ressources
+        main_building = self.cplayer.player.buildings[0]
+        main_building_x = main_building.x
+        main_building_y = main_building.y
+
+        for unit in lstUnit:
+            # Calculate the direction from the main building to the center
+            direction_x = center[0] - main_building_x
+            direction_y = center[1] - main_building_y
+
+            # Normalize the direction
+            magnitude = (direction_x ** 2 + direction_y ** 2) ** 0.5
+            if magnitude > 0:
+                direction_x /= magnitude
+                direction_y /= magnitude
+
+            # Calculate the target position for the unit
+            target_x = center[0] + int(direction_x * radius)
+            target_y = center[1] + int(direction_y * radius)
+
+            # Ensure the target position is within the map boundaries
+            target_x = max(0, min(target_x, self.game.map.size_map_x - 1))
+            target_y = max(0, min(target_y, self.game.map.size_map_y - 1))
+
+            # Move the unit to the target position
+            self.cplayer.move(unit, target_x, target_y)
+
+
+    def countUnit(self, lstUnit):
+        cpt_villager = 0
+        cpt_swordsman = 0
+        cpt_archer = 0
+        cpt_horseman = 0
+        for unit in lstUnit:
+            if isinstance(unit, Villager):
+                cpt_villager += 1
+            elif isinstance(unit, Swordsman):
+                cpt_swordsman += 1
+            elif isinstance(unit, Archer):
+                cpt_archer += 1
+            elif isinstance(unit, Horseman):
+                cpt_horseman += 1
+        return cpt_villager, cpt_swordsman, cpt_archer, cpt_horseman
+
+
+    def formateRegiment(self):
+
+        ''' Stratégie de formation de régiment '''
+        ''' On forme des régiments du même type d'unité pour attaquer l'adversaire '''
+
+        #On récupère les unités de combat de l'IA qui sont inactives
+        lstUnit = []
+        for unit in self.cplayer.player.units:
+            if unit.action is None and unit not in self.lstUnitAttack and isinstance(unit, Swordsman) or isinstance(unit, Archer) or isinstance(unit, Horseman):
+                lstUnit.append(unit)
+
+        #On forme des régiments du même type d'unité
+
+        #On détermine le nombre d'unité de chaque type
+        cpt_villager, cpt_swordsman, cpt_archer, cpt_horseman = self.countUnit(lstUnit)
+        cpt_unit = cpt_swordsman + cpt_archer + cpt_horseman
+
+        #On détermine l'emplacement des régiments
+        
+        #if cpt_villager > 0:
+        #    target_position = self.find_place_for_regiment(lstVillager, cpt_villager)
+        #    self.move_regiment(lstVillager, target_position)
+            
+        if cpt_unit > 0:
+            target_position = self.find_place_for_regiment(lstUnit, cpt_unit)
+            self.move_regiment(lstUnit, target_position)
+
+        self.regiment.append(lstUnit)
+
+    def verifRegiment(self):
+        
+        ''' On vérifie si toutes les unités du régiment sont bien placées '''
+        ''' Si ce n'est pas le cas alors on les déplace '''
+
+        for regiment in self.regiment:
+            for unit in regiment:
+                if unit in self.verificationRegiment:
+                    for regiment_unit in self.verificationRegiment:
+                        if regiment_unit[0] == unit:
+                            if regiment_unit[1] != unit.x and regiment_unit[2] != unit.y:
+                                self.cplayer.move(unit, regiment_unit[0], regiment_unit[1])
+                            else:
+                                self.verificationRegiment.remove(unit)
+                else:
+                    regiment.remove(unit)
+            if len(regiment) == 0:
+                self.regiment.remove(regiment)
+
+    def move_regiment(self, lstUnit, target_position):
+    
+        ''' Déplacement du régiment '''
+        ''' On déplace le régiment à la position cible '''
+        if target_position is not None:
+                x, y = target_position
+                for unit in lstUnit:
+                    self.cplayer.move(unit, x, y)
+                    self.verificationRegiment.append((unit, x, y))
+                    if x == target_position[0] + 4:
+                        x = target_position[0]
+                        y -= 1
+                    else:
+                        x += 1
+
+    def find_place_for_regiment(self, lstUnit, cptUnit):
+
+        unitx, unity = lstUnit[0].x, lstUnit[0].y
+        
+        #On cherche une position libre autour de l'unité pour former le régiment
+        radius = 15  # Rayon initial de la recherche
+        target = None
+
+        max_radius = max(self.game.map.size_map_x, self.game.map.size_map_y)
+
+        largeur = 4
+        hauteur = cptUnit // largeur + 1
+
+        while radius <= max_radius:
+            # Parcourt les points dans un carré englobant le cercle
+            for x in range(unitx - radius, unity + radius + 1):
+                for y in range(unitx - radius, unity + radius + 1):
+                    # Vérifie si le point est dans le cercle
+                    if (x - unitx) ** 2 + (y - unity) ** 2 <= radius ** 2:
+                        # Vérifie si la position est dans les limites de la carte
+                        if 0 <= x < self.game.map.size_map_x and 0 <= y < self.game.map.size_map_y:
+                            # Vérifie si la position est libre et que l'on a la place pour former le régiment
+                            check = True
+                            for i in range(0, largeur):
+                                for j in range(0, hauteur):
+                                    if self.game.map.map[x + i][y + j] != " ":
+                                        check = False
+                                        break
+                                if check is False:
+                                    break
+                            if check is True:
+                                target = (x, y)
+                                break
+                if target is not None:
+                    break
+            if target is not None:
+                break
+            radius += 1
+        
+        return target
 
     def choose_strategie(self, lstcPlayer):
 
@@ -1319,16 +1484,18 @@ class AI:
             
         if self.mode == MOD_AI.AI_OFFENSIVE:
             
+            #Paramètre sur lequel on peut jouer pour ajuster le mode offensif
+
             if self.cplayer.player.gold < 300 and self.cplayer.player.wood < 300:
-                #self.collect_strategie()
+                self.collect_strategie()
                 pass
             
             elif self.cplayer.player.food < 300 and len(self.cplayer.player.units) < 30:
-                #self.expansion_strategie()
+                self.expansion_strategie()
                 pass
 
             elif self.cplayer.player.food > 1000 and self.cplayer.player.gold > 1000 and self.cplayer.player.wood > 1000:
-                #self.reforcement_strategie()
+                self.offensive_strategie()
                 pass
         
             #On calcule le nombre d'unité des adversaires
@@ -1342,6 +1509,13 @@ class AI:
             if len(self.cplayer.player.units) >= 1.5 * minUnit:
                 self.attack_strategie(minPlayer)
         
+            if self.game.map.mapType == MapType.CENTER_RESOURCES:
+                self.protectionCenter()
+            elif self.game.map.mapType == MapType.GENEROUS_RESOURCES:
+                nbInactive = self.unit_inactive()
+                if nbInactive > 20:
+                    self.formateRegiment()
+
         elif self.mode is None:
             logs(self.cplayer.player.name + " :  l'IA n'est dans aucun mode", logging.INFO)
         
@@ -1350,6 +1524,7 @@ class AI:
         self.verifCollectVillager()
         self.verifUnit()
         self.verifUnitAttack()
+        self.verifRegiment()
         
     def minUnitUser(self, lstcPlayer):
         minUnit = float('inf')
@@ -1365,5 +1540,12 @@ class AI:
         cpt = 0
         for unit in self.cplayer.player.units:
             if isinstance(unit, Villager):
+                cpt += 1
+        return cpt
+    
+    def unit_inactive(self):
+        cpt = 0
+        for unit in self.cplayer.player.units:
+            if unit.action is None and unit not in self.lstUnitAttack and not isinstance(unit, Villager) and unit not in self.regiment:
                 cpt += 1
         return cpt

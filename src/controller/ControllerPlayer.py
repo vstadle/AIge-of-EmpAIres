@@ -505,64 +505,70 @@ class ControllerPlayer():
             unit = item["unit"]
             start_time = item["start_time"]
             chemin = item["chemin"]
+            
             if current_time - start_time >= unit.speed:
-                #logs("Unit is moving", level=logging.INFO)
-                case = chemin[0]
-                x = case[0]
-                y = case[1]
-                pos = unit.getPosition()
-                #logs("Position : " + pos.__str__(), level=logging.INFO)
-                #logs("Next_position : " + case.__str__(), level=logging.INFO)
-                #logs("Next_position : " + self.cmap.map.map[x][y], level=logging.INFO)
-                #logs("Current Position : " + self.cmap.map.map[pos[0]][pos[1]], level=logging.INFO)
-                if self.cmap.map.is_free(x,y) and self.cmap.map.map[x][y] == " ":
+                if len(chemin) <= 0:
                     self.queueMoving.remove(item)
-                    self.cmap.map.moveUnit(unit, x, y, self.player)
-                    chemin.pop(0)
-                    start_time = time.time()
-                    if len(chemin) > 0:
-                        self.queueMoving.append({"unit": unit, "start_time": start_time, "chemin": chemin})
-                    else:
-                        #logs(self.player.name + " : " + str(unit) + " is arrived", level=logging.INFO)
-                        if unit.action != "build":
-                            unit.action = None
+                    unit.action = None
                 else:
-                    #logs("Case :" + self.cmap.map.map[x][y], level=logging.INFO)
-                    #logs("Unit position :" + str(unit.getPosition()), level=logging.INFO)
-                    #logs("Unit can't move", level=logging.INFO)
-                    #logs("Path : " + chemin.__str__(), level=logging.INFO)
-                    self.queueMoving.remove(item)
-                    chemin = A_Star.a_star(self.cmap.map, (unit.getPosition()), chemin[len(chemin)-1])
-                    if chemin is None:
-                        #logs(self.player.name + " : " + str(unit) + " No path found", level=logging.ERROR)
-                        if unit.action != "build":
-                            unit.action = None
-                        return -1
-                    else:
+
+                    #logs("Unit is moving", level=logging.INFO)
+                    case = chemin[0]
+                    x = case[0]
+                    y = case[1]
+                    pos = unit.getPosition()
+                    #logs("Position : " + pos.__str__(), level=logging.INFO)
+                    #logs("Next_position : " + case.__str__(), level=logging.INFO)
+                    #logs("Next_position : " + self.cmap.map.map[x][y], level=logging.INFO)
+                    #logs("Current Position : " + self.cmap.map.map[pos[0]][pos[1]], level=logging.INFO)
+                    if self.cmap.map.is_free(x,y) and self.cmap.map.map[x][y] == " ":
+                        self.queueMoving.remove(item)
+                        self.cmap.map.moveUnit(unit, x, y, self.player)
                         chemin.pop(0)
-                        #logs("New path : " + chemin.__str__(), level=logging.INFO)
                         start_time = time.time()
                         if len(chemin) > 0:
-                            case = chemin[0]
-                            x = case[0]
-                            y = case[1]
-                            if len(chemin) == 1:
-                                #logs(self.player.name + " : " + str(unit) + " is block", level=logging.ERROR)
-                                unit.action = None
-                            else:
-                                if self.cmap.map.is_free(x,y) and self.cmap.map.map[x][y] == " ":
-                                    self.cmap.map.moveUnit(unit, x, y, self.player)
-                                    chemin.pop(0)
-                                    if len(chemin) > 0:
-                                        self.queueMoving.append({"unit": unit, "start_time": start_time, "chemin": chemin})
-                                    else:
-                                        #logs(self.player.name + " : " + str(unit) + " is arrived", level=logging.INFO)
-                                        if unit.action != "build":
-                                            unit.action = None
+                            self.queueMoving.append({"unit": unit, "start_time": start_time, "chemin": chemin})
                         else:
                             #logs(self.player.name + " : " + str(unit) + " is arrived", level=logging.INFO)
                             if unit.action != "build":
                                 unit.action = None
+                    else:
+                        #logs("Case :" + self.cmap.map.map[x][y], level=logging.INFO)
+                        #logs("Unit position :" + str(unit.getPosition()), level=logging.INFO)
+                        #logs("Unit can't move", level=logging.INFO)
+                        #logs("Path : " + chemin.__str__(), level=logging.INFO)
+                        self.queueMoving.remove(item)
+                        chemin = A_Star.a_star(self.cmap.map, (unit.getPosition()), chemin[len(chemin)-1])
+                        if chemin is None:
+                            #logs(self.player.name + " : " + str(unit) + " No path found", level=logging.ERROR)
+                            if unit.action != "build":
+                                unit.action = None
+                            return -1
+                        else:
+                            chemin.pop(0)
+                            #logs("New path : " + chemin.__str__(), level=logging.INFO)
+                            start_time = time.time()
+                            if len(chemin) > 0:
+                                case = chemin[0]
+                                x = case[0]
+                                y = case[1]
+                                if len(chemin) == 1:
+                                    #logs(self.player.name + " : " + str(unit) + " is block", level=logging.ERROR)
+                                    unit.action = None
+                                else:
+                                    if self.cmap.map.is_free(x,y) and self.cmap.map.map[x][y] == " ":
+                                        self.cmap.map.moveUnit(unit, x, y, self.player)
+                                        chemin.pop(0)
+                                        if len(chemin) > 0:
+                                            self.queueMoving.append({"unit": unit, "start_time": start_time, "chemin": chemin})
+                                        else:
+                                            #logs(self.player.name + " : " + str(unit) + " is arrived", level=logging.INFO)
+                                            if unit.action != "build":
+                                                unit.action = None
+                            else:
+                                #logs(self.player.name + " : " + str(unit) + " is arrived", level=logging.INFO)
+                                if unit.action != "build":
+                                    unit.action = None
 
     def depositResources(self, villager, target_deposit):
 

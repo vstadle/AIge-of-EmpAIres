@@ -143,8 +143,8 @@ class ControllerGame():
                 self.uiHandler.saveGame()
             elif key == curses.KEY_F12:
                 self.paused = True
-                pygame.quit()
-                self.uiHandler.show_menu()
+                #pygame.quit()
+                self.uiHandler.show_load_game_menu()
 
 
             if not self.paused:
