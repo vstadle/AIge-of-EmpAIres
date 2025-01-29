@@ -8,9 +8,15 @@ echo "Mise à jour des paquets et installation de Python et Git..."
 sudo apt-get update -y
 sudo apt-get install -y python3 python3-pip git
 
-# Installation des dépendances Python
-echo "Installation des dépendances Python : pygame, numpy, unidecode"
-pip3 install --user pygame numpy unidecode
+# Créez un environnement virtuel
+python3 -m venv aige-env
+
+# Activez-le
+source aige-env/bin/activate  # Sur Linux/Mac
+
+# Installez numpy dans cet environnement
+pip install numpy pygame unidecode
+
 
 # Clonage du dépôt
 REPO_URL="git@github.com:vstadle/AIge-of-EmpAIres.git"
