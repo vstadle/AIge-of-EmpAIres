@@ -671,7 +671,7 @@ class ControllerPlayer():
                             
                             self.player.getAttackQueue().remove(item)
                             unit.action = None
-                            return 1
+                            return 2
                     
                     #Si l'ennemi est trop loin, l'unité arrête d'attaquer
                     else:
