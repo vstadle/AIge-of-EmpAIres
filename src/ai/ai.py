@@ -966,6 +966,19 @@ class AI:
                         self.lstBuildingWaiting.append(house)
 
         cpt_villager, cpt_swordsman, cpt_archer, cpt_horseman = self.count_Unit()
+        if len(self.cplayer.player.units)!=0:
+            ration_sworsman = cpt_swordsman / len(self.cplayer.player.units)
+            ration_archer = cpt_archer / len(self.cplayer.player.units)
+            ration_horseman = cpt_horseman / len(self.cplayer.player.units)
+            ratio_villager = cpt_villager // len(self.cplayer.player.units)
+
+        else:
+            ration_sworsman = 0
+            ration_archer = 0
+            ration_horseman = 0
+            ratio_villager = 0
+        
+        
         ratio_villager = cpt_villager // len(self.cplayer.player.units)
         ration_sworsman = cpt_swordsman // len(self.cplayer.player.units)
         ration_archer = cpt_archer // len(self.cplayer.player.units)
@@ -1254,9 +1267,14 @@ class AI:
 
         cpt_villager, cpt_swordsman, cpt_archer, cpt_horseman = self.count_Unit()
         
-        ration_sworsman = cpt_swordsman / len(self.cplayer.player.units)
-        ration_archer = cpt_archer / len(self.cplayer.player.units)
-        ration_horseman = cpt_horseman / len(self.cplayer.player.units)
+        if len(self.cplayer.player.units)!=0:
+            ration_sworsman = cpt_swordsman / len(self.cplayer.player.units)
+            ration_archer = cpt_archer / len(self.cplayer.player.units)
+            ration_horseman = cpt_horseman / len(self.cplayer.player.units)
+        else:
+            ration_sworsman = 0
+            ration_archer = 0
+            ration_horseman = 0
 
         if ration_archer < 0.34 and ration_sworsman < 0.34 and ration_horseman < 0.34:
             cpt_total = len(self.cplayer.player.units) + 20
