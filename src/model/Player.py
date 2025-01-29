@@ -16,11 +16,17 @@ class Player():
         self.wood = w
         self.gold = g
         self.population = 0
+
         self.training_queue = []
         self.buildings_queue = []
+        self.attack_queue = []
+        self.moving_queue = []
+        self.collecting_queue = []
+
         self.id = Player.cptPlayer
         Player.cptPlayer += 1
         self.color = None
+        self.lstKeep = []
         
         try:
             self.color = Player.lstColor[self.id]  
@@ -82,6 +88,15 @@ class Player():
     
     def getBuildingQueue(self):
         return self.buildings_queue
+    
+    def getAttackQueue(self):
+        return self.attack_queue
+
+    def getMovingQueue(self):
+        return self.moving_queue
+    
+    def getCollectingQueue(self):
+        return self.collecting_queue
 
     def getColor(self):
         print(f"Player {self.name} getColor() returning: {self.color}, Type: {type(self.color)}") # VERIFIER CECI - Utilisez self.color maintenant        return self.color

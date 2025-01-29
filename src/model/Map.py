@@ -119,6 +119,10 @@ class Map():
                 self.map_entities[x + i][y + j] = building
                 self.map[x + i][y + j] = building.letter
         
+        if isinstance(building, Keep):
+            player.lstKeep.append(building)
+
+
         if isinstance(building, TownCenter) or isinstance(building, House):
             player.population += building.population
             

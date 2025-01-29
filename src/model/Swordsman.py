@@ -12,7 +12,7 @@ class Swordsman(Units):
             player_color=color
         )
       def __repr__(self):
-        return "Swordsman :(HP : %r)" % (self.health)
+        return "Swordsman :(HP : %r x : %r y : %r)" % (self.health, self.x, self.y)
       
       def print_Swordsman(self):
          print("Swordsman")

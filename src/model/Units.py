@@ -18,6 +18,9 @@ class Units():
         self.action = None
         self.x = None
         self.y = None
+
+        self.control_IA = False
+
         couleur_verte_forcee_curses = curses.COLOR_GREEN # <--- COULEUR CURSES VERTE FORCÉE
         self.health_bar = HealthBar(
             max_health=self.max_health,

@@ -23,6 +23,7 @@ from model.Buildings import Buildings
 from model.House import House
 from view.ViewPygame import ViewPygame
 from model.Units import Units
+from model.Keep import Keep
 
 class ControllerPlayer():
     
@@ -31,7 +32,7 @@ class ControllerPlayer():
         self.cmap = cmap
         self.queueCollect = []
         self.queueMoving = []
-        self.queueAttack = []
+        
     @classmethod
     def from_saved(cls,player,cmap):
         return cls(player, cmap)
@@ -269,9 +270,6 @@ class ControllerPlayer():
                     self.player.getBuildingQueue().remove(item)
                     logs(self.player.name + " : " + building.__str__() + " is placed", level=logging.INFO)
                     for villager in lstVillagers:
-                        for item in self.queueMoving[:]:
-                            if item["unit"] == villager:
-                                self.queueMoving.remove(item)
                         villager.action = None
                     return 0
                 else:
@@ -421,7 +419,7 @@ class ControllerPlayer():
                 logs(self.player.name + " : Villager is collecting resources", level=logging.INFO)
                 start_time = time.time()
                 villager.action = "collect"
-                self.queueCollect.append({"villager": villager, "start_time": start_time, "ressource": ressource})
+                self.player.getCollectingQueue().append({"villager": villager, "start_time": start_time, "ressource": ressource})
                 #logs(self.player.name + " : Villager is collecting resources", level=logging.INFO)
         else:
             logs(self.player.name + " : Villager is too far to collect resources", level=logging.INFO)
@@ -429,7 +427,7 @@ class ControllerPlayer():
     def updating_collect(self):
         current_time = time.time()
         #print(current_time)
-        for item in self.queueCollect[:]:
+        for item in self.player.getCollectingQueue()[:]:
             villager = item["villager"]
             start_time = item["start_time"]
             ressource = item["ressource"]
@@ -439,7 +437,7 @@ class ControllerPlayer():
                     villager.collect(ressource)
                     #logs(self.player.name + " : villager collect ressources", level=logging.INFO)
                     #logs(villager.carrying.__str__(), level=logging.INFO)
-                    self.queueCollect.remove(item)
+                    self.player.getCollectingQueue().remove(item)
                     start_time = time.time()
                     if(ressource.capacity <= 0):
                         logs(self.player.name + " : Ressource is empty", level=logging.INFO)
@@ -449,11 +447,11 @@ class ControllerPlayer():
                         self.cmap.map.map[ressource.getX()][ressource.getY()] = " "
                         villager.action = None
                     else:
-                        self.queueCollect.append({"villager": villager, "start_time": start_time, "ressource": ressource})
+                        self.player.getCollectingQueue().append({"villager": villager, "start_time": start_time, "ressource": ressource})
                 else:
                     logs(self.player.name + " : Villagers can't collect ressources", level=logging.INFO)
                     villager.action = None
-                    self.queueCollect.remove(item)
+                    self.player.getCollectingQueue().remove(item)
                     return 3
 
     def moveWithChemin(self, unit, chemin):
@@ -465,7 +463,7 @@ class ControllerPlayer():
             if unit.action is None:
                 unit.action = "move"
             start_time = time.time()
-            self.queueMoving.append({"unit": unit, "start_time": start_time, "chemin": chemin})
+            self.player.getMovingQueue().append({"unit": unit, "start_time": start_time, "chemin": chemin})
             return 0
         else:
             #logs(self.player.name + " : " + str(unit) + " No path found", level=logging.INFO)
@@ -476,7 +474,7 @@ class ControllerPlayer():
     def move(self, unit, x, y):
         
         #On vérfie que l'unité n'est pas déjà en train de se déplacer
-        for item in self.queueMoving[:]:
+        for item in self.player.getMovingQueue()[:]:
             if item["unit"] == unit:
                 return -1
         
@@ -495,20 +493,20 @@ class ControllerPlayer():
             chemin.pop(0)
             #logs("Chemin : " + chemin.__str__(), level=logging.INFO)
             start_time = time.time()
-            self.queueMoving.append({"unit": unit, "start_time": start_time, "chemin": chemin})
+            self.player.getMovingQueue().append({"unit": unit, "start_time": start_time, "chemin": chemin})
             return 0
 
 
     def updating_moving(self):
         current_time = time.time()
-        for item in self.queueMoving[:]:
+        for item in self.player.getMovingQueue()[:]:
             unit = item["unit"]
             start_time = item["start_time"]
             chemin = item["chemin"]
             
             if current_time - start_time >= unit.speed:
                 if len(chemin) <= 0:
-                    self.queueMoving.remove(item)
+                    self.player.getMovingQueue().remove(item)
                     unit.action = None
                 else:
 
@@ -522,12 +520,12 @@ class ControllerPlayer():
                     #logs("Next_position : " + self.cmap.map.map[x][y], level=logging.INFO)
                     #logs("Current Position : " + self.cmap.map.map[pos[0]][pos[1]], level=logging.INFO)
                     if self.cmap.map.is_free(x,y) and self.cmap.map.map[x][y] == " ":
-                        self.queueMoving.remove(item)
+                        self.player.getMovingQueue().remove(item)
                         self.cmap.map.moveUnit(unit, x, y, self.player)
                         chemin.pop(0)
                         start_time = time.time()
                         if len(chemin) > 0:
-                            self.queueMoving.append({"unit": unit, "start_time": start_time, "chemin": chemin})
+                            self.player.getMovingQueue().append({"unit": unit, "start_time": start_time, "chemin": chemin})
                         else:
                             #logs(self.player.name + " : " + str(unit) + " is arrived", level=logging.INFO)
                             if unit.action != "build":
@@ -537,7 +535,7 @@ class ControllerPlayer():
                         #logs("Unit position :" + str(unit.getPosition()), level=logging.INFO)
                         #logs("Unit can't move", level=logging.INFO)
                         #logs("Path : " + chemin.__str__(), level=logging.INFO)
-                        self.queueMoving.remove(item)
+                        self.player.getMovingQueue().remove(item)
                         chemin = A_Star.a_star(self.cmap.map, (unit.getPosition()), chemin[len(chemin)-1])
                         if chemin is None:
                             #logs(self.player.name + " : " + str(unit) + " No path found", level=logging.ERROR)
@@ -560,7 +558,7 @@ class ControllerPlayer():
                                         self.cmap.map.moveUnit(unit, x, y, self.player)
                                         chemin.pop(0)
                                         if len(chemin) > 0:
-                                            self.queueMoving.append({"unit": unit, "start_time": start_time, "chemin": chemin})
+                                            self.player.getMovingQueue().append({"unit": unit, "start_time": start_time, "chemin": chemin})
                                         else:
                                             #logs(self.player.name + " : " + str(unit) + " is arrived", level=logging.INFO)
                                             if unit.action != "build":
@@ -612,7 +610,7 @@ class ControllerPlayer():
             
             unit.action = "attack"
             start_time = time.time()
-            self.queueAttack.append({"unit": unit, "start_time": start_time, "enemy": enemy, "playerenemy": playerenemy})
+            self.player.getAttackQueue().append({"unit": unit, "start_time": start_time, "enemy": enemy, "playerenemy": playerenemy})
             
             
             return 0
@@ -623,7 +621,7 @@ class ControllerPlayer():
         
         current_time = time.time()
         
-        for item in self.queueAttack[:]:
+        for item in self.player.getAttackQueue()[:]:
             unit = item["unit"]
             start_time = item["start_time"]
             enemy = item["enemy"]
@@ -646,6 +644,8 @@ class ControllerPlayer():
                         #logs(self.player.name + " : " + str(unit) + " is attacking", level=logging.INFO)
                         if enemy.health > 0:
                             enemy.health -= unit.attack
+                            #if isinstance(enemy, Units):
+                                #unit.health -= enemy.attack
                             item["start_time"] = time.time()
                         #Si l'enemi est mort, alors on le supprime de la carte et de la liste des unités de l'ennemi
                         if enemy.health <= 0:
@@ -660,6 +660,8 @@ class ControllerPlayer():
                                 #On supprime le bâtiment de la liste des bâtiments de l'ennemi
                                 if enemy in playerenemy.buildings:
                                     playerenemy.buildings.remove(enemy)
+                                    if isinstance(enemy, Keep):
+                                        playerenemy.lstKeep.remove(enemy)
                             #Si l'ennemi est une unité, on le supprime de la liste des unités de l'ennemi
                             elif isinstance(enemy, Units):
                                 self.cmap.map.map_entities[enemy.x][enemy.y] = None
@@ -667,42 +669,50 @@ class ControllerPlayer():
                                 if enemy in playerenemy.units:
                                     playerenemy.removeUnit(enemy)
                             
-                            self.queueAttack.remove(item)
+                            self.player.getAttackQueue().remove(item)
                             unit.action = None
                             return 1
                     
                     #Si l'ennemi est trop loin, l'unité arrête d'attaquer
                     else:
-                        self.queueAttack.remove(item)
+                        self.player.getAttackQueue().remove(item)
                         unit.action = None
                         return 1
             else:
-                #self.queueAttack.remove(item)
+                self.player.getAttackQueue().remove(item)
                 #unit.action = None
                 if unit in self.player.units:
                     self.player.removeUnit(unit)
+                
+                self.cmap.map.map_entities[unit.x][unit.y] = None
+                self.cmap.map.map[unit.x][unit.y] = " "
                 return 1
-                #self.cmap.map.map_entities[unit.x][unit.y] = None
-                #self.cmap.map.map[unit.x][unit.y] = " "
         return 0
             
     def stopAttacking(self, unit):
-        for item in self.queueAttack[:]:
+        for item in self.player.getAttackQueue()[:]:
             if item["unit"] == unit:
-                self.queueAttack.remove(item)
+                self.player.getAttackQueue().remove(item)
                 unit.action = None
                 break
     
     def stopMoving(self, unit):
-        for item in self.queueMoving[:]:
+        for item in self.player.getMovingQueue()[:]:
             if item["unit"] == unit:
-                self.queueMoving.remove(item)
+                self.player.getMovingQueue().remove(item)
                 unit.action = None
                 break
     
     def stopCollecting(self, villager):
-        for item in self.queueCollect[:]:
+        for item in self.player.getCollectingQueue()[:]:
             if item["villager"] == villager:
-                self.queueCollect.remove(item)
+                self.player.getCollectingQueue().remove(item)
                 villager.action = None
                 break
+    
+    def stopBuilding(self, unit):
+        for item in self.player.getBuildingQueue()[:]:
+            for villager in item["lstVillagers"]:
+                if villager == unit:
+                    unit.action = None
+                    break

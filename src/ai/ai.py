@@ -1,5 +1,6 @@
 import logging
 import random
+import time
 
 from logs.logger import logs
 from model.TownCenter import TownCenter
@@ -75,6 +76,8 @@ class AI:
             self.mode = MOD_AI.AI_DEFENSIVE
             
         self.isAttacking = False
+
+        self.start_time = time.time()
 
     def villager_is_available(self):
         for unit in self.cplayer.player.units:
@@ -213,6 +216,7 @@ class AI:
 
                         self.lstVillagerCollect.append({"unit": villager, "ressource": gold, "target": target_position, "deposit" : None, "target_deposit" : None})
                         self.RessourceCollecting.append(target_position)
+                        villager.control_IA = True
                         if distance_x <= 1 and distance_y <= 1:
                             self.cplayer.collectResources(villager, gold)
                         else:
@@ -244,6 +248,7 @@ class AI:
                     distance_y = abs(wood.getY() - villager.y)
 
                     self.lstVillagerCollect.append({"unit": villager, "ressource": wood, "target": target_position, "deposit" : None, "target_deposit" : None})
+                    villager.control_IA = True
                     self.RessourceCollecting.append(target_position)
                     if distance_x <= 1 and distance_y <= 1:
                         self.cplayer.collectResources(villager, wood)
@@ -303,8 +308,12 @@ class AI:
 
         for item in self.lstVillagerCollect:
 
-
             unit = item["unit"]
+
+            if not unit.control_IA:
+                self.lstVillagerCollect.remove(item)
+                self.RessourceCollecting.remove(item["target"])
+                continue
 
             if unit.health <= 0:
                 self.lstVillagerCollect.remove(item)
@@ -447,6 +456,13 @@ class AI:
         for item in self.lstUnitAttack:
             
             unit = item["unit"]
+
+            if not unit.control_IA:
+                self.lstUnitAttack.remove(item)
+                if item["target_position"] in self.caseAttack:
+                    self.caseAttack.remove(item["target_position"])
+                continue
+
             playerenemy = item["playerenemy"]
             target = item["target"]
             target_position = item["target_position"]
@@ -457,10 +473,9 @@ class AI:
             #Si c'est le cas alors on la supprime de la liste des unités attaquantes
             if unit.health <= 0:
                 #On retire l'unité de la liste des unités attaquantes
-                for item in self.lstUnitAttack:
-                    self.lstUnitAttack.remove(item)
-                    if target_position in self.caseAttack:
-                        self.caseAttack.remove(target_position)
+                self.lstUnitAttack.remove(item)
+                if target_position in self.caseAttack:
+                    self.caseAttack.remove(target_position)
                 #Si l'unité attaquait
                 if unit.action == "attack":
                     self.cplayer.stopAttacking(unit)
@@ -468,14 +483,6 @@ class AI:
                 elif unit.action == "move":
                     self.cplayer.stopMoving(unit)
                     unit.action = None
-                elif unit.action == "collect":
-                    self.cplayer.stopCollecting(unit)
-                    for item in self.lstVillagerCollect:
-                        if item["unit"] == unit:
-                            self.RessourceCollecting.remove(item["target"])
-                            self.lstVillagerCollect.remove(item)
-                            unit.action = None
-                            break
                 continue
                         
             #On vérifie si notre cible est morte
@@ -516,7 +523,6 @@ class AI:
             
             #On vérife si un ennemi est à coté de notre unité
             #Si c'est le cas alors on l'attaque
-            tempcplayer = None
             for x, y in adjacent_positions:
                 if 0 <= unit.x + x < self.game.map.size_map_x and 0 <= unit.y + y < self.game.map.size_map_y:
                     entity = self.game.map.map_entities[unit.x + x][unit.y + y]
@@ -529,9 +535,7 @@ class AI:
                                 #On arrête de bouger
                                 if unit.action == "move":
                                     self.cplayer.stopMoving(unit)
-                                if isinstance(entity, Units):
-                                    if entity.action == "move":
-                                        tempcplayer.stopMoving(entity)
+        
                                 #On change de cible et de case d'attaque
                                 if target_position in self.caseAttack:
                                     self.caseAttack.remove(item["target_position"])
@@ -584,35 +588,28 @@ class AI:
                         item["target_position"] = target_position
                         self.caseAttack.append(target_position)
                         self.cplayer.move(unit, target_position[0], target_position[1])
+                        # A REVOIR
                     
             #Si notre unité est arrivée à coté de l'enemi alors on l'attaque
             elif unit.action is None and (unit.x, unit.y) == item["target_position"]:
                 verifAttack = self.cplayer.attack(unit, target, playerenemy.player)
                 #Si on arrive à attaquer alors l'unité attaquée riposte
                 if verifAttack == 0:
-                    #On vérifie d'abord si l'unité attaquée n'est pas déjà entrain de vouloir nous attaquer
-                    check = False
-                    for item in self.lstUnitAttack:
-                        if item["unit"] == target:
-                            check = True
-                            break
-                    #Si elle n'est pas déjà entrain d'attaquer alors on l'ajoute la fait attaquer
-                    if not check:
-                        if isinstance(target, Units):
-                            #Si l'unité attaquée est en mouvement alors on l'arrête
-                            if target.action == "move":
-                                self.cplayer.stopMoving(target)
-                            elif target.action == "collect":
-                                self.cplayer.stopCollecting(target)
-                                for item in self.lstVillagerCollect:
-                                    if item["unit"] == target:
-                                        self.RessourceCollecting.remove(item["target"])
-                                        self.lstVillagerCollect.remove(item)
-                                        target.action = None
-                                        break
-                            self.lstUnitAttack.append({"unit": target, "playerenemy": self.cplayer, "target": unit, "target_position": (target.x, target.y)})
+                    
+                    if isinstance(target, Units):
+                        if target.action == "move":
+                            playerenemy.stopMoving(target)
+                        elif target.action == "collect":
+                            playerenemy.stopCollecting(target)
+                        elif target.action == "build":
+                            playerenemy.stopBuilding(target)
+                        #On indique à l'IA adverse que son unité ne fait plus rien
+                        if target.control_IA:
+                            target.control_IA = False
+
+                        if target.action != "attack":
                             playerenemy.attack(target, unit, self.cplayer.player)
-                            self.caseAttack.append(target_position)
+
                 #Si on ne peut pas attaquer alors on arrête d'attaquer
                 elif verifAttack == -1:
                     self.lstUnitAttack.remove(item)
@@ -1080,6 +1077,7 @@ class AI:
             target_position = self.find_adjacent_free_tile_attack(closest_enemy)
             if target_position is not None:
                 self.lstUnitAttack.append({"unit": unit, "target": closest_enemy, "target_position": target_position, "playerenemy": enemy})
+                unit.control_IA = True  # L'unité est contrôlée par l'IA
                 self.caseAttack.append(target_position)
                 distance_x = abs(unit.x - closest_enemy.x)
                 distance_y = abs(unit.y - closest_enemy.y)
@@ -1297,6 +1295,7 @@ class AI:
             player_color = self.cplayer.player.getColor()
             ratio_population = len(self.cplayer.player.units) / self.cplayer.player.population
             if ratio_population < 0.8:
+                cpt = 0
                 for i in range (0, 9):
                     house = House(color=player_color)
                     if self.cplayer.player.canAffordBuilding(house):
@@ -1304,7 +1303,12 @@ class AI:
                         if position is not None:
                             check = self.cplayer.addBuilding(house, position[0], position[1])
                             if check == 2:
-                                self.lstBuildingWaiting.insert(0,house)
+                                house = House(color=player_color)
+                                if len(self.lstBuildingWaiting) > cpt + 3:
+                                    self.lstBuildingWaiting.insert(cpt, house)
+                                else:
+                                    self.lstBuildingWaiting.append(house)
+                                cpt += 3
 
     def protectionCenter(self):
 
@@ -1367,107 +1371,6 @@ class AI:
                 cpt_horseman += 1
         return cpt_villager, cpt_swordsman, cpt_archer, cpt_horseman
 
-
-    def formateRegiment(self):
-
-        ''' Stratégie de formation de régiment '''
-        ''' On forme des régiments du même type d'unité pour attaquer l'adversaire '''
-
-        #On récupère les unités de combat de l'IA qui sont inactives
-        lstUnit = []
-        for unit in self.cplayer.player.units:
-            if unit.action is None and unit not in self.lstUnitAttack and isinstance(unit, Swordsman) or isinstance(unit, Archer) or isinstance(unit, Horseman):
-                lstUnit.append(unit)
-
-        #On forme des régiments du même type d'unité
-
-        #On détermine le nombre d'unité de chaque type
-        cpt_villager, cpt_swordsman, cpt_archer, cpt_horseman = self.countUnit(lstUnit)
-        cpt_unit = cpt_swordsman + cpt_archer + cpt_horseman
-
-        #On détermine l'emplacement des régiments
-        
-        #if cpt_villager > 0:
-        #    target_position = self.find_place_for_regiment(lstVillager, cpt_villager)
-        #    self.move_regiment(lstVillager, target_position)
-            
-        if cpt_unit > 0:
-            target_position = self.find_place_for_regiment(lstUnit, cpt_unit)
-            self.move_regiment(lstUnit, target_position)
-
-        self.regiment.append(lstUnit)
-
-    def verifRegiment(self):
-        
-        ''' On vérifie si toutes les unités du régiment sont bien placées '''
-        ''' Si ce n'est pas le cas alors on les déplace '''
-
-        for regiment in self.regiment:
-            for unit in regiment:
-                if unit in self.verificationRegiment:
-                    for regiment_unit in self.verificationRegiment:
-                        if regiment_unit[0] == unit:
-                            if regiment_unit[1] != unit.x and regiment_unit[2] != unit.y:
-                                self.cplayer.move(unit, regiment_unit[0], regiment_unit[1])
-                            else:
-                                self.verificationRegiment.remove(unit)
-
-    def move_regiment(self, lstUnit, target_position):
-    
-        ''' Déplacement du régiment '''
-        ''' On déplace le régiment à la position cible '''
-        if target_position is not None:
-                x, y = target_position
-                for unit in lstUnit:
-                    self.cplayer.move(unit, x, y)
-                    self.verificationRegiment.append((unit, x, y))
-                    if x == target_position[0] + 4:
-                        x = target_position[0]
-                        y -= 1
-                    else:
-                        x += 1
-
-    def find_place_for_regiment(self, lstUnit, cptUnit):
-
-        unitx, unity = lstUnit[0].x, lstUnit[0].y
-        
-        #On cherche une position libre autour de l'unité pour former le régiment
-        radius = 15  # Rayon initial de la recherche
-        target = None
-
-        max_radius = max(self.game.map.size_map_x, self.game.map.size_map_y)
-
-        largeur = 4
-        hauteur = cptUnit // largeur + 1
-
-        while radius <= max_radius:
-            # Parcourt les points dans un carré englobant le cercle
-            for x in range(unitx - radius, unity + radius + 1):
-                for y in range(unitx - radius, unity + radius + 1):
-                    # Vérifie si le point est dans le cercle
-                    if (x - unitx) ** 2 + (y - unity) ** 2 <= radius ** 2:
-                        # Vérifie si la position est dans les limites de la carte
-                        if 0 <= x < self.game.map.size_map_x and 0 <= y < self.game.map.size_map_y:
-                            # Vérifie si la position est libre et que l'on a la place pour former le régiment
-                            check = True
-                            for i in range(0, largeur):
-                                for j in range(0, hauteur):
-                                    if self.game.map.map[x + i][y + j] != " ":
-                                        check = False
-                                        break
-                                if check is False:
-                                    break
-                            if check is True:
-                                target = (x, y)
-                                break
-                if target is not None:
-                    break
-            if target is not None:
-                break
-            radius += 1
-        
-        return target
-
     def choose_strategie(self, lstcPlayer):
 
         ''' Choix de la stratégie de l'IA '''
@@ -1500,7 +1403,7 @@ class AI:
         if self.mode == MOD_AI.AI_OFFENSIVE:
             
             #Paramètre sur lequel on peut jouer pour ajuster le mode offensif
-
+            
             if self.cplayer.player.gold < 300 and self.cplayer.player.wood < 300:
                 self.collect_strategie()
                 pass
@@ -1512,6 +1415,7 @@ class AI:
             elif self.cplayer.player.food > 1000 and self.cplayer.player.gold > 1000 and self.cplayer.player.wood > 1000:
                 self.offensive_strategie()
                 pass
+            
         
             #On calcule le nombre d'unité des adversaires
             min = self.minUnitUser(lstcPlayer)
@@ -1526,12 +1430,8 @@ class AI:
                 self.isAttacking = True
         
             if self.game.map.mapType == MapType.CENTER_RESOURCES:
-                self.protectionCenter()
-            elif self.game.map.mapType == MapType.GENEROUS_RESOURCES:
-                nbInactive = self.unit_inactive()
-                if nbInactive > 20:
-                    pass
-                    #self.formateRegiment()
+                pass
+                #self.protectionCenter()
 
         elif self.mode is None:
             logs(self.cplayer.player.name + " :  l'IA n'est dans aucun mode", logging.INFO)
@@ -1541,7 +1441,7 @@ class AI:
         self.verifCollectVillager()
         self.verifUnit()
         self.verifUnitAttack()
-        self.verifRegiment()
+        self.verifAttackKeep()
         
     def minUnitUser(self, lstcPlayer):
         minUnit = float('inf')
@@ -1560,9 +1460,38 @@ class AI:
                 cpt += 1
         return cpt
     
-    def unit_inactive(self):
-        cpt = 0
-        for unit in self.cplayer.player.units:
-            if unit.action is None and unit not in self.lstUnitAttack and not isinstance(unit, Villager) and unit not in self.regiment:
-                cpt += 1
-        return cpt
+    def verifAttackKeep(self):
+
+        lstUnit = []
+        range_keep = 8
+
+        for keep in self.cplayer.player.lstKeep:
+
+            lstTemp = []
+            for i in range (keep.x - range_keep, keep.x + range_keep):
+                for j in range (keep.y - range_keep, keep.y + range_keep):
+                    if 0 <= i < self.game.map.size_map_x and 0 <= j < self.game.map.size_map_y:
+                        unit = self.game.map.map_entities[i][j]
+                        if unit not in self.cplayer.player.units and unit is not None and isinstance(unit, Units):
+                            lstTemp.append(unit)
+            lstUnit.append(lstTemp)
+
+            for lst in lstUnit:
+                for unit in lst:
+                    self.attackUnitWithKeep(unit)
+
+    def attackUnitWithKeep(self, unit):
+
+        current_time = time.time()
+
+        if current_time - self.start_time >= 1:
+            self.start_time = time.time()
+
+            unit.health -= 5
+            logs(self.cplayer.player.name + " :  Keep attack unit " + str(unit), logging.INFO)
+
+            if unit.health <= 0:
+                self.game.map.map_entities[unit.x][unit.y] = None
+                self.game.map.map[unit.x][unit.y] = " "
+                if unit in self.cplayer.player.units:
+                    self.cplayer.player.units.remove(unit)

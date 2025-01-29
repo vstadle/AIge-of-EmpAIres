@@ -254,6 +254,9 @@ class ControllerGame():
                         self.uiHandler.show_menu()
                         return
                     elif event.key == pygame.K_F7 or event.key == pygame.K_F11:
+                        for cplayer in self.lstcPlayers:
+                            for unit in cplayer.player.units:
+                                unit.control_IA = False
                         self.uiHandler.saveGame()
                     elif event.key == pygame.K_m:
                         self.viewPygame.full_minimap_mode = not self.viewPygame.full_minimap_mode
@@ -304,19 +307,27 @@ class ControllerGame():
                     ai.update()
                 
                 # Game update logic remains the same
-                checkBuilding = 0
+                check = 0
+                check2 = 0
                 checkAttack = 0
+                checkAttack2 = 0
                 for cplayer in self.lstcPlayers:
                     cplayer.update_training()
-                    checkBuilding = cplayer.update_building()
+                    check = cplayer.update_building()
                     cplayer.updating_collect()
                     cplayer.updating_moving()
                     checkAttack = cplayer.updating_attack()
+                    if check == 0:
+                        check2 += 1
+                    if checkAttack == 1:
+                        checkAttack2 += 1
 
                 # Mise à jour de la minimap seulement s'il y a eu une construction ou destruction
-                if checkBuilding == 0 or checkAttack == 1:
+                if check != 0:
                     self.viewPygame.create_static_minimap()
 
+                if checkAttack2 != 0:
+                    self.viewPygame.create_static_minimap()
 
                 active_players = []
                 for cplayer in self.lstcPlayers:
