@@ -319,11 +319,11 @@ class ControllerGame():
                     checkAttack = cplayer.updating_attack()
                     if check == 0:
                         check2 += 1
-                    if checkAttack == 1:
+                    if checkAttack == 2:
                         checkAttack2 += 1
 
                 # Mise à jour de la minimap seulement s'il y a eu une construction ou destruction
-                if check != 0:
+                if check2 != 0:
                     self.viewPygame.create_static_minimap()
 
                 if checkAttack2 != 0:
