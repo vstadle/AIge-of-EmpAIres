@@ -19,7 +19,7 @@ pip install numpy pygame unidecode
 
 
 # Clonage du dépôt
-REPO_URL="git@github.com:vstadle/AIge-of-EmpAIres.git"
+REPO_URL="https://github.com/vstadle/AIge-of-EmpAIres.git"
 CLONE_DIR="AIge-of-EmpAIres Projet"
 
 if [ -d "$CLONE_DIR" ]; then
