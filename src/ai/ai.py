@@ -1051,7 +1051,7 @@ class AI:
             costVillager = Villager().costF
             cpt = 0
 
-            while cpt < 5 and self.cplayer.player.food < costVillager and self.cplayer.player.population > len(self.cplayer.player.units) + len(self.lstUnitWaiting):
+            while cpt < 3:
                 towncenter = self.findBuildings(TownCenter)
                 if towncenter is not None:
                     check = self.cplayer.trainVillager(towncenter)
@@ -1175,6 +1175,40 @@ class AI:
         ''' On entraine beaucoup d'unités pour attaquer l'adversaire '''
         ''' On construit des batiments pour pouvoir entrainer des unités '''
         ''' On construit des batiments de défense '''
+
+        if len(self.cplayer.player.units) < 40 :
+            barracks = self.findBuildings(Barracks)
+            stable = self.findBuildings(Stable)
+            archery = self.findBuildings(ArcheryRange)
+            towncenter = self.findBuildings(TownCenter)
+            for i in range (9):
+
+                if barracks is None:
+                    break
+                elif barracks is not None:
+                    check = self.cplayer.trainSwordsman(barracks)
+                    if check == 1:
+                        self.lstUnitWaiting.append("swordsman")
+
+                if archery is None:
+                    break
+                elif archery is not None:
+                    check = self.cplayer.trainArcher(archery)
+                    if check == 1:
+                        self.lstUnitWaiting.append("archer")
+                
+                if stable is None:
+                    break
+                elif stable is not None:
+                    check = self.cplayer.trainHorseman(stable)
+                    if check == 1:
+                        self.lstUnitWaiting.append("horseman")
+            
+                if towncenter is not None:
+                    check = self.cplayer.trainVillager(towncenter)
+                    if check == 1:
+                        self.lstUnitWaiting.append("villager")
+
 
         cpt_villager, cpt_swordsman, cpt_archer, cpt_horseman = self.count_Unit()
         if len(self.cplayer.player.units)!=0:
