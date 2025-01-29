@@ -84,7 +84,7 @@ class ViewPygame:
             "barracks": os.path.join(project_root, "Sprite_aoe/buildings/barracks.png"),
             "gold": os.path.join(project_root, "Sprite_aoe/gold/GoldMine002.png"),
             "archeryrange": os.path.join(project_root, "Sprite_aoe/buildings/archery_range.png"),
-            "stable": os.path.join(project_root, "Sprite_aoe/buildings/Stable.png"),
+            "stable": os.path.join(project_root, "Sprite_aoe/buildings/stable.png"),
             "farm": os.path.join(project_root, "Sprite_aoe/buildings/farm1.png"),
             "villager": os.path.join(project_root, "Sprite_aoe/villager/standard_male/StandGround/Villagerstand001.png"),
             "house": os.path.join(project_root,"Sprite_aoe/buildings/house.png"),
