@@ -452,8 +452,7 @@ class AI:
                 self.game.map.map[unit.x][unit.y] = " "
 
     def verifUnitAttack(self):
-        
-        for item in self.lstUnitAttack:
+        for item in list(self.lstUnitAttack):
             
             unit = item["unit"]
 
@@ -504,18 +503,18 @@ class AI:
                 #On regarde d'abord si il y a une unité ennemi à coté de notre unité
                 #tempcplayer = None
                 for x, y in adjacent_positions:
-                    entity = self.game.map.map_entities[unit.x + x][unit.y + y]
-
-                    if isinstance(entity, Units) or isinstance(entity, Buildings):
-                        if entity.player != self.cplayer.player:
-                            for cplayer in self.lstcPlayer:
-                                if cplayer.player == entity.player:
-                                    tempcplayer = cplayer
-                            #Si l'unité est bien juste à coté de nous alors on l'attaque
-                            if unit.x + x == entity.x and unit.y + y == entity.y:
-                                self.lstUnitAttack.append({"unit": unit, "playerenemy": tempcplayer, "target": entity, "target_position": (unit.x, unit.y)})
-                                self.caseAttack.append((unit.x, unit.y))
-                                continue
+                    if 0 <= unit.x + x < self.game.map.size_map_x and 0 <= unit.y + y < self.game.map.size_map_y:
+                        entity = self.game.map.map_entities[unit.x + x][unit.y + y]
+                        if isinstance(entity, Units) or isinstance(entity, Buildings):
+                            if entity.player != self.cplayer.player:
+                                for cplayer in self.lstcPlayer:
+                                    if cplayer.player == entity.player:
+                                        tempcplayer = cplayer
+                                #Si l'unité est bien juste à coté de nous alors on l'attaque
+                                if unit.x + x == entity.x and unit.y + y == entity.y:
+                                    self.lstUnitAttack.append({"unit": unit, "playerenemy": tempcplayer, "target": entity, "target_position": (unit.x, unit.y), "attack_attempts": 0})
+                                    self.caseAttack.append((unit.x, unit.y))
+                                    continue
                 
                 #Si on ne trouve pas d'unité à coté de notre unité
                 self.attack_target(unit, playerenemy)
@@ -612,10 +611,17 @@ class AI:
 
                 #Si on ne peut pas attaquer alors on arrête d'attaquer
                 elif verifAttack == -1:
-                    self.lstUnitAttack.remove(item)
-                    if target_position in self.caseAttack:
-                        self.caseAttack.remove(target_position)
-                    self.attack_target(unit, playerenemy)
+                    item.setdefault("attack_attempts", 0)
+                    item["attack_attempts"] += 1
+                    if item["attack_attempts"] > 2: # Limiter le nombre de tentatives
+                        self.lstUnitAttack.remove(item)  # Retirer l'unité si trop de tentatives
+                        if target_position in self.caseAttack:
+                           self.caseAttack.remove(target_position)
+                        continue
+                    else:
+                        if target_position in self.caseAttack:
+                           self.caseAttack.remove(target_position)
+                        self.attack_target(unit, playerenemy) # Retenter avec la même cible
                     
     def find_adjacent_free_tile(self, resource):
         adjacent_positions = [
@@ -1163,10 +1169,14 @@ class AI:
         ''' On construit des batiments de défense '''
 
         cpt_villager, cpt_swordsman, cpt_archer, cpt_horseman = self.count_Unit()
-        
-        ration_sworsman = cpt_swordsman / len(self.cplayer.player.units)
-        ration_archer = cpt_archer / len(self.cplayer.player.units)
-        ration_horseman = cpt_horseman / len(self.cplayer.player.units)
+        if len(self.cplayer.player.units)!=0:
+            ration_sworsman = cpt_swordsman / len(self.cplayer.player.units)
+            ration_archer = cpt_archer / len(self.cplayer.player.units)
+            ration_horseman = cpt_horseman / len(self.cplayer.player.units)
+        else:
+            ration_sworsman = 0
+            ration_archer = 0
+            ration_horseman = 0
 
         logs(self.cplayer.player.name + " :  Ration swordsman : " + str(ration_sworsman), logging.INFO)
         logs(self.cplayer.player.name + " :  Ration archer : " + str(ration_archer), logging.INFO)
