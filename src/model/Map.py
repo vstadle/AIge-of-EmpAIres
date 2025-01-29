@@ -52,22 +52,31 @@ class Map():
         self.map[0][0] = 's'
         self.map_entities = np.full((size_map_x, size_map_y), None)
         self.map_entities[0][0] = Units
-        self.lstColor = np.full((size_map_x, size_map_y), None)
         self.mapType = None
         
     
     def generateGenerousResources(self):
         max_percentage_gold = 0.01
-        total_cells = self.size_map_x*self.size_map_y
-        max_gold = max_percentage_gold * total_cells
-        gold_planted = 0
-        while (gold_planted < max_gold):
-            x = random.randint(0,self.size_map_x-1)
-            y = random.randint(0,self.size_map_y-1)
-            if(self.map[x][y]== " "):
-                self.addRessources(Gold(), x, y)
-                gold_planted+=1
+        total_cells = self.size_map_x * self.size_map_y
+        max_gold_blocks = int(max_percentage_gold * total_cells / 4)
+        gold_blocks_planted = 0
 
+        while gold_blocks_planted < max_gold_blocks:
+            x = random.randint(0, self.size_map_x - 2)  # Ajustement pour s'assurer que le bloc 2x2 ne dépasse pas la map
+            y = random.randint(0, self.size_map_y - 2)
+
+            # Vérifier si le bloc 2x2 est libre
+            if (self.map[x][y] == " " and
+                self.map[x+1][y] == " " and
+                self.map[x][y+1] == " " and
+                self.map[x+1][y+1] == " "):
+                
+                self.addRessources(Gold(), x, y)
+                self.addRessources(Gold(), x+1, y)
+                self.addRessources(Gold(), x, y+1)
+                self.addRessources(Gold(), x+1, y+1)
+                
+                gold_blocks_planted += 1
 
 
     def generateCenterResources(self):
@@ -102,35 +111,39 @@ class Map():
     def addBuilding(self, building, x, y, player):
         building.setX(x)
         building.setY(y)
-        cpt = 0
+        building.color = player.getColor()
+        building.player = player
+        building.is_constructing = False
         for i in range(building.sizeMap):
-            cpt += 1
             for j in range(building.sizeMap):
                 self.map_entities[x + i][y + j] = building
-                #self.mapBuildings[x + i][y + j] = building
                 self.map[x + i][y + j] = building.letter
-                self.lstColor[x + i][y + j] = player.getColor()
+        
+        if isinstance(building, Keep):
+            player.lstKeep.append(building)
+
+
         if isinstance(building, TownCenter) or isinstance(building, House):
             player.population += building.population
-
+            
     def addBuildingTemp(self, building, x, y):
         building.setX(x)
         building.setY(y)
+        building.is_constructing = True  # Nouveau : marquer comme en construction
         for i in range(building.sizeMap):
             for j in range(building.sizeMap):
                 self.map[x + i][y + j] = building.letter
-                self.lstColor[x + i][y + j] = curses.COLOR_WHITE
 
     def addUnits(self, units, x, y, player):
+        units.color = player.getColor()
         self.map_entities[x][y] = units
-        #self.mapUnits[x][y] = units
         self.map[x][y] = units.letter
-        self.lstColor[x][y] = player.getColor()
         units.setPosition(x, y)
+        units.player = player
 
     
     def generateForest(self):
-        max_percentage_wood = 0.1
+        max_percentage_wood = 0.05
         total_cells = self.size_map_x * self.size_map_y
         max_trees = int(total_cells * max_percentage_wood)
         total_trees_planted = 0
@@ -214,11 +227,13 @@ class Map():
         return self.mapRessources
     
     def is_free(self, x, y):
-        return self.map_entities[x][y] is None
-        return self.mapBuildings[x][y] is None and self.mapUnits[x][y] is None and self.mapRessources[x][y] is None
+        
+        return (
+            0 <= x < len(self.map_entities) and 
+            0 <= y < len(self.map_entities[0]) and
+            self.map_entities[x][y] is None
+        )
     
-    def getColor(self, x, y):
-        return self.lstColor[x][y]
 
     def rmUnit(self, unit):
         self.map_entities[unit.getX()][unit.getY()] = None
@@ -240,16 +255,21 @@ class Map():
     def moveUnit(self, unit, x, y, player):
         pos = unit.getPosition()
         self.map_entities[pos[0]][pos[1]] = None
-        #self.mapUnits[pos[0]][pos[1]] = None
         self.map[pos[0]][pos[1]] = " "
+        
         self.map_entities[x][y] = unit
-        #self.mapUnits[x][y] = unit
         unit.setPosition(x, y)
-        self.map[x][y] = "v"
-        self.lstColor[x][y] = player.getColor()
+        self.map[x][y] = unit.letter
 
     def setMapType(self, type):
         self.mapType = type
 
     def get_map_entities(self):
         return self.map_entities
+    def getColor(self, x, y):
+        entity = self.map_entities[x][y]
+        if entity:
+            if hasattr(entity, 'is_constructing') and entity.is_constructing:
+                return curses.COLOR_WHITE
+            return entity.color if hasattr(entity, 'color') else None
+        return None

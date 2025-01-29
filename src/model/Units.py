@@ -1,12 +1,13 @@
+import curses
+from view.HealthBar import HealthBar  # Assurez-vous que le chemin est correct
 
 class Units():
-
-
     #Parameters costF: int, costG: int, costW: int, health: int, trainingTime: int, attack: int, speedAtack: int, speed: int, range: int
-    def __init__(self, costF, costG, costW, health, trainingTime, attack, speedAtack, speed, range, letter):
+    def __init__(self, costF, costG, costW, health, trainingTime, attack, speedAtack, speed, range, letter, color = None):
         self.costF = costF
         self.costG = costG
         self.costW = costW
+        self.max_health = health
         self.health = health
         self.trainingTime = trainingTime
         self.attack = attack
@@ -18,6 +19,17 @@ class Units():
         self.x = None
         self.y = None
 
+        self.control_IA = False
+
+        couleur_verte_forcee_curses = curses.COLOR_GREEN # <--- COULEUR CURSES VERTE FORCÉE
+        self.health_bar = HealthBar(
+            max_health=self.max_health,
+            width=40,
+            height=4,
+            player_color=couleur_verte_forcee_curses # <--- UTILISER LA COULEUR VERTE FORCÉE ICI
+        )
+        self.color = color
+        self.player = None
     def __repr__(self):
         return "Units(%r, %r, %r, %r, %r)" % (self.health, self.attack, self.speedAtack, self.speed, self.range)
 
@@ -31,11 +43,14 @@ class Units():
         print("Speed Atack: ", self.speedAtack)
         print("Speed: ", self.speed)
 
-
+    def setHp(self, hp):
+        self.health = max(0, min(hp, self.max_health))
+        self.health_bar.update(self.health)
     #Parameters target: Units
     def attack(self, target):
         target.health -= self.attack
-
+    def getHp(self):
+        return self.health
     #Parameters target: Building
     def attackBuildings(self, target):
         target.health -= self.attack
@@ -60,3 +75,6 @@ class Units():
         if self.x == None or self.y == None:
             return None
         return self.x, self.y
+    
+    def setPlayer(self, player):
+        self.player = player

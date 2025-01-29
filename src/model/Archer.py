@@ -1,9 +1,16 @@
 from model.Units import Units
+from view.HealthBar import HealthBar
 
 class Archer(Units):
 
-    def __init__(self):
+    def __init__(self, color=None):
         super().__init__(0, 45, 25, 30, 35, 4, 1, 1, 4, 'a')
+        self.health_bar = HealthBar(
+            max_health=self.max_health, 
+            width=40,  # Adjust based on sprite size
+            height=5 ,  # Adjust based on preference
+            player_color=color
+        )
 
     def __repr__(self):
         return "Archer :(HP : %r)" % (self.health)
@@ -19,4 +26,6 @@ class Archer(Units):
         print("Speed Atack: ", self.speedAtack)
         print("Speed: ", self.speed)
         print("Range: ", self.range)
+
+    
 

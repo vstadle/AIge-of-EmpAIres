@@ -49,7 +49,7 @@ class ControllerGame():
 
         self.lstAI = []
         for cplayer in lstcPlayers:
-            self.lstAI.append(AI(self.game, cplayer))
+            self.lstAI.append(AI(self.game, cplayer, lstcPlayers))
 
         self.stdscr = None
 
@@ -143,21 +143,24 @@ class ControllerGame():
                 self.uiHandler.saveGame()
             elif key == curses.KEY_F12:
                 self.paused = True
-                pygame.quit()
+                #pygame.quit()
                 self.uiHandler.show_menu()
 
 
+            if key == ord('z') or key == curses.KEY_UP:
+                self.viewTerminal.camera.move(0, -1, stdscr)
+            elif key == ord('s') or key == curses.KEY_DOWN:
+                self.viewTerminal.camera.move(0, 1, stdscr)
+            elif key == ord('q') or key == curses.KEY_LEFT:
+                self.viewTerminal.camera.move(-1, 0, stdscr)
+            elif key == ord('d') or key == curses.KEY_RIGHT:
+                self.viewTerminal.camera.move(1, 0, stdscr)
+
+            self.viewTerminal.draw_map(stdscr)
+
             if not self.paused:
 
-                if key == ord('z') or key == curses.KEY_UP:
-                    self.viewTerminal.camera.move(0, -1, stdscr)
-                elif key == ord('s') or key == curses.KEY_DOWN:
-                    self.viewTerminal.camera.move(0, 1, stdscr)
-                elif key == ord('q') or key == curses.KEY_LEFT:
-                    self.viewTerminal.camera.move(-1, 0, stdscr)
-                elif key == ord('d') or key == curses.KEY_RIGHT:
-                    self.viewTerminal.camera.move(1, 0, stdscr)
-                elif key == curses.KEY_F2 or key == curses.KEY_F9:
+                if key == curses.KEY_F2 or key == curses.KEY_F9:
                     self.change_mode()
 
                 if current_time - start_time > time_to_update:
@@ -169,13 +172,15 @@ class ControllerGame():
 
 
                 for ai in self.lstAI:
-                        ai.update()
+                    ai.verifLifeUnit()
+                    ai.update()
                 
                 for cplayer in self.lstcPlayers:
                     cplayer.update_training()
                     cplayer.update_building()
                     cplayer.updating_collect()
                     cplayer.updating_moving()
+                    cplayer.updating_attack()
 
 
                      ###### DEBUT ASM #############   
@@ -183,27 +188,18 @@ class ControllerGame():
                 # Vérification des joueurs restants
                 active_players = []
                 for cplayer in self.lstcPlayers:
-                    if len(cplayer.player.getBuildings()) > 0 or cplayer.player.units > 0:
+                    if len(cplayer.player.getBuildings()) > 0 or len(cplayer.player.units) > 0:
                         active_players.append(cplayer.player)
 
                 # Si un seul joueur reste, afficher son nom et terminer le jeu
                 if len(active_players) == 1:
                     winner = active_players[0]
-                    print(f"Le joueur {winner.name} a gagné !")
-                    
-                    # Affichage graphique de la victoire si nécessaire
-                    winner = active_players[0]
-                    print(f"Le joueur {winner.name} a gagné !")
-                    self.uiHandler.display_winner(winner.name)  # Délégation à UIHandler
-
-                    #pygame.display.flip()
-                    #pygame.time.wait(5000)  # Attend 5 secondes avant de fermer                  
-                    #pygame.quit()
-                    self.uiHandler.show_menu()
+                    curses.endwin()  # Fermer proprement le mode terminal
+                    self.uiHandler.display_winner(winner.name)
+                    pygame.quit()
+                    return
 
                  ###### FIN ASM #############
-
-                self.viewTerminal.draw_map(stdscr)
         
     def change_mode(self):
         pygame.init()
@@ -216,6 +212,9 @@ class ControllerGame():
         tab_pressed = False
         p_pressed = False
         running = True
+        time_to_update = 60
+        
+        start_time = time.time()
     
         while running:
             self.viewPygame.camera.handle_input()            
@@ -231,6 +230,11 @@ class ControllerGame():
                         self.uiHandler.saveGame()
                         running = False
                         break
+                    if event.type == pygame.KEYDOWN and event.key == pygame.K_k:  # Réduire HP
+                        
+                        if self.lstcPlayers[0].player.units:
+                            unit = self.lstcPlayers[0].player.units[0]
+                            unit.setHp(unit.getHp() - 10)
                     elif event.key == pygame.K_F1:
                         self.viewPygame.show_player_info = not self.viewPygame.show_player_info
                         pygame.display.flip()
@@ -250,6 +254,9 @@ class ControllerGame():
                         self.uiHandler.show_menu()
                         return
                     elif event.key == pygame.K_F7 or event.key == pygame.K_F11:
+                        for cplayer in self.lstcPlayers:
+                            for unit in cplayer.player.units:
+                                unit.control_IA = False
                         self.uiHandler.saveGame()
                     elif event.key == pygame.K_m:
                         self.viewPygame.full_minimap_mode = not self.viewPygame.full_minimap_mode
@@ -278,7 +285,7 @@ class ControllerGame():
                             self.viewPygame.minimap_zoom = min(12.0, self.viewPygame.minimap_zoom * 1.1)
                         elif event.button == 5:  # Scroll down (zoom out)
                             self.viewPygame.minimap_zoom = max(4.5, self.viewPygame.minimap_zoom / 1.1)
-                
+            
             if not self.paused:
                 if keys[pygame.K_ESCAPE]:
                     webbrowser.open("https://www.youtube.com/watch?v=dQw4w9WgXcQ")
@@ -286,18 +293,54 @@ class ControllerGame():
                 self.viewPygame.draw_map_2_5D()
                 pygame.display.flip()
                 
+                current_time = time.time()
+                
+                if current_time - start_time > time_to_update:
+                    start_time = time.time()
+                    for ai in self.lstAI:
+                        lsttemp = self.lstcPlayers.copy()
+                        lsttemp.remove(ai.cplayer)
+                        ai.choose_strategie(lsttemp)
+                
+                for ai in self.lstAI:
+                    ai.verifLifeUnit()
+                    ai.update()
+                
                 # Game update logic remains the same
                 check = 0
                 check2 = 0
+                checkAttack = 0
+                checkAttack2 = 0
                 for cplayer in self.lstcPlayers:
                     cplayer.update_training()
                     check = cplayer.update_building()
                     cplayer.updating_collect()
                     cplayer.updating_moving()
+                    checkAttack = cplayer.updating_attack()
                     if check == 0:
                         check2 += 1
+                    if checkAttack == 2:
+                        checkAttack2 += 1
+
+                # Mise à jour de la minimap seulement s'il y a eu une construction ou destruction
                 if check2 != 0:
                     self.viewPygame.create_static_minimap()
+
+                if checkAttack2 != 0:
+                    self.viewPygame.create_static_minimap()
+
+                active_players = []
+                for cplayer in self.lstcPlayers:
+                    if len(cplayer.player.getBuildings()) > 0 or len(cplayer.player.units) > 0:
+                        active_players.append(cplayer.player)
+
+                # Si un seul joueur reste, afficher son nom et terminer le jeu
+                if len(active_players) == 1:
+                    winner = active_players[0]
+                    curses.endwin()  # Fermer proprement le mode terminal
+                    self.uiHandler.display_winner(winner.name)
+                    pygame.quit()
+                    return
             
             self.clock.tick(200)  # Limited to 200 FPS
         

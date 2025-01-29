@@ -6,6 +6,9 @@ from unidecode import unidecode
 logger = logging.getLogger('my_logger')
 logger.setLevel(logging.DEBUG)
 
+#Créer le fichier de logs s'il n'existe pas
+open('logs/log.log', 'a').close()
+
 # Ajouter un FileHandler pour écrire les logs dans un fichier .log
 file_handler = logging.FileHandler('logs/log.log')  # Le fichier de logs (application.log)
 formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')

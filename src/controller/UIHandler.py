@@ -202,12 +202,16 @@ class UIHandler():
             'map_type': 'CENTER',
             'nb_players': 2,
             'size_x': 120,
-            'size_y': 120
+            'size_y': 120,
+            'ai_modes': []
         }
         
         game_types = ['LEAN', 'MEAN', 'MARINES']
         map_types = ['GENEROUS', 'CENTER']
-        player_range = range(2, 41)
+        player_range = range(2, 7)
+        ai_types = {1: 'Offensive', 2: 'Defensive'}
+        
+        config['ai_modes'] = [1] * config['nb_players']
         
         slider_width = 300
         slider_x = (800 - slider_width) // 2
@@ -217,21 +221,20 @@ class UIHandler():
         
         selected_option = None
         config_active = True
+        show_ai_config = False
         
         while config_active:
             screen.fill((0, 0, 0))
             screen_width, screen_height = screen.get_size()
             screen.blit(pygame.transform.scale(background, (screen_width, screen_height)), (0, 0))
             
-            start_y = 50
-            spacing = 60
-            slider_spacing = 100
-            current_y = start_y
             mouse_pos = pygame.mouse.get_pos()
             
-            back_button_size = (50, 50)
-            back_button_rect = pygame.Rect(20, 20, back_button_size[0], back_button_size[1])
-            screen.blit(pygame.transform.scale(back_arrow, back_button_size), back_button_rect)
+            # N'afficher le bouton retour que dans le menu principal
+            if not show_ai_config:
+                back_button_size = (50, 50)
+                back_button_rect = pygame.Rect(20, 20, back_button_size[0], back_button_size[1])
+                screen.blit(pygame.transform.scale(back_arrow, back_button_size), back_button_rect)
             
             def draw_config_button(text, value, y_pos, options=None, width=350, height=50):
                 button_width = width
@@ -250,28 +253,74 @@ class UIHandler():
                 
                 return button_rect
             
-            buttons = {}
-            buttons['type_game'] = draw_config_button("Type de jeu", config['type_game'], current_y)
-            current_y += spacing
+            if not show_ai_config:
+                # Interface de configuration principale
+                start_y = 50
+                spacing = 60
+                current_y = start_y
+                
+                buttons = {}
+                buttons['type_game'] = draw_config_button("Type de jeu", config['type_game'], current_y)
+                current_y += spacing
+                
+                buttons['map_type'] = draw_config_button("Type de carte", config['map_type'], current_y)
+                current_y += spacing
+                
+                buttons['nb_players'] = draw_config_button("Nombre de joueurs", config['nb_players'], current_y)
+                current_y += spacing
+                
+                
+                slider_x_coord.rect.y = current_y + 60
+                slider_x_coord.draw(screen, font, "Largeur de la carte")
+                current_y += 100
+                
+                slider_y_coord.rect.y = current_y + 60
+                slider_y_coord.draw(screen, font, "Hauteur de la carte")
+                current_y += 120
+                # Bouton pour passer à la configuration des IA
+                ai_config_button_rect = draw_config_button("Configurer les IA", "", current_y)
+                current_y += spacing 
+                
+                
+                config['size_x'] = slider_x_coord.value
+                config['size_y'] = slider_y_coord.value
+                
+                start_button_rect = draw_config_button("Démarrer la partie", "", current_y, None, 520, 80)
             
-            buttons['map_type'] = draw_config_button("Type de carte", config['map_type'], current_y)
-            current_y += spacing
-            
-            buttons['nb_players'] = draw_config_button("Nombre de joueurs", config['nb_players'], current_y)
-            current_y += 2 * spacing
-            
-            slider_x_coord.rect.y = current_y + 20
-            slider_x_coord.draw(screen, font, "Largeur de la carte")
-            current_y += slider_spacing
-            
-            slider_y_coord.rect.y = current_y + 20
-            slider_y_coord.draw(screen, font, "Hauteur de la carte")
-            current_y += slider_spacing - 20
-            
-            config['size_x'] = slider_x_coord.value
-            config['size_y'] = slider_y_coord.value
-            
-            start_button_rect = draw_config_button("Démarrer la partie", "", current_y + 20, None, 520, 80)
+            else:
+                # Interface de configuration des IA
+                start_y = 50
+                spacing = 60
+                
+                # Afficher les boutons pour chaque joueur
+                ai_buttons = []
+                max_buttons_per_row = 4
+                button_width = 180
+                button_height = 50
+                horizontal_spacing = 20
+                
+                for i in range(config['nb_players']):
+                    row = i // max_buttons_per_row
+                    col = i % max_buttons_per_row
+                    
+                    x = (screen_width - (button_width * max_buttons_per_row + horizontal_spacing * (max_buttons_per_row - 1))) // 2
+                    x += col * (button_width + horizontal_spacing)
+                    y = start_y + row * spacing
+                    
+                    button_rect = pygame.Rect(x, y, button_width, button_height)
+                    scaled_button = pygame.transform.scale(button_image, (button_width, button_height))
+                    screen.blit(scaled_button, button_rect.topleft)
+                    
+                    text = f"J{i+1}: {ai_types[config['ai_modes'][i]]}"
+                    label = font.render(text, True, (255, 255, 255))
+                    label_rect = label.get_rect(center=button_rect.center)
+                    screen.blit(label, label_rect)
+                    
+                    ai_buttons.append((button_rect, i))
+                
+                # Bouton retour à la configuration principale
+                current_y = start_y + (((config['nb_players'] - 1) // max_buttons_per_row) + 1) * spacing + 40
+                back_to_main_rect = draw_config_button("Retour", "", current_y)
             
             pygame.display.flip()
             
@@ -282,66 +331,78 @@ class UIHandler():
                     sys.exit()
                 
                 # Gestion des sliders
-                slider_x_coord.handle_event(event, mouse_pos)
-                slider_y_coord.handle_event(event, mouse_pos)
+                if not show_ai_config:
+                    slider_x_coord.handle_event(event, mouse_pos)
+                    slider_y_coord.handle_event(event, mouse_pos)
                 
                 if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
-                    if back_button_rect.collidepoint(mouse_pos):
+                    if not show_ai_config and back_button_rect.collidepoint(mouse_pos):
                         config_active = False
                         self.show_menu()
                         return
                     
-                    if start_button_rect.collidepoint(mouse_pos):
-                        # Réinitialisation complète du jeu
-                        self.game = Game()  # Créer une nouvelle instance de Game
-                        self.lstPlayers = []  # Réinitialiser la liste des joueurs
+                    if not show_ai_config:
+                        # Gestion des clics dans l'interface principale
+                        for key, rect in buttons.items():
+                            if rect.collidepoint(mouse_pos):
+                                if key == 'type_game':
+                                    current_index = game_types.index(config[key])
+                                    config[key] = game_types[(current_index + 1) % len(game_types)]
+                                elif key == 'map_type':
+                                    current_index = map_types.index(config[key])
+                                    config[key] = map_types[(current_index + 1) % len(map_types)]
+                                elif key == 'nb_players':
+                                    current_index = player_range.index(config[key])
+                                    config[key] = player_range[(current_index + 1) % len(player_range)]
+                                    if len(config['ai_modes']) < config['nb_players']:
+                                        config['ai_modes'].extend([1] * (config['nb_players'] - len(config['ai_modes'])))
+                                    else:
+                                        config['ai_modes'] = config['ai_modes'][:config['nb_players']]
                         
-                        # Initialiser la carte avec les dimensions choisies
-                        self.controllerMap = ControllerMap(config['size_x'], config['size_y'])
+                        if ai_config_button_rect.collidepoint(mouse_pos):
+                            show_ai_config = True
                         
-                        # Initialiser les joueurs et leurs unités
-                        self.initialize(config['type_game'], config['nb_players'])
-                        
-                        # Configurer le type de carte et générer les ressources
-                        if config['map_type'] == 'CENTER':
-                            self.controllerMap.map.setMapType(MapType.CENTER_RESOURCES)
-                            self.controllerMap.map.generateCenterResources()
-                        else:
-                            self.controllerMap.map.setMapType(MapType.GENEROUS_RESOURCES)
-                            self.controllerMap.map.generateGenerousResources()
+                        elif start_button_rect.collidepoint(mouse_pos):
+                            self.game = Game()
+                            self.lstPlayers = []
+                            self.controllerMap = ControllerMap(config['size_x'], config['size_y'])
+                            self.initialize(config['type_game'], config['nb_players'])
                             
-                        # Générer la forêt
-                        self.controllerMap.map.generateForest()
-
-                        # Mettre à jour la map avec les joueurs
-                        self.controllerMap.setLstPlayers(self.lstPlayers)
-                        
-                        # Mettre à jour l'objet Game avec les données initiales
-                        lsttemp = []
-                        for player in self.lstPlayers:
-                            lsttemp.append(player.getPlayer())
-                        self.game.setLstPlayer(lsttemp)
-                        self.game.setMap(self.controllerMap.map)
-                        
-                        # Créer le contrôleur de jeu
-                        self.controllerGame = ControllerGame(self.controllerMap, self.lstPlayers, self.game, self)
-                        
-                        config_active = False
-                        pygame.quit()
-                        self.start()
+                            if config['map_type'] == 'CENTER':
+                                self.controllerMap.map.setMapType(MapType.CENTER_RESOURCES)
+                                self.controllerMap.map.generateCenterResources()
+                                self.controllerMap.map.mapType = MapType.CENTER_RESOURCES
+                            else:
+                                self.controllerMap.map.setMapType(MapType.GENEROUS_RESOURCES)
+                                self.controllerMap.map.generateGenerousResources()
+                                self.controllerMap.map.mapType = MapType.GENEROUS_RESOURCES
+                            
+                            self.controllerMap.map.generateForest()
+                            self.controllerMap.setLstPlayers(self.lstPlayers)
+                            
+                            lsttemp = []
+                            for i, player in enumerate(self.lstPlayers):
+                                player_obj = player.getPlayer()
+                                player_obj.setModeIA(config['ai_modes'][i])
+                                logs(f"Joueur {player_obj.name} en mode {config['ai_modes'][i]}", level=logging.INFO)
+                                lsttemp.append(player_obj)
+                            
+                            self.game.setLstPlayer(lsttemp)
+                            self.game.setMap(self.controllerMap.map)
+                            self.controllerGame = ControllerGame(self.controllerMap, self.lstPlayers, self.game, self)
+                            
+                            config_active = False
+                            pygame.quit()
+                            self.start()
                     
-                    for key, rect in buttons.items():
-                        if rect.collidepoint(mouse_pos):
-                            selected_option = key
-                            if key == 'type_game':
-                                current_index = game_types.index(config[key])
-                                config[key] = game_types[(current_index + 1) % len(game_types)]
-                            elif key == 'map_type':
-                                current_index = map_types.index(config[key])
-                                config[key] = map_types[(current_index + 1) % len(map_types)]
-                            elif key == 'nb_players':
-                                current_index = player_range.index(config[key])
-                                config[key] = player_range[(current_index + 1) % len(player_range)]
+                    else:
+                        # Gestion des clics dans l'interface de configuration des IA
+                        for button_rect, player_index in ai_buttons:
+                            if button_rect.collidepoint(mouse_pos):
+                                config['ai_modes'][player_index] = 2 if config['ai_modes'][player_index] == 1 else 1
+                        
+                        if back_to_main_rect.collidepoint(mouse_pos):
+                            show_ai_config = False
     def saveGame(self):
         if not os.path.exists("../save"):
             os.makedirs("../save")
@@ -363,6 +424,7 @@ class UIHandler():
         logs("Gave Saved", level=logging.INFO)
         
     def loadGame(self,path_file):
+
         self.isSaved = True
         self.nameFile = path_file
         logs("Loading Game", level=logging.INFO)
@@ -400,8 +462,10 @@ class UIHandler():
             self.controllerMap.placementTownCenter(len(self.lstPlayers), self.lstPlayers)
             
             for cplayer in self.lstPlayers:
+                player_color = cplayer.player.getColor()
+
                 for j in range(3):
-                    cplayer.addUnitInitialize(Villager(), cplayer.getPlayer().getBuildings()[0])
+                    cplayer.addUnitInitialize(Villager(color = player_color), cplayer.getPlayer().getBuildings()[0])
                     
         elif(typeGame == "MEAN"):
             
@@ -411,8 +475,10 @@ class UIHandler():
             self.controllerMap.placementTownCenter(len(self.lstPlayers), self.lstPlayers)
             
             for cplayer in self.lstPlayers:
+                player_color = cplayer.player.getColor()
+
                 for j in range(3):
-                    cplayer.addUnitInitialize(Villager(), cplayer.getPlayer().getBuildings()[0])
+                    cplayer.addUnitInitialize(Villager(color = player_color), cplayer.getPlayer().getBuildings()[0])
 
         elif(typeGame ==  "MARINES"):
 
@@ -423,10 +489,11 @@ class UIHandler():
             
             for cplayer in self.lstPlayers:
                 cplayer.initializeTownCenter(2)
+                player_color = cplayer.player.getColor()
                 for t in range(5):
-                    cplayer.addUnitInitialize(Villager(), cplayer.getPlayer().getBuildings()[0])
-                    cplayer.addUnitInitialize(Villager(), cplayer.getPlayer().getBuildings()[1])
-                    cplayer.addUnitInitialize(Villager(), cplayer.getPlayer().getBuildings()[2])
+                    cplayer.addUnitInitialize(Villager(color = player_color), cplayer.getPlayer().getBuildings()[0])#ICI INTEGRER COULEUR PAR EXEMPLE
+                    cplayer.addUnitInitialize(Villager(color = player_color), cplayer.getPlayer().getBuildings()[1])
+                    cplayer.addUnitInitialize(Villager(color = player_color), cplayer.getPlayer().getBuildings()[2])
     
             '''
             self.lstPlayers[0].addBuilding(Farm(), 10, 10)
@@ -439,11 +506,17 @@ class UIHandler():
             '''
             
     def show_load_game_menu(self):  # ASM
+        
         if not pygame.display.get_surface():
             pygame.init()
             self.screen = pygame.display.set_mode((800, 600))
+        else:
+            self.screen = pygame.display.get_surface()
+            pygame.display.set_mode((800, 600))
 
         pygame.display.set_caption("Charger une partie")
+
+        background = pygame.image.load("../data/img/background.png")
 
         clock = pygame.time.Clock()
         files = [file for file in os.listdir('../save/') if file.endswith('.dat')]
@@ -471,7 +544,8 @@ class UIHandler():
             font = pygame.font.Font(None, 36)
 
             while input_active:
-                self.screen.fill((50, 50, 50))
+                screen_width, screen_height = self.screen.get_size()
+                self.screen.blit(pygame.transform.scale(background, (screen_width, screen_height)), (0, 0))               
                 prompt_surface = font.render(prompt, True, (255, 255, 255))
                 prompt_rect = prompt_surface.get_rect(center=(400, 200))
                 self.screen.blit(prompt_surface, prompt_rect.topleft)
@@ -499,7 +573,8 @@ class UIHandler():
 
         load_game_active = True
         while load_game_active:
-            self.screen.fill((200, 200, 200))
+            screen_width, screen_height = self.screen.get_size()
+            self.screen.blit(pygame.transform.scale(background, (screen_width, screen_height)), (0, 0))            
             mouse_pos = pygame.mouse.get_pos()
 
             # Afficher la liste des fichiers
@@ -682,13 +757,30 @@ class UIHandler():
                 elif event.type == pygame.VIDEORESIZE:
                     screen = pygame.display.set_mode(event.size, pygame.RESIZABLE)
 
-    def display_winner(self, winner_name): #ASM
+    def display_winner(self, winner_name):
         pygame.init()
-        screen = pygame.display.set_mode((800, 600))
-        screen.fill((0, 0, 0))  # Efface l'écran
-        font = pygame.font.Font(None, 74)
-        text = font.render(f"Le joueur {winner_name} a gagné !", True, (255, 255, 255))
-        text_rect = text.get_rect(center=(400, 300))
-        screen.blit(text, text_rect)
-        pygame.display.flip()
-        pygame.time.wait(5000)  # Attend 5 secondes avant de fermer
+        screen = pygame.display.set_mode((1550, 865))
+        background = pygame.image.load("../data/img/background.png")
+       
+        # Afficher pendant 5 secondes
+        start_time = pygame.time.get_ticks()
+        showing = True
+       
+        while showing and pygame.time.get_ticks() - start_time < 5000:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    showing = False
+           
+            # Afficher le fond
+            screen.blit(pygame.transform.scale(background, (1550, 865)), (0, 0))
+           
+            # Afficher le texte de victoire
+            font = pygame.font.Font("../data/font/CinzelDecorative-Regular.ttf", 48)
+            text = font.render(f"Le joueur {winner_name} a gagné !", True, (255, 215, 0))
+            text_rect = text.get_rect(center=(1550 // 2, 865 // 2))  # Centre le texte par rapport à la taille de la fenêtre
+            screen.blit(text, text_rect)
+           
+            pygame.display.flip()
+       
+        pygame.quit()
+        self.show_menu()  # Retour au menu principal

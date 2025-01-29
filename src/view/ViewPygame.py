@@ -1,4 +1,5 @@
 import pygame
+import curses
 import sys
 import os
 import random
@@ -13,6 +14,7 @@ from model.TownCenter import TownCenter
 from view.Camera import Camera
 from model.Ressources import Ressources
 from model.Units import Units
+from model.Buildings import Buildings
 
 
 class ViewPygame:
@@ -68,6 +70,7 @@ class ViewPygame:
                 True,
                 (255, 255, 255)
             )
+        
     
     def _load_images(self):
         current_dir = os.path.dirname(os.path.abspath(__file__))
@@ -81,14 +84,15 @@ class ViewPygame:
             "barracks": os.path.join(project_root, "Sprite_aoe/buildings/barracks.png"),
             "gold": os.path.join(project_root, "Sprite_aoe/gold/GoldMine002.png"),
             "archeryrange": os.path.join(project_root, "Sprite_aoe/buildings/archery_range.png"),
-            "stable": os.path.join(project_root, "Sprite_aoe/buildings/Stable.png"),
+            "stable": os.path.join(project_root, "Sprite_aoe/buildings/stable.png"),
             "farm": os.path.join(project_root, "Sprite_aoe/buildings/farm1.png"),
             "villager": os.path.join(project_root, "Sprite_aoe/villager/standard_male/StandGround/Villagerstand001.png"),
             "house": os.path.join(project_root,"Sprite_aoe/buildings/house.png"),
             "camp": os.path.join(project_root, "Sprite_aoe/buildings/lumber_camp.png"),
             "keep": os.path.join(project_root, "Sprite_aoe/buildings/keep.png"),
             "horseman": os.path.join(project_root, "Sprite_aoe/villager/Horsearcherstand011.png"),
-            "archer": os.path.join(project_root, "Sprite_aoe/villager/Archerstand001.png")
+            "archer": os.path.join(project_root, "Sprite_aoe/villager/Archerstand001.png"),
+            "swordsman": os.path.join(project_root, "Sprite_aoe/villager/Longswordstand001.png"),
         }
         
         return {name: pygame.image.load(path).convert_alpha() 
@@ -119,7 +123,7 @@ class ViewPygame:
             ),
             'villager': pygame.transform.scale(
                 self.tiles["villager"],
-                (self.TILE_SIZE, self.TILE_SIZE) 
+                (0.84 * self.TILE_SIZE, 1.38 * self.TILE_SIZE) 
             ),
             'house': pygame.transform.scale(
                 self.tiles["house"],
@@ -147,6 +151,9 @@ class ViewPygame:
             'gold':pygame.transform.scale(self.tiles["gold"],
                 (1.76*self.TILE_SIZE,1.08* self.TILE_SIZE) 
             ),
+            'swordsman':pygame.transform.scale(self.tiles["swordsman"],
+                (0.99*self.TILE_SIZE,1.62* self.TILE_SIZE) 
+            ),
 
         }
 
@@ -167,7 +174,7 @@ class ViewPygame:
         return world
 
     def draw_map_2_5D(self):
-        # Check if full minimap mode is active
+       # Check if full minimap mode is active
         if hasattr(self, 'full_minimap_mode') and self.full_minimap_mode:
             self.draw_full_minimap()
             return
@@ -186,8 +193,8 @@ class ViewPygame:
         max_grid_x, max_grid_y = self.world_to_grid(camera_x + self.width/2, camera_y + self.height/2)
 
         # Calculer des bornes supplémentaires avec un padding plus large
-        padding_x = int(self.width / self.TILE_SIZE) + 4  # Augmenté de 2 à 4
-        padding_y = int(self.height / self.TILE_SIZE) + 4  # Augmenté de 2 à 4
+        padding_x = int(self.width / self.TILE_SIZE) + 4 
+        padding_y = int(self.height / self.TILE_SIZE) + 4 
 
         min_grid_x = max(0, min_grid_x - padding_x)
         min_grid_y = max(0, min_grid_y - padding_y)
@@ -232,11 +239,20 @@ class ViewPygame:
                             sprite_key = sprite_mapping.get(entity.__class__.__name__, None)
                             
                             if sprite_key and sprite_key in self.cached_sprites:
+                                if sprite_key == 'swordsman':
+                                    offset_x_unit = 20
+                                    offset_y_unit = 20
+                                elif sprite_key == 'horseman':
+                                    offset_x_unit = 15
+                                    offset_y_unit = 15
+                                else:
+                                    offset_x_unit = 0
+                                    offset_y_unit = 0
                                 render_list.append((
                                     screen_y + self.TILE_SIZE//2,
                                     (self.cached_sprites[sprite_key],
-                                    (screen_x - self.TILE_SIZE//2 + self.TILE_SIZE, 
-                                    screen_y - self.TILE_SIZE//2 + 10))
+                                    (screen_x - self.TILE_SIZE//2 + self.TILE_SIZE - offset_x_unit, 
+                                    screen_y - self.TILE_SIZE//2 - offset_y_unit))
                                 ))
                         
                         # Gestion des bâtiments
@@ -245,6 +261,27 @@ class ViewPygame:
                             self._add_building_to_render_list(
                                 entity, x, y, screen_x, screen_y, render_list
                             )
+                        if hasattr(entity, 'health_bar') and hasattr(entity, 'health') and not isinstance(entity, Buildings):
+                            # Specific offsets for different entity types
+                            offsets = {
+                                'Villager': (50, -30),
+                                'Swordsman': (40, -45),
+                                'Archer': (45, -25),
+                                'Horseman': (55, -25),
+                                
+                            }
+
+                            # Get class name and corresponding offset
+                            class_name = entity.__class__.__name__
+                            offset_x, offset_y = offsets.get(class_name, (25, -15))
+
+                            health_bar_x = screen_x + offset_x
+                            health_bar_y = screen_y + offset_y
+
+                            # Update and draw health bar
+                            entity.health_bar.update(entity.health)
+                            entity.health_bar.draw(self.screen, health_bar_x, health_bar_y)
+
 
         # Rendu trié par profondeur
         for _, (sprite, pos) in sorted(render_list, key=lambda x: x[0]):
@@ -281,80 +318,86 @@ class ViewPygame:
                 (255, 255, 255)
             )
     def _add_building_to_render_list(self, building, x, y, screen_x, screen_y, render_list):
-        #Méthode auxiliaire pour ajouter les bâtiments à la liste de rendu
-        
-        if isinstance(building, TownCenter):
-            if (y == 0 or not isinstance(self.map.get_map_entities()[x - 1][y], TownCenter)) and \
-               (x == 0 or not isinstance(self.map.get_map_entities()[x][y - 1], TownCenter)):
-                sprite_x = screen_x - self.cached_sprites['towncenter'].get_width()//2 + 1.5*self.TILE_SIZE
-                sprite_y = screen_y - self.cached_sprites['towncenter'].get_height() + 2.7 * self.TILE_SIZE
-                render_list.append((
-                    screen_y + self.TILE_SIZE * 4,
-                    (self.cached_sprites['towncenter'], (sprite_x, sprite_y))
-                ))
-        elif isinstance(building, Barracks):
-            if (x == 0 or not isinstance(self.map.get_map_entities()[x - 1][y], Barracks)) and \
-               (y == 0 or not isinstance(self.map.get_map_entities()[x][y - 1], Barracks)):
-                sprite_x = screen_x - self.cached_sprites['barracks'].get_width()//2 + self.TILE_SIZE
-                sprite_y = screen_y - self.cached_sprites['barracks'].get_height()//2 +0.5*self.TILE_SIZE
-                render_list.append((
-                    screen_y + self.TILE_SIZE * 2,
-                    (self.cached_sprites['barracks'], (sprite_x, sprite_y))
-                ))
-        elif isinstance(building, ArcheryRange):
-            if (x == 0 or not isinstance(self.map.get_map_entities()[x - 1][y], ArcheryRange)) and \
-            (y == 0 or not isinstance(self.map.get_map_entities()[x][y - 1], ArcheryRange)):
-                sprite_x = screen_x - self.cached_sprites['archeryrange'].get_width()//2 + 1.5*self.TILE_SIZE
-                sprite_y = screen_y - self.cached_sprites['archeryrange'].get_height()//2+0.5*self.TILE_SIZE
-                render_list.append((
-                    screen_y + self.TILE_SIZE * 2,
-                    (self.cached_sprites['archeryrange'], (sprite_x, sprite_y))
-                ))
-        elif isinstance(building, Stable):
-            if (y == 0 or not isinstance(self.map.get_map_entities()[x - 1][y], Stable)) and \
-            (x == 0 or not isinstance(self.map.get_map_entities()[x][y - 1], Stable)):
-                sprite_x = screen_x - self.cached_sprites['stable'].get_width()//2 + self.TILE_SIZE
-                sprite_y = screen_y - self.cached_sprites['stable'].get_height()//2 + 0.5*self.TILE_SIZE
-                render_list.append((
-                    screen_y + self.TILE_SIZE * 2,
-                    (self.cached_sprites['stable'], (sprite_x, sprite_y))
-                ))
-        elif isinstance(building, Farm):  # Ajout de la condition pour la ferme
-            if (y == 0 or not isinstance(self.map.get_map_entities()[x - 1][y], Farm)) and \
-            (x == 0 or not isinstance(self.map.get_map_entities()[x][y - 1], Farm)):
-                sprite_x = screen_x - self.cached_sprites['farm'].get_width()//2 + self.TILE_SIZE
-                sprite_y = screen_y - self.cached_sprites['farm'].get_height()//2 + 1.5*self.TILE_SIZE
-                render_list.append((
-                    screen_y + self.TILE_SIZE * 2,
-                    (self.cached_sprites['farm'], (sprite_x, sprite_y))
-                ))
-        elif isinstance(building, House):
-            if (y == 0 or not isinstance(self.map.get_map_entities()[x - 1][y], House)) and \
-            (x == 0 or not isinstance(self.map.get_map_entities()[x][y - 1], House)):
-                sprite_x = screen_x - self.cached_sprites['house'].get_width()//2 + self.TILE_SIZE
-                sprite_y = screen_y - self.cached_sprites['house'].get_height()//2 + self.TILE_SIZE//2
-                render_list.append((
-                    screen_y + self.TILE_SIZE * 2,
-                    (self.cached_sprites['house'], (sprite_x, sprite_y))
-                ))
-        elif isinstance(building, Camp):
-            if (y == 0 or not isinstance(self.map.get_map_entities()[x - 1][y], Camp)) and \
-            (x == 0 or not isinstance(self.map.get_map_entities()[x][y - 1], Camp)):
-                sprite_x = screen_x - self.cached_sprites['camp'].get_width()//2 + self.TILE_SIZE
-                sprite_y = screen_y - self.cached_sprites['camp'].get_height()//2 + self.TILE_SIZE//2
-                render_list.append((
-                    screen_y + self.TILE_SIZE * 2,
-                    (self.cached_sprites['camp'], (sprite_x, sprite_y))
-                ))
-        elif isinstance(building, Keep):
-            if (y == 0 or not isinstance(self.map.get_map_entities()[x - 1][y], Keep)) and \
-            (x == 0 or not isinstance(self.map.get_map_entities()[x][y - 1], Keep)):
-                sprite_x = screen_x - self.cached_sprites['keep'].get_width()//2 + self.TILE_SIZE
-                sprite_y = screen_y - self.cached_sprites['keep'].get_height()//2 - 0.5 * self.TILE_SIZE + 10
-                render_list.append((
-                    screen_y + self.TILE_SIZE * 2,
-                    (self.cached_sprites['keep'], (sprite_x, sprite_y))
-                ))
+        # Vérifie si c'est la tuile principale (en haut à gauche) du bâtiment
+        is_primary_tile = (
+            (y == 0 or not isinstance(self.map.get_map_entities()[x - 1][y], building.__class__)) and
+            (x == 0 or not isinstance(self.map.get_map_entities()[x][y - 1], building.__class__))
+        )
+
+        if is_primary_tile:
+            sprite_key = building.__class__.__name__.lower()
+            
+            # Ajustements spécifiques pour chaque type de bâtiment
+            offset_map = {
+                'towncenter': (
+                    -self.cached_sprites['towncenter'].get_width()//2 + 1.5*self.TILE_SIZE-20, 
+                    -self.cached_sprites['towncenter'].get_height() + 2.7 * self.TILE_SIZE+10
+                ),
+                'barracks': (
+                    -self.cached_sprites['barracks'].get_width()//2 + self.TILE_SIZE, 
+                    -self.cached_sprites['barracks'].get_height()//2 + 0.5*self.TILE_SIZE
+                ),
+                'archeryrange': (
+                    -self.cached_sprites['archeryrange'].get_width()//2 + 1.5*self.TILE_SIZE, 
+                    -self.cached_sprites['archeryrange'].get_height()//2 + 0.5*self.TILE_SIZE
+                ),
+                'stable': (
+                    -self.cached_sprites['stable'].get_width()//2 + self.TILE_SIZE-20, 
+                    -self.cached_sprites['stable'].get_height()//2 + 0.5*self.TILE_SIZE+10
+                ),
+                'farm': (
+                    -self.cached_sprites['farm'].get_width()//2 + self.TILE_SIZE, 
+                    -self.cached_sprites['farm'].get_height()//2 + 1.5*self.TILE_SIZE
+                ),
+                'house': (
+                    -self.cached_sprites['house'].get_width()//2 + self.TILE_SIZE, 
+                    -self.cached_sprites['house'].get_height()//2 + self.TILE_SIZE//2
+                ),
+                'camp': (
+                    -self.cached_sprites['camp'].get_width()//2 + self.TILE_SIZE, 
+                    -self.cached_sprites['camp'].get_height()//2 + self.TILE_SIZE//2
+                ),
+                'keep': (
+                    -self.cached_sprites['keep'].get_width()//2 + self.TILE_SIZE, 
+                    -self.cached_sprites['keep'].get_height()//2 - 0.5 * self.TILE_SIZE + 10
+                )
+            }
+
+            sprite_offset_x, sprite_offset_y = offset_map.get(sprite_key, (0, 0))
+            
+            sprite_x = screen_x + sprite_offset_x
+            sprite_y = screen_y + sprite_offset_y
+
+            render_list.append((
+                screen_y + self.TILE_SIZE * 2,
+                (self.cached_sprites[sprite_key], (sprite_x, sprite_y))
+            ))
+
+            # Dessiner la barre de vie centrée sur le bâtiment
+            sprite = self.cached_sprites[sprite_key]
+            
+            health_bar_offsets = {
+                'TownCenter': (-5, -5),
+                'Barracks': (-20, -15),
+                'ArcheryRange': (-25, -10),
+                'Stable': (-30, -15),
+                'Farm': (-20, -10),
+                'House': (-15, -10),
+                'Camp': (-20, -10),
+                'Keep': (-20, -15)
+            }
+
+            # Get the class name and corresponding offset
+            class_name = building.__class__.__name__
+            offset_x, offset_y = health_bar_offsets.get(class_name, (-25, -10))  # Default offset if not specified
+
+            if hasattr(building, 'health_bar') and hasattr(building, 'health'):
+                health_bar_x = sprite_x + sprite.get_width() // 2 + offset_x
+                health_bar_y = sprite_y + offset_y
+
+                building.health_bar.update(building.health)
+                building.health_bar.draw(self.screen, health_bar_x, health_bar_y)
+                building.health_bar.draw(self.screen, health_bar_x, health_bar_y)
 
     def grid_to_world(self, grid_x, grid_y):
         # Calculer les coordonnées cartésiennes de la tuile
@@ -560,6 +603,7 @@ class ViewPygame:
         
         self.panel_surface = pygame.Surface((panel_width, panel_height), pygame.SRCALPHA)
         
+        # Fond du panel avec dégradé
         for y in range(panel_height):
             alpha = 180
             blue_value = int(15 * (y / panel_height))
@@ -607,21 +651,31 @@ class ViewPygame:
         for player in self.game.lstPlayer:
             player_bg_rect = pygame.Rect(text_x, text_y, self.panel_rect.width - 20, 45)
             player_color = player.getColor()
+            if player_color is not None:
+                if player_color == curses.COLOR_RED:
+                    color = (255, 0, 0)
+                elif player_color == curses.COLOR_GREEN:
+                    color = (0, 255, 0)
+                elif player_color == curses.COLOR_BLUE:
+                    color = (0, 0, 255)
+                elif player_color == curses.COLOR_YELLOW:
+                    color = (255, 255, 0)
+                elif player_color == curses.COLOR_MAGENTA:
+                    color = (255, 0, 255)
+                elif player_color == curses.COLOR_CYAN:
+                    color = (0, 255, 255)
+                else:
+                    color = (255, 255, 255)
             
-            r = (player_color >> 16) & 255
-            g = (player_color >> 8) & 255
-            b = player_color & 255
-            bg_color = (r, g, b, 30)
-            
-            pygame.draw.rect(self.screen, bg_color, player_bg_rect, 0, 3)
+            pygame.draw.rect(self.screen, color, player_bg_rect, 0, 3)
             
             # Nom du joueur
             self.draw_text(
                 self.screen,
                 player.name,
                 20,
-                player_color,
-                (text_x + 5, text_y + 20)
+                color,  # Utilisation des composantes RGB extraites
+                (text_x + 5, text_y + 5)
             )
             
             # Ressources avec texte simple
@@ -630,18 +684,18 @@ class ViewPygame:
                 self.screen,
                 resources_text,
                 16,
-                (200, 200, 200),
-                (text_x + 5, text_y + 20)
+                (0, 0, 0),
+                (text_x + 5, text_y + 15)
             )
             
             # Unités
             units_text = f"Units: {player.countUnits()}"
-            units_text_rect = self.draw_text(
+            self.draw_text(
                 self.screen,
                 units_text,
                 16,
-                (200, 200, 200),
-                (text_x + self.panel_rect.width - 80, text_y + 20)  # Décalage ajusté pour éviter les dépassements
+                (0, 0, 0),
+                (text_x + self.panel_rect.width - 80, text_y + 15)
             )
             text_y += 55
     def draw_full_minimap(self):
