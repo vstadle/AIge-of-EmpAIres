@@ -8,6 +8,8 @@ echo "Mise à jour des paquets et installation de Python et Git..."
 sudo apt-get update -y
 sudo apt-get install -y python3 python3-pip git
 
+sudo apt install python3-venv
+
 # Créez un environnement virtuel
 python3 -m venv aige-env
 
