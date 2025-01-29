@@ -966,6 +966,7 @@ class AI:
                         self.lstBuildingWaiting.append(house)
 
         cpt_villager, cpt_swordsman, cpt_archer, cpt_horseman = self.count_Unit()
+
         if len(self.cplayer.player.units)!=0:
             ration_sworsman = cpt_swordsman / len(self.cplayer.player.units)
             ration_archer = cpt_archer / len(self.cplayer.player.units)
@@ -977,12 +978,6 @@ class AI:
             ration_archer = 0
             ration_horseman = 0
             ratio_villager = 0
-        
-        
-        ratio_villager = cpt_villager // len(self.cplayer.player.units)
-        ration_sworsman = cpt_swordsman // len(self.cplayer.player.units)
-        ration_archer = cpt_archer // len(self.cplayer.player.units)
-        ration_horseman = cpt_horseman // len(self.cplayer.player.units)
 
         while ratio_villager < 0.25:
             towncenter = self.findBuildings(TownCenter)
@@ -1195,8 +1190,13 @@ class AI:
         logs(self.cplayer.player.name + " :  Ration archer : " + str(ration_archer), logging.INFO)
         logs(self.cplayer.player.name + " :  Ration horseman : " + str(ration_horseman), logging.INFO)
 
+        if ration_archer < 0.34 and ration_sworsman < 0.34 and ration_horseman < 0.34:
+            cpt_total = len(self.cplayer.player.units) + 20
+        else:
+            cpt_total = len(self.cplayer.player.units)
+
         barracks = self.findBuildings(Barracks)
-        while ration_sworsman < 0.34 and cpt_swordsman < 45:
+        while ration_sworsman < 0.34:
             if barracks is None:
                 break
             if barracks is not None:
@@ -1204,7 +1204,7 @@ class AI:
                 if check == 1:
                     self.lstUnitWaiting.append("swordsman")
             cpt_swordsman += 1
-            ration_sworsman = cpt_swordsman / len(self.cplayer.player.units) + len(self.lstUnitWaiting)
+            ration_sworsman = cpt_swordsman / cpt_total + len(self.lstUnitWaiting)
         
         archery = self.findBuildings(ArcheryRange)
         while ration_archer < 0.34 and cpt_archer < 45:
@@ -1215,7 +1215,7 @@ class AI:
                 if check == 1:
                     self.lstUnitWaiting.append("archer")
             cpt_archer += 1
-            ration_archer = cpt_archer / len(self.cplayer.player.units) + len(self.lstUnitWaiting)
+            ration_archer = cpt_archer / cpt_total + len(self.lstUnitWaiting)
 
         stable = self.findBuildings(Stable)
         while ration_horseman < 0.34 and cpt_horseman < 45:
@@ -1226,7 +1226,7 @@ class AI:
                 if check == 1:
                     self.lstUnitWaiting.append("horseman")
             cpt_horseman += 1
-            ration_horseman = cpt_horseman + 1 / len(self.cplayer.player.units) + len(self.lstUnitWaiting)
+            ration_horseman = cpt_horseman + 1 / cpt_total + len(self.lstUnitWaiting)
 
         costGoldKeep = Keep().costG
         costWoodKeep = Keep().costW
