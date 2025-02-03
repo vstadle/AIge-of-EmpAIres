@@ -1,7 +1,5 @@
 # AIge-of-EmpAIre
 
-- Faire la partie Attaque des autres joueurs
-- Faire la partie graphique du menu
-- Revoir la partie sauvegarde
-- Finir la partie 2.5D
-- Faire l'affichage avec F1 etc...
+Ce projet a pour but de recréer le jeu Aige of Empire II mais en mettant en place des IA à la place de joeurs.
+
+Ce projet a été réalisé de la cadre d'un projet de développement pour les etudiants en 3ème année Sécurité et Technologies Informatique de l'INSA Centre Val de Loire
