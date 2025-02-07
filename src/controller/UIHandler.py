@@ -442,6 +442,9 @@ class UIHandler():
         '''
             
         self.controllerMap.reset(self.game.map)
+        
+        self.lstPlayers = []
+        
         for player in self.game.lstPlayer:
             self.lstPlayers.append(ControllerPlayer.from_saved(player, self.controllerMap))
 
@@ -454,6 +457,9 @@ class UIHandler():
         self.start()
 
     def initialize(self, typeGame, nbPlayers):
+        
+        Player.cptPlayer = 0
+        
         if(typeGame == "LEAN"):
             
             for i in range(nbPlayers):
