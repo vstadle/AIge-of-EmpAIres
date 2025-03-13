@@ -1,4 +1,8 @@
-# 🚀 AIge-of-EmpAIre 
+# 🚀 AIge-of-EmpAIre
+
+### Built With
+![Python][python.com]![Pygame][pygame.com]![Curses][curses.com]![Numpy][numpy.com]
+
 
 📌 Ce projet est un projet étudiant, intervant en 3ème année STI à l'INSA Centre Val de Loire. Nous devons par équipe de 6 reproduire le jeu AIge-of-EmpAIre.
 L'objectig n'est pas d'implémenter de vrai joueur mais d'implémenter des IA qui jouerons entre elles. Nous avons toutes les règles défini dans le polycopié que vous pouvez retrouver
@@ -76,3 +80,8 @@ This project is [GPL](./LICENSE) licensed.
 [profile-link-ameliesvnt]: https://github.com/ameliesvnt
 [profile-link-nmassot]: https://github.com/nmassot-web
 [profile-link-MelvinMi]: https://github.com/MelvinMi
+
+[python.com]: https://img.shields.io/badge/python-3670A0?style=for-the-badge&logo=python&logoColor=ffdd54
+[pygame.com]: https://img.shields.io/badge/pygame-4287f5?style=for-the-badge&logo=pygame&logoColor=white
+[curses.com]: https://img.shields.io/badge/curses-051D72?style=for-the-badge&logo=gnu&logoColor=white
+[numpy.com]: https://img.shields.io/badge/numpy-3670A0?style=for-the-badge&logo=numpy&logoColor=ffdd54
