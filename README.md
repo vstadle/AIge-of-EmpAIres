@@ -1,56 +1,87 @@
-# AIge-of-EmpAIre
+# 🚀 AIge-of-EmpAIre
 
-3rd year ST project at INSA Centre Val de Loire, tutored by M. HUGOT. Made by group 3.
+### Built With
+![Python][python.com]![Pygame][pygame.com]![Curses][curses.com]![Numpy][numpy.com]
 
-## Introduction
 
-The goal of this project is to create a real-time strategy game (RTS). Based on Age of Empire II. But with AI vs AI.
+📌 Ce projet est un projet étudiant, intervant en 3ème année STI à l'INSA Centre Val de Loire. Nous devons par équipe de 6 reproduire le jeu AIge-of-EmpAIre.
+L'objectig n'est pas d'implémenter de vrai joueur mais d'implémenter des IA qui jouerons entre elles. Nous avons toutes les règles défini dans le polycopié que vous pouvez retrouver
+[ici](https://files.vhugot.com/Restricted/Python/PythonNotesSC.pdf) (PART IV).
 
-## Installation
 
-#### Verify
+## 📖 Sommaire  
+- [À propos](#-à-propos)  
+- [Installation](#-installation)  
+- [Utilisation](#-utilisation)  
+- [Fonctionnalités](#-fonctionnalités)  
+- [Contribuer](#-contribuer)  
+- [Licence](#-licence)  
 
-Python Version : 3.12 or higher.
+## 🔍 À propos  
+Le but de ce projet est d'appliquer les connaissances apprises durant notre formation, et de les utilisés au sein d'un projet de groupe.
 
-Make sure you have Git installed to clone the repository.
+Le but de ce projet est de nous permettre d'acquérir d'avantage de connaissance, sur le développement, et sur l'intelligence Artificielle.
 
-#### Installation
+## ⚙️ Installation 
 
-To install the projet, you can clone the repository using the following command:
+### Prérequis
+
+Vérifiez que vous utilisés la version 3.12 (ou ultérieur) de python, et pip est bien installé
+
+**Si pip n'est pas installé, installe le avec**
 
 ```bash
-git clone https://github.com/vstadle/AIge-of-EmpAIre.git
+python -m pip install --upgrade pip
 ```
 
-> Tips
-> Optionnaly, you can create a virtual environnement to isolate the project's dependencies from your system using the following commands:
->```
->python -m venv .venv
->```
->
->
-> On Windows, you can activate the virtual environment using the following command:
-> ```bash
-> cd .venv/Scripts
-> activate
-> cd ../..
-> ```
->
-> On Unix or MacOS, you can activate the virtual environment using the following command:
-> ```bash
-> source .venv/bin/activate
-> ```
+Pour installer notre projet, suivez les étapes suivantes : 
 
-After that, you can install the required packages using the following command:
 ```bash
-pip install -r requirements.txt
+# Clone le dépôt
+git clone https://github.com/vstadler/AIge-of-EmpAIre.git
 ```
-
-Finally, you can run the game using the following command:
 ```bash
-python main.py
+# Va dans le dossier du projet
+cd Aige-of-EmpAIre
 ```
 
-## Team members
-Group 3:
-- [STADLER Valentin](https://github.com/vstadle)
+#### Installation des dépendances
+
+```bash
+# Installe les dépendances
+pip install curses
+pip install pygame
+pip install numpy
+```
+
+#### Lancement du jeu
+
+```bash
+# Démarre du jeu
+python /src/main.py
+```
+
+## 📜 Licence
+
+Copyright © 2025
+[vstadler][profile-link-vstadler],
+[starbucky][profile-link-starbucky],
+[Ilovetechnologyman][profile-link-ilovetech],
+[ameliesvnt][profile-link-ameliesvnt],
+[nmassot][profile-link-nmassot],
+[MelvinMi][profile-link-MelvinMi]. <br />
+This project is [GPL](./LICENSE) licensed.
+
+<!-- LINK GROUP-->
+
+[profile-link-vstadler]: https://github.com/vstadle
+[profile-link-starbucky]: https://github.com/StarBuckyyy
+[profile-link-ilovetech]: https://github.com/Ilovetechnologyman
+[profile-link-ameliesvnt]: https://github.com/ameliesvnt
+[profile-link-nmassot]: https://github.com/nmassot-web
+[profile-link-MelvinMi]: https://github.com/MelvinMi
+
+[python.com]: https://img.shields.io/badge/python-3670A0?style=for-the-badge&logo=python&logoColor=ffdd54
+[pygame.com]: https://img.shields.io/badge/pygame-4287f5?style=for-the-badge&logo=pygame&logoColor=white
+[curses.com]: https://img.shields.io/badge/curses-051D72?style=for-the-badge&logo=gnu&logoColor=white
+[numpy.com]: https://img.shields.io/badge/numpy-3670A0?style=for-the-badge&logo=numpy&logoColor=ffdd54
